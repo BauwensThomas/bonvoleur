@@ -11,8 +11,8 @@ export const site = {
   promise: "On déniche les vols pas chers à ta place, tu n'as plus qu'à réserver.",
   // Réseaux sociaux (à adapter avec tes vrais comptes).
   social: {
-    instagram: "https://instagram.com/bonvoleur.be",
-    facebook: "https://facebook.com/bonvoleur.be",
+    instagram: "https://www.instagram.com/bonvoleur",
+    facebook: "https://www.facebook.com/profile.php?id=61590940048347",
   },
 } as const;
 

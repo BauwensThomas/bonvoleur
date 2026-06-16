@@ -526,6 +526,22 @@ export default function HeroCinematic() {
           </div>
         </div>
 
+        {/* Ligne de progression : montre l'avancement dans l'animation (scroll) */}
+        <div className="absolute bottom-8 left-8 right-8 md:left-16 md:right-16 lg:left-32 lg:right-32 z-10 pointer-events-none">
+          <div className="relative h-px bg-white/20">
+            <div
+              className="absolute inset-y-0 left-0 bg-sky-400"
+              style={{ width: `${Math.round(scrollProgress * 100)}%` }}
+            />
+            <div
+              className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${Math.round(scrollProgress * 100)}%` }}
+            >
+              <span className="block h-2.5 w-2.5 rounded-full bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.9)]" />
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   )

@@ -323,7 +323,7 @@ export default async function Compte({
         )}
 
         <p className="mt-8 text-center text-xs text-slate-400">
-          {site.name} ne vend pas de billets : la reservation se fait sur le site
+          {site.name}{" "}ne vend pas de billets : la reservation se fait sur le site
           de la compagnie ou d&apos;un partenaire.
         </p>
       </main>
