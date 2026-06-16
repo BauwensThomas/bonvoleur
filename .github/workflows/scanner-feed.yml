@@ -1,13 +1,8 @@
-name: Scanner feed BonVoleur (mode PULL)
-# (workflow enregistre par GitHub Actions)
+name: Scanner BonVoleur (vers Supabase)
 
-# Mode PULL : le scanner ecrit data/deals-feed.json et le commit dans le repo.
-# Le site (meme en local) recupere ensuite ce JSON via DEALS_SOURCE_URL +
-# POST /api/admin/sync. A utiliser quand le site n'est PAS deploye (local).
-# Si le site est deploye, utiliser plutot scanner.yml (mode PUSH).
-#
-# URL a mettre dans DEALS_SOURCE_URL (.env.local) une fois ce workflow actif :
-#   https://raw.githubusercontent.com/<user>/<repo>/main/data/deals-feed.json
+# Le scanner tourne sur GitHub Actions et ecrit les deals DIRECTEMENT dans
+# Supabase (table deals), sans aucun JSON. Le site lit ensuite Supabase.
+# L'envoi des emails est gere par les crons du site (qui lisent Supabase).
 #
 # Heures en UTC : 05:30, 11:30, 17:30 UTC ~= 07:30, 13:30, 19:30 Bruxelles (ete).
 
@@ -18,11 +13,8 @@ on:
     - cron: "30 17 * * *"
   workflow_dispatch: {}
 
-permissions:
-  contents: write
-
 jobs:
-  feed:
+  scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,19 +22,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r scripts/requirements.txt
-      - name: Scan + ecriture du feed JSON
+      - name: Scan + ecriture dans Supabase
         env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           TRAVELPAYOUTS_TOKEN: ${{ secrets.TRAVELPAYOUTS_TOKEN }}
           TRAVELPAYOUTS_MARKER: ${{ secrets.TRAVELPAYOUTS_MARKER }}
-        run: python scripts/scanner.py --feed
-      - name: Commit du feed si modifie
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain data/deals-feed.json)" ]; then
-            git add data/deals-feed.json
-            git commit -m "chore: maj feed deals [skip ci]"
-            git push
-          else
-            echo "Aucun changement du feed."
-          fi
+        run: python scripts/scanner.py --supabase

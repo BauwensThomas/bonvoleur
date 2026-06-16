@@ -89,21 +89,57 @@ def deal_key(deal: dict) -> str:
     return f"{deal['origin']}|{deal['destination']}|{deal['price']}|{deal['booking_url']}"
 
 
-# --- Mode PULL : ecrire les deals dans un JSON public (le site va le CHERCHER) ---
-# Le scanner tourne sur un hebergeur (GitHub Actions...), ecrit ce fichier et le
-# commit ; le site (meme en local) le recupere via DEALS_SOURCE_URL + /api/admin/sync.
-FEED_PATH = os.environ.get(
-    "DEALS_FEED_PATH",
-    os.path.join(os.path.dirname(__file__), "..", "data", "deals-feed.json"),
-)
+# --- Ecriture directe dans Supabase (plus aucun JSON) ---
+# Le scanner ecrit les deals directement dans la table `deals` de Supabase via
+# l'API REST (PostgREST), avec la SERVICE ROLE key. Dedoublonnage par booking_url.
+import uuid as _uuid
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 
 
-def write_feed(deals: list[dict]) -> None:
-    """Ecrit la liste des deals (verifies) dans le fichier de feed public."""
-    os.makedirs(os.path.dirname(os.path.abspath(FEED_PATH)), exist_ok=True)
-    with open(FEED_PATH, "w", encoding="utf-8") as f:
-        json.dump(deals, f, ensure_ascii=False, indent=2)
-    print(f"Feed ecrit : {len(deals)} deal(s) -> {os.path.abspath(FEED_PATH)}")
+def _sb_headers() -> dict:
+    return {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+    }
+
+
+def deal_exists_in_db(booking_url: str) -> bool:
+    r = requests.get(
+        f"{SUPABASE_URL}/rest/v1/deals",
+        headers=_sb_headers(),
+        params={"booking_url": f"eq.{booking_url}", "select": "id", "limit": "1"},
+        timeout=15,
+    )
+    return r.ok and len(r.json()) > 0
+
+
+def insert_deal_in_db(deal: dict) -> tuple[bool, str]:
+    row = {
+        "id": str(_uuid.uuid4()),
+        "origin": deal["origin"],
+        "destination": deal["destination"],
+        "price": deal["price"],
+        "normal_price": deal.get("normal_price"),
+        "discount_pct": None,
+        "dates": deal.get("dates", ""),
+        "airline": deal.get("airline"),
+        "booking_url": deal["booking_url"],
+        "is_error_fare": bool(deal.get("is_error_fare", False)),
+        "is_hot": deal.get("is_hot", True),
+        "valid_until": None,
+        "published_at": None,
+        "email": None,
+    }
+    r = requests.post(
+        f"{SUPABASE_URL}/rest/v1/deals",
+        headers={**_sb_headers(), "Prefer": "return=minimal"},
+        json=row,
+        timeout=20,
+    )
+    return r.ok, f"{r.status_code} {r.text}"
 
 
 def link_is_accessible(url: str) -> bool:
@@ -263,23 +299,40 @@ def send_digests() -> None:
         call_digest("/api/cron/digest-weekly")  # gratuit : une fois par semaine
 
 
-def run_feed() -> None:
-    """Mode PULL : trouve les deals, verifie les liens, ecrit le JSON de feed.
-    Ne pousse rien vers le site et n'envoie aucun email (c'est le site qui pull)."""
+def run_supabase() -> None:
+    """Mode Supabase : trouve les deals, verifie les liens, et les ecrit
+    directement dans la table `deals` de Supabase (dedoublonnage par booking_url).
+    N'envoie aucun email (le site s'en charge via ses crons en lisant Supabase)."""
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        raise SystemExit("Definis SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY.")
     deals = find_deals()
-    verified = [d for d in deals if link_is_accessible(d["booking_url"])]
-    print(f"{len(deals)} candidat(s), {len(verified)} avec lien valide")
-    write_feed(verified)
+    added = dup = skipped = 0
+    print(f"{len(deals)} deal(s) candidat(s)")
+    for d in deals:
+        if not link_is_accessible(d["booking_url"]):
+            print(f"SKIP lien mort : {d['booking_url']}")
+            skipped += 1
+            continue
+        if deal_exists_in_db(d["booking_url"]):
+            dup += 1
+            continue
+        ok, info = insert_deal_in_db(d)
+        if ok:
+            print(f"OK  {d['origin']} -> {d['destination']} ({d['price']} EUR)")
+            added += 1
+        else:
+            print(f"ERR insert : {info}")
+    print(f"Supabase : {added} ajout(s), {dup} doublon(s), {skipped} lien(s) mort(s)")
 
 
 if __name__ == "__main__":
     import sys
 
-    # Mode "--feed" (PULL) : ecrit data/deals-feed.json, sans pousser ni envoyer.
+    # Mode "--supabase" : ecrit les deals directement dans Supabase, sans email.
     # Pas besoin d'INGEST_SECRET (aucun appel au site).
-    if "--feed" in sys.argv:
-        print("Scanner BonVoleur (mode feed / PULL)")
-        run_feed()
+    if "--supabase" in sys.argv:
+        print("Scanner BonVoleur (mode Supabase)")
+        run_supabase()
         raise SystemExit(0)
 
     if not INGEST_SECRET:
