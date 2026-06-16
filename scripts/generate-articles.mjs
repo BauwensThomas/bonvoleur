@@ -88,7 +88,7 @@ for (const topic of TOPICS) {
     title: a.title, excerpt: a.excerpt, content: a.content,
     faq: Array.isArray(a.faq) ? a.faq : [],
     cover_image: null, meta_title: a.meta_title, meta_description: a.meta_description,
-    status: "published", author: "Content Publisher",
+    status: "published", author: "Thomas & l'équipe Bon Voleur",
     published_at: now, updated_at: now, created_at: now,
   });
   console.log(error ? `ERREUR ${error.message}` : `OK (${a.content.length} caracteres)`);

@@ -10,6 +10,12 @@ import { site } from "@/lib/site";
 
 type Params = { slug: string };
 
+// Temps de lecture estimé (~200 mots/minute).
+function readingMinutes(content: string): number {
+  const words = content.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
 export async function generateStaticParams() {
   // Au build : si la DB n'est pas joignable (tables Supabase pas encore créées),
   // on ne génère aucune page statique plutôt que de planter le build.
@@ -95,11 +101,15 @@ export default async function BlogPost({
           ← Retour au blog
         </Link>
         <h1 className="mt-4 text-3xl font-bold">{post.title}</h1>
-        <p className="mt-2 text-slate-500 text-sm">
+        <p className="mt-2 text-sm text-slate-500">
+          Par <span className="text-slate-700">{post.author}</span>
+          {" · "}
           {new Date(post.published_at ?? post.created_at).toLocaleDateString(
             "fr-BE",
             { day: "numeric", month: "long", year: "numeric" }
           )}
+          {" · "}
+          {readingMinutes(post.content)} min de lecture
         </p>
         <article className="prose prose-slate mt-6 max-w-none prose-headings:font-bold prose-a:text-brand">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>

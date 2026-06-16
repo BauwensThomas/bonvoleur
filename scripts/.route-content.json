@@ -147,5 +147,173 @@
       "Il n'y a pas de decalage horaire entre la Belgique et Alicante, ce qui evite tout temps d'adaptation a l'arrivee.",
       "Sur cette route, les vols sont en classe economique uniquement avec Ryanair, donc verifiez bien les regles de bagages cabine et en soute avant le depart."
     ]
+  },
+  "bruxelles-barcelone": {
+    "intro": "La liaison Bruxelles (BRU) vers Barcelone (BCN) est une route directe sans escale couvrant environ 1 089 km. Elle est operee quotidiennement avec une frequence elevee, totalisant entre 56 et 72 departs hebdomadaires selon les periodes. Bruxelles et Barcelone partagent le meme fuseau horaire, donc il n'y a pas de decalage horaire.",
+    "airlines": [
+      "Brussels Airlines",
+      "Vueling",
+      "Ryanair"
+    ],
+    "duration": "environ 2h en direct (entre 1h55 et 2h10 selon les vols)",
+    "bestPeriod": "Le printemps (mars a mai) et l'automne (septembre a novembre) offrent un bon equilibre climat et affluence. Pour des prix plus bas et moins de foule, novembre, janvier et fevrier sont les mois les plus calmes, tandis que decembre figure parmi les mois les moins chers.",
+    "tips": [
+      "Reserver au moins 3 semaines a l'avance permet en general de realiser des economies notables par rapport a une reservation de derniere minute.",
+      "Verifier l'aeroport de depart car certains vols low cost partent de Charleroi (CRL) et non de Bruxelles-National (BRU), ce qui change l'acces et la logistique.",
+      "L'aeroport de Bruxelles (BRU) se trouve a environ 13 km du centre, accessible en voiture en 25 minutes ou en transports en commun en une vingtaine de minutes.",
+      "Prevoir d'arriver a l'aeroport au moins deux heures avant un vol et anticiper des files plus longues en haute saison comme en juillet."
+    ]
+  },
+  "charleroi-malaga": {
+    "intro": "La liaison entre Bruxelles Sud Charleroi (CRL) et Malaga Costa del Sol (AGP) est exploitee en vol direct sans escale. Selon les donnees de planning aerien, la route est assuree principalement par Ryanair, avec une moyenne d'environ deux vols par jour et autour de onze frequences par semaine. La distance entre les deux aeroports est d'environ 1690 km.",
+    "airlines": [
+      "Ryanair"
+    ],
+    "duration": "environ 2h50 en direct sans escale",
+    "bestPeriod": "Juin est indique comme le mois le moins cher pour cette liaison selon un comparateur. Cote meteo, Malaga offre des etes chauds et secs (souvent au dela de 30 C) et des hivers doux, donc le printemps et l'automne restent agreables pour visiter sans la forte chaleur estivale.",
+    "tips": [
+      "Comme la route est operee par Ryanair (compagnie low cost), verifiez attentivement la politique de bagages selon votre type de tarif, le bagage en soute n'etant generalement pas inclus dans le billet de base.",
+      "Effectuez l'enregistrement en ligne a l'avance via l'application ou le site Ryanair pour eviter les frais d'enregistrement a l'aeroport.",
+      "Prevoyez d'arriver a l'aeroport de Charleroi au moins deux heures avant le depart pour passer les controles sans stress.",
+      "Aucun passeport n'est obligatoire pour les citoyens de l'UE car Charleroi et Malaga sont tous deux dans l'espace Schengen, mais emportez une piece d'identite valide; l'aeroport de Malaga se trouve a seulement environ 8 km du centre-ville."
+    ]
+  },
+  "paris-new-york": {
+    "intro": "La liaison Paris Charles de Gaulle (CDG) vers New York John F. Kennedy (JFK) est l'une des routes transatlantiques les plus frequentees au monde, avec de nombreux vols directs quotidiens. Plusieurs compagnies majeures operent cette ligne sans escale, et des options avec correspondance existent egalement, generalement moins cheres mais plus longues. Le decalage horaire entre les deux villes est de 6 heures, Paris etant en avance.",
+    "airlines": [
+      "Air France",
+      "Delta Air Lines",
+      "American Airlines",
+      "JetBlue"
+    ],
+    "duration": "Environ 8h en direct (souvent entre 7h45 et 8h15) ; avec escale, le trajet dure generalement de 11h a 15h",
+    "bestPeriod": "Les mois hors saison comme l'automne et l'hiver (hors fetes) offrent souvent des tarifs plus bas, tandis que le printemps et l'automne proposent une meteo agreable a New York. Reserver plusieurs semaines a l'avance permet generalement d'obtenir de meilleurs prix.",
+    "tips": [
+      "Pour rejoindre l'aeroport CDG depuis Paris, le RER B est une option pratique avec un trajet d'environ 30 minutes et des trains toutes les 10 a 20 minutes.",
+      "Anticiper le decalage horaire de 6 heures (Paris en avance) pour mieux gerer la fatigue et organiser ses transferts a l'arrivee.",
+      "Le vol retour vers Paris est generalement plus court d'environ une heure grace aux vents d'ouest dominants (jet stream).",
+      "Reserver a l'avance plutot qu'a la derniere minute permet souvent d'eviter les tarifs eleves, particulierement lors des pics saisonniers."
+    ]
+  },
+  "paris-lisbonne": {
+    "intro": "La liaison Paris-CDG vers Lisbonne (LIS) est une route court-courrier opérée en vol direct quotidiennement. Air France propose des vols chaque jour vers la capitale portugaise, et plusieurs compagnies dont easyJet assurent aussi des liaisons sans escale. Des vols avec escale existent via Amsterdam, Bruxelles, Madrid ou Porto, mais sont nettement plus longs.",
+    "airlines": [
+      "Air France",
+      "easyJet",
+      "TAP Air Portugal",
+      "Transavia France",
+      "Ryanair",
+      "Vueling"
+    ],
+    "duration": "environ 2h30 a 2h45 en direct, contre environ 4h a 6h avec escale selon la ville de correspondance",
+    "bestPeriod": "Pour la meteo, mai a septembre est ideal avec un climat doux et ensoleille (Air France recommande aussi mai-juin et septembre-octobre). Cote prix, janvier est generalement le mois le moins cher, tandis qu'aout est le plus cher.",
+    "tips": [
+      "Reserver environ 4 a 6 semaines a l'avance permet souvent de faire des economies par rapport a une reservation de derniere minute",
+      "Privilegier les vols en milieu de semaine, notamment mardi et mercredi, qui tendent a etre moins chers",
+      "L'aeroport Humberto Delgado de Lisbonne est tres proche du centre-ville (environ 7 km), accessible en metro, bus ou taxi en 20 a 30 minutes",
+      "Comparer avec un depart depuis Paris-Orly (ORY), car des compagnies comme TAP Air Portugal, Vueling, Ryanair et Transavia y operent aussi vers Lisbonne"
+    ]
+  },
+  "paris-barcelone": {
+    "intro": "La liaison Paris-Charles de Gaulle (CDG) vers Barcelone-El Prat (BCN) est une route directe et tres frequentee, avec des departs assures chaque jour de la semaine. Air France propose environ 48 a 49 vols sans escale par semaine au depart de CDG, completee par Vueling et d'autres transporteurs. L'aeroport de Barcelone-El Prat se situe a environ 12 km au sud-ouest de la capitale catalane.",
+    "airlines": [
+      "Air France",
+      "Vueling",
+      "Iberia",
+      "LEVEL"
+    ],
+    "duration": "environ 1h45 a 1h50 en direct, ou de 3h a 5h avec escale",
+    "bestPeriod": "Le printemps (mars a mai) et l'automne (septembre a novembre) offrent une meteo agreable et une frequentation touristique plus calme; octobre et novembre figurent parmi les mois les moins chers selon les comparateurs.",
+    "tips": [
+      "Pour beneficier du climat mediterraneen, privilegiez la periode d'avril a novembre avec des temperatures douces.",
+      "Reserver environ 40 jours (6 semaines) a l'avance est souvent indique comme le meilleur moment pour obtenir un tarif avantageux sur cette route.",
+      "A CDG, les vols vers Barcelone partent generalement des terminaux 2F ou 2G, prevoyez votre temps de transfert en consequence.",
+      "Depuis l'aeroport de Barcelone, le train Renfe relie le centre-ville en environ 30 minutes, ou l'Aerobus rejoint la place de Catalogne en environ 35 minutes."
+    ]
+  },
+  "paris-athenes": {
+    "intro": "La liaison Paris–Charles-de-Gaulle vers Athènes Elefthérios-Venizélos est une route très fréquentée, principalement opérée en vol direct, avec environ trois vols par jour au départ de CDG. Air France et Aegean Airlines comptent parmi les principales compagnies, rejointes par Sky Express, et l'aéroport d'Athènes se trouve à une trentaine de kilomètres du centre-ville, accessible en métro ligne 3.",
+    "airlines": [
+      "Air France",
+      "Aegean Airlines",
+      "Sky Express"
+    ],
+    "duration": "environ 3h10 à 3h25 en vol direct (le vol direct le plus rapide est d'environ 3h15)",
+    "bestPeriod": "Le printemps (mars à mai) et l'automne (septembre à novembre) offrent un bon climat; côté tarifs, septembre est souvent parmi les mois les moins chers et il est conseillé de réserver environ 40 jours à l'avance.",
+    "tips": [
+      "Depuis l'aéroport d'Athènes, le métro ligne 3 rejoint le centre (Syntagma, Monastiraki) en environ 45 minutes, avec un départ toutes les 30 minutes entre 5h30 et 23h30.",
+      "Vérifiez l'aéroport de départ: des vols partent aussi d'Orly (notamment Transavia France), en plus de Charles-de-Gaulle.",
+      "Réservez à l'avance pour de meilleurs tarifs, car septembre tend à être le mois le moins cher selon les comparateurs.",
+      "Prévoyez une protection contre la chaleur en été à Athènes, où les températures dépassent souvent 30°C et peuvent atteindre 40°C à l'intérieur des terres."
+    ]
+  },
+  "paris-bangkok": {
+    "intro": "La liaison Paris-Charles de Gaulle vers Bangkok-Suvarnabhumi est assuree en vol direct par plusieurs compagnies, avec une duree d'environ 11 heures sans escale. Air France propose 5 vols sans escale par semaine et Thai Airways en propose 7. De nombreuses compagnies offrent aussi des vols avec une seule escale, notamment via le Moyen-Orient, l'Asie ou des hubs europeens.",
+    "airlines": [
+      "Thai Airways International",
+      "Air France",
+      "Aircalin",
+      "Turkish Airlines",
+      "Qatar Airways",
+      "Emirates",
+      "Cathay Pacific"
+    ],
+    "duration": "environ 11h15 en direct, et au moins 14h avec une escale",
+    "bestPeriod": "De mi-novembre a fin mars pour la meteo (saison seche, temperatures plus supportables, peu de pluie), janvier et fevrier etant les meilleurs mois. Cote prix, fevrier est en moyenne plus avantageux, alors que les mois d'ete (juillet, aout) sont plus chers et plus prises.",
+    "tips": [
+      "Verifier la validite du passeport : il doit etre valable au moins 6 mois a partir de la date d'entree en Thailande.",
+      "Tenir compte du decalage horaire : Bangkok est en avance de 5 a 6 heures sur Paris selon la periode de l'annee.",
+      "Choisir entre vol de jour et vol de nuit selon votre preference : un vol de nuit permet de dormir et de limiter la fatigue a l'arrivee.",
+      "Eviter la periode de mousson (environ mai a octobre) marquee par de fortes averses et des temperatures elevees, et bien distinguer l'aeroport Suvarnabhumi (BKK) de Don Muang (DMK)."
+    ]
+  },
+  "lyon-barcelone": {
+    "intro": "La liaison Lyon-Saint-Exupery (LYS) vers Barcelone-El Prat (BCN) est une route court-courrier internationale operee en vol direct. Vueling assure l'essentiel des frequences, avec environ 14 vols directs par semaine, et easyJet complete l'offre sur cette ligne. La distance est d'environ 547 km.",
+    "airlines": [
+      "Vueling",
+      "easyJet"
+    ],
+    "duration": "environ 1h20 a 1h30 en direct",
+    "bestPeriod": "Le printemps (mars a mai) et l'automne (septembre a novembre) offrent un bon climat a Barcelone, tandis que les mois creux comme janvier ou octobre tendent a afficher des tarifs plus bas.",
+    "tips": [
+      "Reserver environ 6 semaines a l'avance et privilegier les departs en milieu de semaine, souvent moins chers",
+      "Tous les vols partent de l'aeroport unique de Lyon-Saint-Exupery (LYS), accessible notamment depuis la gare de Lyon Part-Dieu",
+      "Vueling se distingue comme la compagnie la plus ponctuelle sur cette route, avec un taux d'environ 87 pourcent de vols a l'heure",
+      "Prevoir une arrivee a l'aeroport au moins deux heures avant le depart pour un vol international, davantage durant les periodes de forte affluence"
+    ]
+  },
+  "lyon-lisbonne": {
+    "intro": "La liaison Lyon Saint Exupery (LYS) vers Lisbonne (LIS) est exploitee principalement en vol direct par TAP Air Portugal et easyJet. Selon les sources, on compte une vingtaine de departs directs par semaine, avec en general un a deux vols par jour. Des options avec escale existent aussi via des compagnies comme Vueling, generalement plus longues.",
+    "airlines": [
+      "TAP Air Portugal",
+      "easyJet",
+      "Vueling (avec escale)"
+    ],
+    "duration": "environ 2h25 a 2h35 en vol direct",
+    "bestPeriod": "Pour les prix, janvier est souvent indique comme le mois le moins cher et aout comme le plus cher. Cote meteo, Lisbonne offre des etes chauds et secs et des hivers doux, le printemps et l'automne etant des periodes equilibrees.",
+    "tips": [
+      "Reserver tot et privilegier les vols directs TAP ou easyJet, depart possible de tot le matin (vers 05h20) jusqu'au soir (vers 22h15)",
+      "Penser au decalage horaire d'une heure entre Lyon et Lisbonne (Lisbonne en retard)",
+      "Pour rejoindre l'aeroport de Lyon, le Rhonexpress relie la gare de La Part Dieu a Saint Exupery en une trentaine de minutes",
+      "Une carte nationale d'identite ou un passeport en cours de validite suffit pour les ressortissants de l'Union europeenne, le Portugal etant dans l'espace Schengen"
+    ]
+  },
+  "lyon-rome": {
+    "intro": "La liaison Lyon Saint Exupery (LYS) vers Rome Fiumicino (FCO) est principalement assuree en vol direct sans escale. easyJet est aujourd'hui la principale compagnie operant cette route sans escale, avec environ deux vols par jour selon les jours de la semaine. De nombreuses correspondances existent aussi via des hubs europeens avec Air France, Lufthansa, KLM ou Iberia.",
+    "airlines": [
+      "easyJet (vols directs)",
+      "Air France (souvent avec correspondance)",
+      "Lufthansa (avec correspondance)",
+      "KLM (avec correspondance)",
+      "Iberia (avec correspondance)"
+    ],
+    "duration": "environ 1h35 en direct, ou environ 3h a 5h avec escale",
+    "bestPeriod": "Pour les prix, janvier et fevrier sont generalement les mois les moins chers. Pour la meteo, le printemps (mars a mai) et l'automne (septembre a novembre) sont les plus agreables a Rome, l'ete pouvant depasser 30 degres.",
+    "tips": [
+      "Pour rejoindre le centre de Rome depuis Fiumicino, situe a environ 30 km, le train Leonardo Express relie l'aeroport a la gare Termini en environ 30 minutes.",
+      "En tant que ressortissant de l'Union europeenne, une simple carte d'identite nationale suffit pour ce voyage, car Lyon et Rome sont dans l'espace Schengen.",
+      "Reserver environ 40 jours a l'avance est souvent recommande pour obtenir de meilleurs tarifs sur cette route.",
+      "Depuis le centre de Lyon, le train (Rhonexpress) ou la navette bus permettent de rejoindre facilement l'aeroport Saint Exupery en une trentaine de minutes."
+    ]
   }
 }

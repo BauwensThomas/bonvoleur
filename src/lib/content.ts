@@ -158,6 +158,33 @@ const schema = {
   ],
 } as const;
 
+// Collecte des faits RÉELS via la recherche web, pour ancrer l'article (mêmes
+// types d'infos que les pages route : compagnies, durées, périodes, fourchettes).
+async function gatherFacts(topic: string): Promise<string> {
+  if (!process.env.ANTHROPIC_API_KEY) return "";
+  try {
+    const client = new Anthropic();
+    const model = process.env.ANTHROPIC_MODEL ?? "claude-opus-4-8";
+    const res = await client.messages.create({
+      model,
+      max_tokens: 1500,
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
+      messages: [
+        {
+          role: "user",
+          content: `Recherche sur le web des informations FACTUELLES et vérifiables utiles pour un article sur : "${topic}" (contexte : vols pas chers depuis la Belgique et la France, aéroports BRU, CRL, CDG, LYS). Donne une liste de faits concrets et exacts : compagnies aériennes réelles, durées de vol, meilleures périodes, fourchettes de prix réalistes, règles de bagages cabine, etc. N'invente rien. Français, sans émoji, sans tiret long.`,
+        },
+      ],
+    });
+    return res.content
+      .map((b) => (b.type === "text" ? b.text : ""))
+      .join("\n")
+      .trim();
+  } catch {
+    return "";
+  }
+}
+
 export async function generateArticle(): Promise<GeneratedArticle> {
   if (!process.env.ANTHROPIC_API_KEY) {
     return localDraft(await pickTopic());
@@ -168,12 +195,18 @@ export async function generateArticle(): Promise<GeneratedArticle> {
   const recent = await recentTitles(30);
   const topic = (await pickTrendingTopic(recent)) ?? (await pickTopic());
 
+  // 2) Faits réels (recherche web) à intégrer dans l'article.
+  const facts = await gatherFacts(topic);
+
   const client = new Anthropic();
   const model = process.env.ANTHROPIC_MODEL ?? "claude-opus-4-8";
 
   const prompt = `Tu es le rédacteur en chef de ${site.name} (${site.domain}), un média de deals de vols pas chers pour la Belgique et la France. Tu écris pour être LU et pour RANKER sur Google.
 
 Rédige un article de blog complet, riche et optimisé SEO sur le sujet : "${topic}".
+
+${facts ? `INFORMATIONS FACTUELLES VÉRIFIÉES (issues d'une recherche web) à intégrer quand c'est pertinent, sans rien inventer en plus :\n${facts}\n` : ""}
+Style attendu (identique à nos pages de route) : factuel et concret, avec de vraies compagnies aériennes, des durées de vol réalistes, des meilleures périodes, des fourchettes de prix (jamais de prix garanti), des conseils actionnables.
 
 Contraintes impératives :
 - Français natif (BE/FR), ton complice, malin, direct, jamais corporate. Phrases courtes.
@@ -238,7 +271,7 @@ export async function runContentPublisher(
       meta_title: article.meta_title,
       meta_description: article.meta_description,
       status: "draft", // relecture humaine avant publication
-      author: "Content Publisher",
+      author: "Thomas & l'équipe Bon Voleur",
       published_at: null,
       updated_at: now,
     });
