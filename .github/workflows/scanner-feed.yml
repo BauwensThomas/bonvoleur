@@ -1,0 +1,47 @@
+name: Scanner feed BonVoleur (mode PULL)
+
+# Mode PULL : le scanner ecrit data/deals-feed.json et le commit dans le repo.
+# Le site (meme en local) recupere ensuite ce JSON via DEALS_SOURCE_URL +
+# POST /api/admin/sync. A utiliser quand le site n'est PAS deploye (local).
+# Si le site est deploye, utiliser plutot scanner.yml (mode PUSH).
+#
+# URL a mettre dans DEALS_SOURCE_URL (.env.local) une fois ce workflow actif :
+#   https://raw.githubusercontent.com/<user>/<repo>/main/data/deals-feed.json
+#
+# Heures en UTC : 05:30, 11:30, 17:30 UTC ~= 07:30, 13:30, 19:30 Bruxelles (ete).
+
+on:
+  schedule:
+    - cron: "30 5 * * *"
+    - cron: "30 11 * * *"
+    - cron: "30 17 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  feed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r scripts/requirements.txt
+      - name: Scan + ecriture du feed JSON
+        env:
+          TRAVELPAYOUTS_TOKEN: ${{ secrets.TRAVELPAYOUTS_TOKEN }}
+          TRAVELPAYOUTS_MARKER: ${{ secrets.TRAVELPAYOUTS_MARKER }}
+        run: python scripts/scanner.py --feed
+      - name: Commit du feed si modifie
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain data/deals-feed.json)" ]; then
+            git add data/deals-feed.json
+            git commit -m "chore: maj feed deals [skip ci]"
+            git push
+          else
+            echo "Aucun changement du feed."
+          fi

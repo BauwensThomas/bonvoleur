@@ -1,0 +1,29 @@
+name: Scanner deals BonVoleur
+
+# Lance le scan + envoi 3 fois par jour (gratuit via GitHub Actions).
+# Heures en UTC : 05:30, 11:30, 17:30 UTC ~= 07:30, 13:30, 19:30 Bruxelles (été).
+# Ajuste de -1h en hiver si besoin (GitHub cron est en UTC, pas de fuseau).
+on:
+  schedule:
+    - cron: "30 5 * * *"
+    - cron: "30 11 * * *"
+    - cron: "30 17 * * *"
+  workflow_dispatch: {} # permet aussi de le lancer à la main depuis GitHub
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r scripts/requirements.txt
+      - name: Scan + envoi (one-shot)
+        env:
+          BONVOLEUR_URL: ${{ secrets.BONVOLEUR_URL }}
+          INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TRAVELPAYOUTS_TOKEN: ${{ secrets.TRAVELPAYOUTS_TOKEN }}
+          TRAVELPAYOUTS_MARKER: ${{ secrets.TRAVELPAYOUTS_MARKER }}
+        run: python scripts/scanner.py --once
