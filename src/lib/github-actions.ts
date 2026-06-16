@@ -67,6 +67,55 @@ export async function getScannerRuns(): Promise<ScannerRuns> {
   }
 }
 
+// Nettoie un log brut GitHub Actions pour un rendu type console :
+// retire l'horodatage ISO, les codes couleur ANSI et les marqueurs ##[...].
+function cleanLog(raw: string): string {
+  const ansi = new RegExp(String.fromCharCode(27) + "\\[[0-9;]*m", "g");
+  return raw
+    .split(/\r?\n/)
+    .map((l) =>
+      l
+        .replace(/^\d{4}-\d{2}-\d{2}T[0-9:.]+Z\s?/, "")
+        .replace(ansi, "")
+        .replace(/^##\[(group|endgroup|command|section|warning|error)\]/, "")
+    )
+    .join("\n");
+}
+
+// Récupère le log complet d'un run (toutes ses étapes), comme dans un terminal.
+export async function getRunLog(
+  runId: string
+): Promise<{ ok: boolean; log: string; error?: string }> {
+  const repo = process.env.GITHUB_REPO;
+  const token = process.env.GITHUB_TOKEN;
+  if (!repo || !token) return { ok: false, log: "", error: "GitHub non configuré." };
+
+  try {
+    const jr = await fetch(
+      `${GH_API}/repos/${repo}/actions/runs/${runId}/jobs`,
+      { headers: ghHeaders(token), cache: "no-store" }
+    );
+    if (!jr.ok) return { ok: false, log: "", error: `jobs ${jr.status}` };
+    const jobs = ((await jr.json()) as { jobs?: { id: number; name: string }[] }).jobs ?? [];
+
+    let out = "";
+    for (const job of jobs) {
+      const lr = await fetch(
+        `${GH_API}/repos/${repo}/actions/jobs/${job.id}/logs`,
+        { headers: ghHeaders(token), cache: "no-store" }
+      );
+      if (!lr.ok) {
+        out += `\n[log "${job.name}" indisponible : ${lr.status}]\n`;
+        continue;
+      }
+      out += cleanLog(await lr.text());
+    }
+    return { ok: true, log: out.trim() || "(log vide)" };
+  } catch (err) {
+    return { ok: false, log: "", error: err instanceof Error ? err.message : "Erreur GitHub" };
+  }
+}
+
 // Déclenche un run du scanner (workflow_dispatch). Nécessite un token "Actions: write".
 export async function triggerScannerRun(): Promise<{ ok: boolean; error?: string }> {
   const repo = process.env.GITHUB_REPO;
