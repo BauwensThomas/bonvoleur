@@ -42,6 +42,38 @@ Te desinscrire : ${unsubscribeUrl}`;
   };
 }
 
+// Double opt-in : email de confirmation envoye juste apres l'inscription.
+// L'abonne n'est actif qu'apres avoir clique le bouton de confirmation.
+export function confirmEmail(to: string, confirmUrl: string): EmailMessage {
+  const html = `<!doctype html>
+<html lang="fr">
+  <body style="font-family: Arial, sans-serif; color: #0f172a; background: #f8fafc; margin: 0; padding: 24px;">
+    <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 28px;">
+      <h1 style="font-size: 20px; margin: 0 0 8px;">Confirme ton inscription</h1>
+      <p style="margin: 0 0 12px;">Encore une etape : clique sur le bouton ci-dessous pour confirmer ton inscription a ${site.name} et commencer a recevoir les bons plans de vols.</p>
+      <p style="margin: 20px 0;">
+        <a href="${confirmUrl}" style="display: inline-block; background: #0ea5e9; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: bold;">Confirmer mon inscription</a>
+      </p>
+      <p style="margin: 16px 0 0; font-size: 13px; color: #64748b;">Si tu n'es pas a l'origine de cette demande, ignore simplement cet email.</p>
+    </div>
+  </body>
+</html>`;
+
+  const text = `Confirme ton inscription a ${site.name}.
+Clique sur ce lien pour confirmer et commencer a recevoir les bons plans :
+${confirmUrl}
+
+Si tu n'es pas a l'origine de cette demande, ignore cet email.`;
+
+  return {
+    to,
+    subject: `Confirme ton inscription a ${site.name}`,
+    html,
+    text,
+    replyTo: site.email,
+  };
+}
+
 // Email envoye depuis la page publique de desinscription : on n'agit pas sur
 // simple saisie d'email, on envoie le lien securise au proprietaire de la boite.
 export function unsubscribeLinkEmail(to: string, unsubscribeUrl: string): EmailMessage {

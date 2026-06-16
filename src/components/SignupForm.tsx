@@ -42,7 +42,7 @@ export default function SignupForm() {
       setMessage(
         json.alreadySubscribed
           ? "Tu es déjà inscrit avec cet email. Rien à faire !"
-          : "C'est fait. Tu recevras les prochains deals dès qu'ils tombent."
+          : "Presque fini ! Ouvre l'email qu'on vient de t'envoyer et clique sur le lien pour confirmer ton inscription."
       );
       form.reset();
     } catch {

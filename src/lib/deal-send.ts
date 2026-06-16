@@ -30,6 +30,7 @@ export function originIata(origin: string): string | null {
 
 function matches(sub: Subscriber, iata: string | null): boolean {
   if (sub.unsubscribed_at) return false;
+  if (!sub.consent_at) return false; // double opt-in : inscription non confirmée
   if (!iata) return false;
   return (sub.home_airports ?? []).map((a) => a.toUpperCase()).includes(iata);
 }
@@ -203,7 +204,7 @@ export async function sendDigest(dealIds: string[]): Promise<DigestResult> {
 
   let emails = 0;
   for (const sub of subs) {
-    if (sub.unsubscribed_at) continue;
+    if (sub.unsubscribed_at || !sub.consent_at) continue; // confirmés seulement
     // Deals dont l'origine correspond à un des aéroports de l'abonné.
     const theirs = deals.filter((d) => matches(sub, originIata(d.origin)));
     if (theirs.length === 0) continue;
@@ -294,6 +295,7 @@ export async function sendScheduledDigest(
 
   const subs = (await getAll("subscribers")).filter((s) => {
     if (s.unsubscribed_at) return false;
+    if (!s.consent_at) return false; // double opt-in : non confirmé -> pas d'envoi
     if (tier !== null && s.tier !== tier) return false;
     // Respecte la préférence de fréquence ("none" = jamais d'email).
     if (frequency && effectiveFrequency(s) !== frequency) return false;

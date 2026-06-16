@@ -5,8 +5,8 @@ import { findOne, insert } from "@/lib/db";
 import { getClientIp } from "@/lib/request";
 import { allow } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email";
-import { welcomeEmail } from "@/lib/email-templates";
-import { unsubscribeUrl } from "@/lib/unsubscribe";
+import { confirmEmail } from "@/lib/email-templates";
+import { confirmUrl } from "@/lib/unsubscribe";
 
 const schema = z.object({
   email: z.string().email("Email invalide"),
@@ -70,19 +70,19 @@ export async function POST(req: Request) {
     home_airports: home_airports.map((a) => a.toUpperCase()),
     email_frequency: "weekly",
     unsubscribe_token: token,
-    consent_at: new Date().toISOString(),
+    consent_at: null, // double opt-in : confirmé seulement après clic sur le lien
     unsubscribed_at: null,
     referrer_id: null,
   });
 
-  // Email de bienvenue via la couche agnostique (no-op en local sans clé).
-  // Phase 1 : passer en double opt-in (email de confirmation avant activation).
+  // Double opt-in : on envoie un email de CONFIRMATION. L'abonné n'est actif
+  // (consent_at daté) qu'après avoir cliqué le lien. Anti-spam + RGPD.
   try {
-    await sendEmail(welcomeEmail(normalized, unsubscribeUrl(normalized, token)));
+    await sendEmail(confirmEmail(normalized, confirmUrl(normalized, token)));
   } catch (err) {
     // Ne bloque pas l'inscription si l'envoi échoue.
     console.error("[subscribe] envoi email échoué:", err);
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, pendingConfirmation: true });
 }
