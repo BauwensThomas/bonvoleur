@@ -1,0 +1,86 @@
+// Accès à l'historique du scanner qui tourne sur GitHub Actions.
+// Requiert GITHUB_REPO (ex "BauwensThomas/bonvoleur") + GITHUB_TOKEN (PAT avec
+// "Actions: read", et "write" si on veut déclencher un run depuis l'admin).
+
+const GH_API = "https://api.github.com";
+const WORKFLOW_FILE = "scanner-feed.yml";
+
+export interface WorkflowRun {
+  id: number;
+  status: string; // queued | in_progress | completed
+  conclusion: string | null; // success | failure | cancelled | null
+  createdAt: string;
+  htmlUrl: string;
+  event: string; // schedule | workflow_dispatch
+  runNumber: number;
+}
+
+export interface ScannerRuns {
+  configured: boolean;
+  repo: string | null;
+  runs: WorkflowRun[];
+  error?: string;
+}
+
+function ghHeaders(token: string): HeadersInit {
+  return {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+  };
+}
+
+export async function getScannerRuns(): Promise<ScannerRuns> {
+  const repo = process.env.GITHUB_REPO ?? null;
+  const token = process.env.GITHUB_TOKEN;
+  if (!repo || !token) return { configured: false, repo, runs: [] };
+
+  try {
+    const res = await fetch(
+      `${GH_API}/repos/${repo}/actions/workflows/${WORKFLOW_FILE}/runs?per_page=20`,
+      { headers: ghHeaders(token), cache: "no-store" }
+    );
+    if (!res.ok) {
+      return { configured: true, repo, runs: [], error: `GitHub ${res.status}` };
+    }
+    const data = (await res.json()) as { workflow_runs?: unknown[] };
+    const runs: WorkflowRun[] = (data.workflow_runs ?? []).map((r) => {
+      const w = r as Record<string, unknown>;
+      return {
+        id: Number(w.id),
+        status: String(w.status),
+        conclusion: w.conclusion ? String(w.conclusion) : null,
+        createdAt: String(w.created_at),
+        htmlUrl: String(w.html_url),
+        event: String(w.event),
+        runNumber: Number(w.run_number),
+      };
+    });
+    return { configured: true, repo, runs };
+  } catch (err) {
+    return {
+      configured: true,
+      repo,
+      runs: [],
+      error: err instanceof Error ? err.message : "Erreur GitHub",
+    };
+  }
+}
+
+// Déclenche un run du scanner (workflow_dispatch). Nécessite un token "Actions: write".
+export async function triggerScannerRun(): Promise<{ ok: boolean; error?: string }> {
+  const repo = process.env.GITHUB_REPO;
+  const token = process.env.GITHUB_TOKEN;
+  if (!repo || !token) return { ok: false, error: "GITHUB_REPO / GITHUB_TOKEN non configurés." };
+
+  const res = await fetch(
+    `${GH_API}/repos/${repo}/actions/workflows/${WORKFLOW_FILE}/dispatches`,
+    {
+      method: "POST",
+      headers: { ...ghHeaders(token), "Content-Type": "application/json" },
+      body: JSON.stringify({ ref: "master" }),
+    }
+  );
+  if (res.status === 204) return { ok: true };
+  return { ok: false, error: `GitHub ${res.status}: ${await res.text()}` };
+}

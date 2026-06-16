@@ -1,147 +1,115 @@
-"use client";
+import { getScannerRuns } from "@/lib/github-actions";
+import ScannerControls from "@/components/admin/ScannerControls";
 
-import { useEffect, useRef, useState } from "react";
+export const dynamic = "force-dynamic";
 
-interface LogLine {
-  t: string;
-  line: string;
+function statusBadge(run: { status: string; conclusion: string | null }) {
+  if (run.status !== "completed") {
+    return { label: "En cours", cls: "bg-sky-100 text-sky-700" };
+  }
+  if (run.conclusion === "success") {
+    return { label: "Succès", cls: "bg-emerald-100 text-emerald-700" };
+  }
+  if (run.conclusion === "failure") {
+    return { label: "Échec", cls: "bg-red-100 text-red-700" };
+  }
+  return { label: run.conclusion ?? "?", cls: "bg-slate-100 text-slate-600" };
 }
-interface Status {
-  running: boolean;
-  startedAt: string | null;
-  source: string;
-  logs: LogLine[];
-}
 
-export default function ScannerAdmin() {
-  const [status, setStatus] = useState<Status | null>(null);
-  const [busy, setBusy] = useState(false);
-  const logRef = useRef<HTMLDivElement>(null);
-
-  async function refresh() {
-    try {
-      const res = await fetch("/api/admin/scanner/status");
-      if (res.ok) setStatus(await res.json());
-    } catch {
-      /* ignore */
-    }
-  }
-
-  // Poll toutes les 2 secondes pour voir les logs en direct.
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    refresh();
-    const id = setInterval(refresh, 2000);
-    return () => clearInterval(id);
-  }, []);
-
-  // Auto-scroll vers le bas quand de nouveaux logs arrivent.
-  useEffect(() => {
-    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
-  }, [status?.logs.length]);
-
-  async function start() {
-    setBusy(true);
-    await fetch("/api/admin/scanner/start", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ source: "travelpayouts" }),
-    });
-    setBusy(false);
-    refresh();
-  }
-
-  async function stop() {
-    setBusy(true);
-    await fetch("/api/admin/scanner/stop", { method: "POST" });
-    setBusy(false);
-    refresh();
-  }
-
-  const running = status?.running ?? false;
+export default async function ScannerAdmin() {
+  const { configured, repo, runs, error } = await getScannerRuns();
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Scanner</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Lance le script qui scanne les bons plans et les pousse au site.
-          </p>
+      <div>
+        <h1 className="text-2xl font-bold">Scanner</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Le scanner tourne sur <strong>GitHub Actions</strong> (3 fois par jour)
+          et écrit les deals directement dans Supabase. Voici l&apos;historique
+          de ses exécutions.
+        </p>
+      </div>
+
+      {!configured ? (
+        <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          Pour afficher l&apos;historique, définis <code>GITHUB_REPO</code> (ex.
+          <code> BauwensThomas/bonvoleur</code>) et <code>GITHUB_TOKEN</code> (un
+          jeton GitHub avec la permission <em>Actions: read</em>) dans les
+          variables d&apos;environnement. En attendant, consulte l&apos;onglet
+          Actions sur GitHub.
         </div>
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-            running
-              ? "bg-emerald-100 text-emerald-700"
-              : "bg-slate-100 text-slate-500"
-          }`}
-        >
-          {running ? "En cours" : "Arrêté"}
-        </span>
-      </div>
+      ) : (
+        <>
+          <div className="mt-5">
+            <ScannerControls />
+          </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <span className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600">
-          Source : Travelpayouts
-        </span>
+          {error && (
+            <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+              Erreur GitHub : {error}
+            </p>
+          )}
 
-        {running ? (
-          <button
-            onClick={stop}
-            disabled={busy}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
-          >
-            Arrêter
-          </button>
-        ) : (
-          <button
-            onClick={start}
-            disabled={busy}
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
-          >
-            Démarrer
-          </button>
-        )}
+          <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-left text-slate-500">
+                <tr>
+                  <th className="px-4 py-2 font-medium">Run</th>
+                  <th className="px-4 py-2 font-medium">Date</th>
+                  <th className="px-4 py-2 font-medium">Déclencheur</th>
+                  <th className="px-4 py-2 font-medium">Statut</th>
+                  <th className="px-4 py-2 font-medium"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {runs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-6 text-center text-slate-500">
+                      Aucune exécution pour le moment.
+                    </td>
+                  </tr>
+                ) : (
+                  runs.map((r) => {
+                    const b = statusBadge(r);
+                    return (
+                      <tr key={r.id}>
+                        <td className="px-4 py-2 text-slate-700">#{r.runNumber}</td>
+                        <td className="px-4 py-2 text-slate-600">
+                          {new Date(r.createdAt).toLocaleString("fr-BE")}
+                        </td>
+                        <td className="px-4 py-2 text-slate-500">
+                          {r.event === "schedule" ? "Planifié" : "Manuel"}
+                        </td>
+                        <td className="px-4 py-2">
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${b.cls}`}>
+                            {b.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          <a
+                            href={r.htmlUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-brand hover:underline"
+                          >
+                            Voir le log
+                          </a>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
 
-        {status?.startedAt && (
-          <span className="text-xs text-slate-500">
-            Démarré : {new Date(status.startedAt).toLocaleString("fr-BE")}
-          </span>
-        )}
-      </div>
-
-      {/* Console live */}
-      <div
-        ref={logRef}
-        className="mt-4 h-[420px] overflow-y-auto rounded-xl bg-slate-900 p-4 font-mono text-xs text-slate-100"
-      >
-        {status && status.logs.length > 0 ? (
-          status.logs.map((l, i) => (
-            <div key={i} className="whitespace-pre-wrap">
-              <span className="text-slate-500">
-                {new Date(l.t).toLocaleTimeString("fr-BE")}{" "}
-              </span>
-              <span
-                className={
-                  l.line.startsWith("[err]") ? "text-red-400" : undefined
-                }
-              >
-                {l.line}
-              </span>
-            </div>
-          ))
-        ) : (
-          <p className="text-slate-500">
-            Aucune sortie pour le moment. Clique sur Démarrer.
-          </p>
-        )}
-      </div>
-
-      <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
-        Fonctionne en local (le serveur lance Python sur cette machine). Il faut
-        Python installé et <code>pip install -r scripts/requirements.txt</code>.
-        En production sur Vercel, lance plutôt le script sur un PC allumé 24/7.
-      </div>
+          {repo && (
+            <p className="mt-3 text-xs text-slate-400">
+              Dépôt : {repo} · workflow scanner-feed.yml
+            </p>
+          )}
+        </>
+      )}
     </div>
   );
 }
