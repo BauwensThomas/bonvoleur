@@ -38,12 +38,57 @@ function slugify(s: string): string {
     .slice(0, 70);
 }
 
-async function pickTopic(): Promise<string> {
+// Titres des articles publiés/créés depuis moins de N jours (anti-répétition).
+async function recentTitles(days = 30): Promise<string[]> {
   const posts = await getAll("posts");
-  const used = new Set(posts.map((p) => p.title.toLowerCase()));
-  const available = topics.filter((t) => !used.has(t.toLowerCase()));
+  const since = Date.now() - days * 24 * 60 * 60 * 1000;
+  return posts
+    .filter((p) => {
+      const d = new Date(p.published_at ?? p.created_at).getTime();
+      return d >= since;
+    })
+    .map((p) => p.title);
+}
+
+// Sujet de secours (liste curée), en évitant ceux des 30 derniers jours.
+async function pickTopic(): Promise<string> {
+  const recent = (await recentTitles(30)).map((t) => t.toLowerCase());
+  const available = topics.filter((t) => !recent.includes(t.toLowerCase()));
   const pool = available.length > 0 ? available : topics;
   return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// Cherche un sujet TENDANCE via la recherche web (ce qui est demandé en ce
+// moment côté voyage/vols), en évitant les sujets récents. Null si indisponible.
+async function pickTrendingTopic(recent: string[]): Promise<string | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  try {
+    const client = new Anthropic();
+    const model = process.env.ANTHROPIC_MODEL ?? "claude-opus-4-8";
+    const res = await client.messages.create({
+      model,
+      max_tokens: 1200,
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
+      messages: [
+        {
+          role: "user",
+          content: `Tu écris pour ${site.name}, un blog de vols pas chers pour la Belgique et la France. Cherche sur le web les sujets de voyage et de vols les plus recherchés / tendance en ce moment (saison actuelle, destinations populaires, vacances scolaires, événements). Propose UN seul titre d'article de blog, en français, accrocheur et optimisé SEO, concret, lié aux vols pas chers depuis la Belgique ou la France. N'utilise AUCUN de ces sujets déjà traités récemment : ${recent.join(" ; ") || "(aucun)"}. Réponds UNIQUEMENT par le titre, sans guillemets ni explication.`,
+        },
+      ],
+    });
+    const text = res.content
+      .map((b) => (b.type === "text" ? b.text : ""))
+      .join(" ")
+      .trim();
+    const title = text
+      .split("\n")
+      .map((s) => s.trim().replace(/^["'#\s-]+|["']+$/g, ""))
+      .filter(Boolean)
+      .pop();
+    return title ? title.slice(0, 90) : null;
+  } catch {
+    return null; // pas d'accès web search ou erreur : on retombe sur la liste curée
+  }
 }
 
 const schema = {
@@ -81,31 +126,35 @@ const schema = {
 } as const;
 
 export async function generateArticle(): Promise<GeneratedArticle> {
-  const topic = await pickTopic();
-
   if (!process.env.ANTHROPIC_API_KEY) {
-    return localDraft(topic);
+    return localDraft(await pickTopic());
   }
+
+  // 1) Sujet : on tente un sujet tendance (recherche web), sinon liste curée.
+  //    Dans les deux cas, on évite les sujets traités depuis moins de 30 jours.
+  const recent = await recentTitles(30);
+  const topic = (await pickTrendingTopic(recent)) ?? (await pickTopic());
 
   const client = new Anthropic();
   const model = process.env.ANTHROPIC_MODEL ?? "claude-opus-4-8";
 
-  const prompt = `Tu es le rédacteur de ${site.name} (${site.domain}), une newsletter de deals vols pas chers pour la Belgique et la France.
+  const prompt = `Tu es le rédacteur en chef de ${site.name} (${site.domain}), un média de deals de vols pas chers pour la Belgique et la France. Tu écris pour être LU et pour RANKER sur Google.
 
-Rédige un article de blog complet et optimisé pour le SEO sur le sujet : "${topic}".
+Rédige un article de blog complet, riche et optimisé SEO sur le sujet : "${topic}".
 
 Contraintes impératives :
-- Français natif (BE/FR), ton complice, malin, direct, jamais corporate.
-- PAS de tiret long (em dash), PAS d'émoji.
-- Article LONG : entre 1200 et 1800 mots, structuré avec des sous-titres en Markdown (## et ###).
-- Contenu réellement utile et concret (conseils actionnables, exemples de routes depuis BRU, CRL, CDG, LYS).
-- Termine le corps par un appel à s'inscrire à la newsletter.
-- Ajoute une rubrique FAQ de 4 à 6 questions/réponses pertinentes pour le SEO (ne pas inclure la FAQ dans "content", elle va dans le champ "faq").
-- "content" est en Markdown et NE contient PAS le titre H1 (il est géré à part).
-- "meta_title" max 60 caractères, "meta_description" max 155 caractères.
+- Français natif (BE/FR), ton complice, malin, direct, jamais corporate. Phrases courtes.
+- INTERDIT : tiret long (em dash) et émoji, partout.
+- Article TRES LONG et fouillé : viser 1800 à 2500 mots. C'est important pour le SEO : développe vraiment chaque section, donne des exemples concrets, des chiffres d'ordre de grandeur, des listes, des conseils actionnables.
+- Structure Markdown claire : plusieurs sections "## " et sous-sections "### ", des listes à puces, du **gras** sur les points clés. NE PAS mettre de titre H1 dans "content" (le H1 est géré à part).
+- Couvre le sujet en profondeur : contexte, conseils pratiques, exemples de routes réelles depuis BRU (Bruxelles), CRL (Charleroi), CDG (Paris), LYS (Lyon), erreurs à éviter, astuces de réservation, bagages, périodes idéales.
+- Inclure au moins 2 liens internes en Markdown vers des pages du site : la page d'inscription [inscris-toi gratuitement](/#inscription) et une page de route pertinente, par exemple [vols pas chers Bruxelles - Barcelone](/vols-pas-chers/bruxelles-barcelone) ou [voir toutes nos routes](/vols-pas-chers).
+- Termine le corps par un appel clair à s'inscrire à la newsletter.
+- Rubrique FAQ : 5 à 6 questions/réponses utiles et recherchées (réponses de 2 à 4 phrases). NE PAS l'inclure dans "content" : elle va dans le champ "faq".
+- "meta_title" : max 60 caractères, accrocheur, avec le mot-clé. "meta_description" : max 155 caractères.
 - "excerpt" : 1 à 2 phrases d'accroche.
-- "slug" : court, en minuscules, mots séparés par des tirets.
-- N'invente pas de prix précis présentés comme garantis ; reste sur des ordres de grandeur ou des fourchettes.`;
+- "slug" : court, minuscules, mots séparés par des tirets.
+- N'invente pas de prix présentés comme garantis : reste sur des fourchettes ou des ordres de grandeur ("aux alentours de", "à partir d'environ").`;
 
   const response = await client.messages.create({
     model,

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { findOne, getAll } from "@/lib/db";
@@ -99,8 +101,10 @@ export default async function BlogPost({
             { day: "numeric", month: "long", year: "numeric" }
           )}
         </p>
-        <article className="mt-6 whitespace-pre-line leading-relaxed text-slate-800">
-          {post.content}
+        <article className="prose prose-slate mt-6 max-w-none prose-headings:font-bold prose-a:text-brand">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {post.content}
+          </ReactMarkdown>
         </article>
 
         {faq.length > 0 && (
