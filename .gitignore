@@ -41,8 +41,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local data (Phase 0) - ne pas committer les données personnelles / runtime
-/data/
+# local data (Phase 0) - ne pas committer les données personnelles / runtime.
+# On ignore tout le contenu de data/ SAUF le feed public du scanner (mode PULL),
+# qui doit etre suivi pour que GitHub Actions puisse le committer.
+/data/*
+!/data/deals-feed.json
 
 # cache du scanner Python
 /scripts/.seen.json
