@@ -1,1 +1,74 @@
-[]
+[
+  {
+    "origin": "Bruxelles (BRU)",
+    "destination": "Lisbonne (LIS)",
+    "price": 120,
+    "normal_price": null,
+    "dates": "2026-08-28 au 2026-09-03",
+    "airline": "FR",
+    "booking_url": "https://www.aviasales.com/search/BRU2808LIS03091?marker=737024",
+    "is_error_fare": false,
+    "is_hot": true,
+    "autosend": false
+  },
+  {
+    "origin": "Bruxelles (BRU)",
+    "destination": "Barcelone (BCN)",
+    "price": 58,
+    "normal_price": null,
+    "dates": "2026-06-20 au 2026-06-23",
+    "airline": "VY",
+    "booking_url": "https://www.aviasales.com/search/BRU2006BCN23061?marker=737024",
+    "is_error_fare": false,
+    "is_hot": true,
+    "autosend": false
+  },
+  {
+    "origin": "Bruxelles (BRU)",
+    "destination": "Marrakech (RAK)",
+    "price": 120,
+    "normal_price": null,
+    "dates": "2026-09-01 au 2026-09-08",
+    "airline": "VY",
+    "booking_url": "https://www.aviasales.com/search/BRU0109RAK08091?marker=737024",
+    "is_error_fare": false,
+    "is_hot": true,
+    "autosend": false
+  },
+  {
+    "origin": "Paris (CDG)",
+    "destination": "Athènes (ATH)",
+    "price": 140,
+    "normal_price": null,
+    "dates": "2026-07-02 au 2026-07-08",
+    "airline": "GQ",
+    "booking_url": "https://www.aviasales.com/search/CDG0207ATH08071?marker=737024",
+    "is_error_fare": false,
+    "is_hot": true,
+    "autosend": false
+  },
+  {
+    "origin": "Lyon (LYS)",
+    "destination": "Barcelone (BCN)",
+    "price": 54,
+    "normal_price": null,
+    "dates": "2026-06-20 au 2026-06-26",
+    "airline": "VY",
+    "booking_url": "https://www.aviasales.com/search/LYS2006BCN26061?marker=737024",
+    "is_error_fare": false,
+    "is_hot": true,
+    "autosend": false
+  },
+  {
+    "origin": "Lyon (LYS)",
+    "destination": "Lisbonne (LIS)",
+    "price": 92,
+    "normal_price": null,
+    "dates": "2026-09-14 au 2026-09-15",
+    "airline": "U2",
+    "booking_url": "https://www.aviasales.com/search/LYS1409LIS15091?marker=737024",
+    "is_error_fare": false,
+    "is_hot": true,
+    "autosend": false
+  }
+]
