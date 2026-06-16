@@ -67,7 +67,7 @@ function localEmail(deal: Deal): GeneratedEmail {
       ? discountPct(deal.price, deal.normal_price)
       : null;
   const dest = deal.destination;
-  const subject = `${dest} à ${deal.price}€ A/R depuis ${deal.origin}`.slice(
+  const subject = `${dest} aux alentours de ${deal.price}€ A/R depuis ${deal.origin}`.slice(
     0,
     80
   );
@@ -75,7 +75,7 @@ function localEmail(deal: Deal): GeneratedEmail {
   const lines = [
     `Bon plan vol : ${deal.origin} vers ${deal.destination}`,
     "",
-    `Prix : ${deal.price} euros aller-retour${
+    `Prix : aux alentours de ${deal.price} euros aller-retour${
       deal.normal_price ? ` (prix normal ${deal.normal_price} euros${pct ? `, soit -${pct}%` : ""})` : ""
     }`,
     deal.dates ? `Dates : ${deal.dates}` : null,

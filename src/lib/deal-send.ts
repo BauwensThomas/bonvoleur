@@ -65,7 +65,7 @@ function dealCard(deal: Deal): string {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:12px;">
       <tr><td style="padding:16px 18px;">
         <div style="font-size:17px;font-weight:700;color:#0f172a;">${escapeHtml(deal.origin)} &rarr; ${escapeHtml(deal.destination)}</div>
-        <div style="margin-top:6px;">${priceLine}<span style="font-size:13px;color:#64748b;"> aller-retour</span></div>
+        <div style="margin-top:6px;"><span style="font-size:13px;color:#64748b;">aux alentours de </span>${priceLine}<span style="font-size:13px;color:#64748b;"> aller-retour</span></div>
         ${notesHtml}
         ${errorHtml}
         <a href="${deal.booking_url}" style="display:inline-block;margin-top:12px;background:#0ea5e9;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:11px 22px;border-radius:9px;">Reserver ce vol</a>
@@ -220,7 +220,7 @@ export async function sendDigest(dealIds: string[]): Promise<DigestResult> {
           subject,
           html: digestHtml(theirs, unsubscribeUrl),
           text: theirs
-            .map((d) => `${d.origin} -> ${d.destination} : ${d.price} EUR\n${d.booking_url}`)
+            .map((d) => `${d.origin} -> ${d.destination} : aux alentours de ${d.price} EUR\n${d.booking_url}`)
             .join("\n\n"),
           replyTo: site.email,
           listUnsubscribe: unsubscribeUrl,
@@ -342,7 +342,7 @@ export async function sendScheduledDigest(
           subject,
           html: digestHtml(theirs, unsubscribeUrl),
           text: theirs
-            .map((d) => `${d.origin} -> ${d.destination} : ${d.price} EUR\n${d.booking_url}`)
+            .map((d) => `${d.origin} -> ${d.destination} : aux alentours de ${d.price} EUR\n${d.booking_url}`)
             .join("\n\n"),
           replyTo: site.email,
           listUnsubscribe: unsubscribeUrl,

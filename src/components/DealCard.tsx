@@ -39,6 +39,7 @@ export default function DealCard({
         {origin} vers {destination}
       </p>
       <p className="mt-2">
+        <span className="text-sm text-slate-500">aux alentours de </span>
         <span className="text-2xl font-bold text-brand">{price}€</span>
         {pct && (
           <span className="ml-2 text-sm text-slate-400 line-through">

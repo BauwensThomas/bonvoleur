@@ -239,11 +239,12 @@ export default async function Compte({
                       Erreur de prix
                     </span>
                   ) : null}
+                  <span className="text-sm text-slate-500">aux alentours de</span>
                   <span className="text-xl font-bold text-brand">
-                    {d.price}EUR
+                    {d.price}€
                     {pct && (
                       <span className="ml-2 text-sm font-normal text-slate-400 line-through">
-                        {d.normal_price}EUR
+                        {d.normal_price}€
                       </span>
                     )}
                   </span>
@@ -293,12 +294,15 @@ export default async function Compte({
                     {d.origin} vers {d.destination}
                   </p>
                   <p className="mt-2">
+                    <span className="text-sm text-slate-500">
+                      aux alentours de{" "}
+                    </span>
                     <span className="text-2xl font-bold text-brand">
-                      {d.price}EUR
+                      {d.price}€
                     </span>
                     {pct && (
                       <span className="ml-2 text-sm text-slate-400 line-through">
-                        {d.normal_price}EUR
+                        {d.normal_price}€
                       </span>
                     )}
                     <span className="ml-1 text-sm text-slate-500">
