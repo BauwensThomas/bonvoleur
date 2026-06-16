@@ -38,6 +38,39 @@ function slugify(s: string): string {
     .slice(0, 70);
 }
 
+// Anti-doublon de CONTENU : si un nouvel article partage trop de mots avec un
+// article existant, c'est probablement le même sujet -> on régénère.
+// Seuil de similarité (Jaccard sur les mots significatifs de 6+ lettres).
+const SIMILARITY_THRESHOLD = 0.25;
+
+function wordSet(text: string): Set<string> {
+  return new Set(
+    (text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .match(/[a-z]{6,}/g) ?? [])
+  );
+}
+
+function jaccard(a: Set<string>, b: Set<string>): number {
+  if (a.size === 0 || b.size === 0) return 0;
+  let inter = 0;
+  for (const w of a) if (b.has(w)) inter += 1;
+  return inter / (a.size + b.size - inter);
+}
+
+async function maxSimilarity(content: string): Promise<number> {
+  const set = wordSet(content);
+  const posts = await getAll("posts");
+  let max = 0;
+  for (const p of posts) {
+    const s = jaccard(set, wordSet(p.content));
+    if (s > max) max = s;
+  }
+  return max;
+}
+
 // Titres des articles publiés/créés depuis moins de N jours (anti-répétition).
 async function recentTitles(days = 30): Promise<string[]> {
   const posts = await getAll("posts");
@@ -181,7 +214,13 @@ export async function runContentPublisher(
 ): Promise<AgentRun> {
   const startedAt = new Date().toISOString();
   try {
-    const article = await generateArticle();
+    // Génère, et si le contenu ressemble trop à un article existant, régénère
+    // (jusqu'à 3 essais) pour éviter les doublons.
+    let article = await generateArticle();
+    for (let attempt = 1; attempt < 3; attempt += 1) {
+      if ((await maxSimilarity(article.content)) <= SIMILARITY_THRESHOLD) break;
+      article = await generateArticle();
+    }
 
     let slug = article.slug;
     if (await findOne("posts", (p) => p.slug === slug)) {

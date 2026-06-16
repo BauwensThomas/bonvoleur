@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import DealCard from "@/components/DealCard";
 import { getAll } from "@/lib/db";
 import { site } from "@/lib/site";
 import {
@@ -11,7 +12,9 @@ import {
   sameDestination,
   type SeoRoute,
 } from "@/lib/seo-routes";
-import type { Deal } from "@/lib/types";
+import { ROUTE_CONTENT } from "@/lib/route-content";
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 export const dynamic = "force-dynamic";
 
@@ -40,20 +43,50 @@ export async function generateMetadata({
   };
 }
 
-async function routeDeals(r: SeoRoute): Promise<Deal[]> {
+interface RouteProof {
+  past: {
+    origin: string;
+    destination: string;
+    price: number;
+    normal_price: number | null;
+    dates: string;
+    airline: string | null;
+    postedAt: string;
+  }[];
+  weekCount: number; // deals de cette semaine (réservés aux inscrits) -> teaser
+}
+
+// On NE montre PAS les deals en cours (ils sont réservés aux inscrits).
+// On montre les deals des semaines passées comme preuve sociale, et on tease
+// le nombre trouvé cette semaine pour donner envie de s'inscrire.
+async function routeProof(r: SeoRoute): Promise<RouteProof> {
   try {
-    const all = await getAll("deals");
-    return all
-      .filter(
-        (d) =>
-          d.is_hot !== false &&
-          d.origin.toUpperCase().includes(`(${r.originIata})`) &&
-          d.destination.toUpperCase().includes(`(${r.destIata})`)
-      )
-      .sort((a, b) => a.price - b.price)
-      .slice(0, 6);
+    const all = (await getAll("deals")).filter(
+      (d) =>
+        d.is_hot !== false &&
+        d.origin.toUpperCase().includes(`(${r.originIata})`) &&
+        d.destination.toUpperCase().includes(`(${r.destIata})`)
+    );
+    const now = Date.now();
+    const past = all
+      .filter((d) => now - new Date(d.created_at).getTime() >= WEEK_MS)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .slice(0, 6)
+      .map((d) => ({
+        origin: d.origin,
+        destination: d.destination,
+        price: d.price,
+        normal_price: d.normal_price,
+        dates: d.dates,
+        airline: d.airline,
+        postedAt: d.published_at ?? d.created_at,
+      }));
+    const weekCount = all.filter(
+      (d) => now - new Date(d.created_at).getTime() < WEEK_MS
+    ).length;
+    return { past, weekCount };
   } catch {
-    return [];
+    return { past: [], weekCount: 0 };
   }
 }
 
@@ -83,7 +116,8 @@ export default async function RoutePage({
   const r = getSeoRoute(route);
   if (!r) notFound();
 
-  const deals = await routeDeals(r);
+  const { past, weekCount } = await routeProof(r);
+  const content = ROUTE_CONTENT[r.slug]; // vraies infos (compagnies, durée...), si générées
   const faq = faqFor(r);
   const others = sameOrigin(r).slice(0, 6);
   const inbound = sameDestination(r).slice(0, 4);
@@ -133,53 +167,102 @@ export default async function RoutePage({
           </Link>
         </div>
 
-        {/* Derniers bons plans pour la route */}
+        {/* Infos pratiques RÉELLES sur la route (si générées) */}
+        {content && (
+          <section className="mt-10 max-w-3xl">
+            <p className="leading-relaxed text-slate-700">{content.intro}</p>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {content.airlines.length > 0 && (
+                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Compagnies
+                  </p>
+                  <p className="mt-1 text-slate-700">
+                    {content.airlines.join(", ")}
+                  </p>
+                </div>
+              )}
+              {content.duration && (
+                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Durée de vol
+                  </p>
+                  <p className="mt-1 text-slate-700">{content.duration}</p>
+                </div>
+              )}
+            </div>
+
+            {content.bestPeriod && (
+              <p className="mt-4 text-slate-700">
+                <strong>Meilleure période :</strong> {content.bestPeriod}
+              </p>
+            )}
+
+            {content.tips.length > 0 && (
+              <>
+                <h2 className="mt-8 text-2xl font-bold">
+                  Conseils pour {r.originCity} - {r.destCity}
+                </h2>
+                <ul className="mt-3 list-disc space-y-2 pl-5 text-slate-700">
+                  {content.tips.map((t, i) => (
+                    <li key={i}>{t}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </section>
+        )}
+
+        {/* Teaser : deals de cette semaine, réservés aux inscrits */}
+        {weekCount > 0 && (
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand/5 px-5 py-4">
+            <p className="text-sm text-slate-700">
+              <strong>{weekCount}</strong> bon{weekCount > 1 ? "s" : ""} plan
+              {weekCount > 1 ? "s" : ""} {r.originCity} - {r.destCity} cette
+              semaine, réservé{weekCount > 1 ? "s" : ""} aux inscrits.
+            </p>
+            <Link
+              href="/#inscription"
+              className="shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
+            >
+              Recevoir les bons plans
+            </Link>
+          </div>
+        )}
+
+        {/* Preuve sociale : bons plans des semaines passées (pas les actuels) */}
         <section className="mt-10">
           <h2 className="text-2xl font-bold">
-            Derniers bons plans {r.originCity} - {r.destCity}
+            Ce qu&apos;on a déniché récemment {r.originCity} - {r.destCity}
           </h2>
-          {deals.length === 0 ? (
+          {past.length === 0 ? (
             <p className="mt-4 rounded-xl border border-dashed border-slate-300 p-6 text-slate-500">
-              Aucun bon plan en ligne sur cette route pour l&apos;instant.
-              Inscris-toi pour être prévenu dès qu&apos;il y en a un.
+              On commence tout juste à suivre cette route. Inscris-toi
+              gratuitement pour recevoir les bons plans {r.destCity} dès
+              qu&apos;ils tombent.
             </p>
           ) : (
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {deals.map((d) => (
-                <div
-                  key={d.id}
-                  className="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-                >
-                  <p className="font-semibold text-slate-900">
-                    {d.origin} vers {d.destination}
-                  </p>
-                  <p className="mt-2">
-                    <span className="text-sm text-slate-500">
-                      aux alentours de{" "}
-                    </span>
-                    <span className="text-2xl font-bold text-brand">
-                      {d.price}€
-                    </span>
-                    <span className="ml-1 text-sm text-slate-500">
-                      aller-retour
-                    </span>
-                  </p>
-                  {d.dates && (
-                    <p className="mt-2 text-sm text-slate-600">
-                      Dates : {d.dates}
-                    </p>
-                  )}
-                  <a
-                    href={d.booking_url}
-                    target="_blank"
-                    rel="noopener noreferrer nofollow"
-                    className="mt-4 block rounded-lg bg-brand px-4 py-2 text-center text-sm font-semibold text-white hover:bg-brand-dark"
-                  >
-                    Voir l&apos;offre
-                  </a>
-                </div>
-              ))}
-            </div>
+            <>
+              <p className="mt-1 text-sm text-slate-500">
+                Voici des bons plans que nos abonnés ont reçus. Les offres en
+                cours sont réservées aux inscrits.
+              </p>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {past.map((d, i) => (
+                  <DealCard
+                    key={`${d.origin}-${d.destination}-${i}`}
+                    origin={d.origin}
+                    destination={d.destination}
+                    price={d.price}
+                    normal_price={d.normal_price}
+                    dates={d.dates}
+                    airline={d.airline}
+                    postedAt={d.postedAt}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </section>
 
