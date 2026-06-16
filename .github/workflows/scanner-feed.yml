@@ -1,4 +1,5 @@
 name: Scanner feed BonVoleur (mode PULL)
+# (workflow enregistre par GitHub Actions)
 
 # Mode PULL : le scanner ecrit data/deals-feed.json et le commit dans le repo.
 # Le site (meme en local) recupere ensuite ce JSON via DEALS_SOURCE_URL +
