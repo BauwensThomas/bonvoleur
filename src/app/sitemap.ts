@@ -10,17 +10,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/blog`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/mentions-legales`, priority: 0.2 },
     { url: `${base}/confidentialite`, priority: 0.2 },
+    { url: `${base}/conditions-generales`, priority: 0.2 },
   ];
 
-  const posts = await getAll("posts");
-  const postPages: MetadataRoute.Sitemap = posts
-    .filter((p) => p.status === "published")
-    .map((p) => ({
-      url: `${base}/blog/${p.slug}`,
-      lastModified: p.updated_at,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    }));
+  let postPages: MetadataRoute.Sitemap = [];
+  try {
+    const posts = await getAll("posts");
+    postPages = posts
+      .filter((p) => p.status === "published")
+      .map((p) => ({
+        url: `${base}/blog/${p.slug}`,
+        lastModified: p.updated_at,
+        changeFrequency: "monthly",
+        priority: 0.6,
+      }));
+  } catch {
+    // DB pas joignable au build : on publie au moins les pages statiques.
+  }
 
   return [...staticPages, ...postPages];
 }

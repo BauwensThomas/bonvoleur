@@ -9,10 +9,16 @@ import { site } from "@/lib/site";
 type Params = { slug: string };
 
 export async function generateStaticParams() {
-  const posts = await getAll("posts");
-  return posts
-    .filter((p) => p.status === "published")
-    .map((p) => ({ slug: p.slug }));
+  // Au build : si la DB n'est pas joignable (tables Supabase pas encore créées),
+  // on ne génère aucune page statique plutôt que de planter le build.
+  try {
+    const posts = await getAll("posts");
+    return posts
+      .filter((p) => p.status === "published")
+      .map((p) => ({ slug: p.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
