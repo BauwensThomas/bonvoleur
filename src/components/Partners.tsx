@@ -15,14 +15,14 @@ export default async function Partners() {
         <h2 className="text-center text-sm font-semibold uppercase tracking-wide text-slate-500">
           Nos partenaires voyage
         </h2>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 flex flex-wrap justify-center gap-4">
           {partners.map((p) => (
             <a
               key={p.id}
               href={p.affiliate_url || p.url}
               target="_blank"
               rel="sponsored noopener noreferrer"
-              className="flex flex-col rounded-xl border border-slate-200 p-4 hover:border-brand hover:shadow-sm transition"
+              className="flex w-full flex-col rounded-xl border border-slate-200 p-4 transition hover:border-brand hover:shadow-sm sm:w-72"
             >
               <span className="text-xs uppercase tracking-wide text-slate-400">
                 {p.category}

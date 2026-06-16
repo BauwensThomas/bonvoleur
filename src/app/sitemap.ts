@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAll } from "@/lib/db";
 import { site } from "@/lib/site";
+import { seoRoutes } from "@/lib/seo-routes";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = site.url;
@@ -11,7 +12,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/mentions-legales`, priority: 0.2 },
     { url: `${base}/confidentialite`, priority: 0.2 },
     { url: `${base}/conditions-generales`, priority: 0.2 },
+    { url: `${base}/vols-pas-chers`, changeFrequency: "weekly", priority: 0.7 },
   ];
+
+  // Pages SEO par route (vols pas chers {origine}-{destination}).
+  const routePages: MetadataRoute.Sitemap = seoRoutes.map((r) => ({
+    url: `${base}/vols-pas-chers/${r.slug}`,
+    changeFrequency: "daily",
+    priority: 0.7,
+  }));
 
   let postPages: MetadataRoute.Sitemap = [];
   try {
@@ -28,5 +37,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // DB pas joignable au build : on publie au moins les pages statiques.
   }
 
-  return [...staticPages, ...postPages];
+  return [...staticPages, ...routePages, ...postPages];
 }
