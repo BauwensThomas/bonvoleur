@@ -197,10 +197,14 @@ def find_deals() -> list[dict]:
                 continue
             depart = (item.get("departure_at") or "")[:10]
             ret = (item.get("return_at") or "")[:10]
+            # locale=fr + currency=eur : page en francais et prix en euros.
+            qs = ["currency=eur", "locale=fr"]
+            if marker:
+                qs.append(f"marker={marker}")
             url = (
                 f"https://www.aviasales.com/search/"
-                f"{origin}{ddmm(depart)}{dest}{ddmm(ret)}1"
-                + (f"?marker={marker}" if marker else "")
+                f"{origin}{ddmm(depart)}{dest}{ddmm(ret)}1?"
+                + "&".join(qs)
             )
             deals.append(
                 {
