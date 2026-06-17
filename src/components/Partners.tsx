@@ -24,7 +24,7 @@ export default async function Partners() {
               rel="sponsored noopener noreferrer"
               className="flex w-full flex-col rounded-xl border border-slate-200 p-4 transition hover:border-brand hover:shadow-sm sm:w-72"
             >
-              <span className="text-xs uppercase tracking-wide text-slate-400">
+              <span className="text-xs font-semibold uppercase tracking-wide text-brand-dark">
                 {p.category}
               </span>
               <span className="mt-1 font-semibold">{p.name}</span>
@@ -34,7 +34,7 @@ export default async function Partners() {
             </a>
           ))}
         </div>
-        <p className="mt-4 text-center text-xs text-slate-400">
+        <p className="mt-4 text-center text-xs text-slate-600">
           Certains liens sont des liens partenaires (affiliation).
         </p>
       </div>

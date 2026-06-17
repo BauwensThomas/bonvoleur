@@ -1,19 +1,11 @@
 import Link from "next/link";
-import { site } from "@/lib/site";
+import Logo from "@/components/Logo";
 
 export default function Header() {
   return (
     <header className="border-b border-slate-200 bg-white/80 backdrop-blur sticky top-0 z-50">
       <div className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-white">
-            BV
-          </span>
-          <span>
-            {site.name}
-            <span className="text-brand">.com</span>
-          </span>
-        </Link>
+        <Logo />
         <nav className="flex items-center gap-6 text-sm font-medium">
           <Link href="/blog" className="text-slate-600 hover:text-slate-900">
             Blog

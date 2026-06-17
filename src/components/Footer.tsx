@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { site } from "@/lib/site";
+import Logo from "@/components/Logo";
 import CookieSettingsLink from "@/components/CookieSettingsLink";
 
 export default function Footer() {
@@ -7,10 +8,7 @@ export default function Footer() {
     <footer className="mt-auto border-t border-slate-200 bg-white">
       <div className="mx-auto max-w-7xl px-4 py-10 flex flex-col gap-8 sm:flex-row sm:justify-between text-sm">
         <div>
-          <p className="font-bold text-base">
-            {site.name}
-            <span className="text-brand">.com</span>
-          </p>
+          <Logo />
           <p className="mt-2 text-slate-600">{site.promise}</p>
           <div className="mt-4 flex gap-3">
             <a
