@@ -231,7 +231,7 @@ export default async function Compte({
                     </p>
                   </div>
                   {pct ? (
-                    <span className="rounded-full bg-accent/15 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                    <span className="rounded-full bg-accent/15 px-2.5 py-1 text-xs font-semibold text-accent-dark">
                       -{pct}%
                     </span>
                   ) : d.is_error_fare ? (
@@ -274,7 +274,7 @@ export default async function Compte({
                 >
                   <div className="flex items-center justify-between">
                     {pct ? (
-                      <span className="rounded-full bg-accent/15 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                      <span className="rounded-full bg-accent/15 px-2.5 py-1 text-xs font-semibold text-accent-dark">
                         -{pct}%
                       </span>
                     ) : d.is_error_fare ? (

@@ -6,6 +6,10 @@ html {
      Tailwind) rend de facon plus compacte, equivalent a ~90% de zoom. Evite
      l'effet "trop grand" sur les ecrans Windows en mise a l'echelle 125%. */
   font-size: 90%;
+  /* Reserve toujours la place de la barre de defilement : le contenu centre ne
+     se decale plus quand le contenu change de hauteur (ex. bascule grille/liste,
+     pages courtes vs longues). C'est ce qui causait l'ecart de largeur percu. */
+  scrollbar-gutter: stable;
 }
 
 :root {

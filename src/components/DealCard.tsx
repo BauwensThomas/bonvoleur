@@ -25,7 +25,7 @@ export default function DealCard({
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
         {pct ? (
-          <span className="rounded-full bg-accent/15 px-2.5 py-1 text-xs font-semibold text-amber-700">
+          <span className="rounded-full bg-accent/15 px-2.5 py-1 text-xs font-semibold text-accent-dark">
             -{pct}%
           </span>
         ) : (
