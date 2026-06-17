@@ -129,7 +129,7 @@ export default function SignupForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="w-full rounded-lg bg-brand px-4 py-3 font-semibold text-white hover:bg-brand-dark transition-colors disabled:opacity-60"
+        className="w-full rounded-lg bg-accent px-4 py-3 font-semibold text-white hover:bg-accent-dark transition-colors disabled:opacity-60"
       >
         {status === "loading"
           ? "Inscription..."

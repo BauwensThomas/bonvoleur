@@ -518,7 +518,7 @@ export default function HeroCinematic() {
             </div>
 
             <div className={`transition-all duration-700 delay-150 ${stage >= 3 ? "opacity-100" : "opacity-0"}`}>
-              <a href="#inscription" className="pointer-events-auto inline-block rounded-xl bg-sky-500 hover:bg-sky-600 px-8 py-3 font-bold text-white transition-all hover:scale-105 mt-4">
+              <a href="#inscription" className="pointer-events-auto inline-block rounded-xl bg-accent hover:bg-accent-dark px-8 py-3 font-bold text-white transition-all hover:scale-105 mt-4">
                 S&apos;inscrire
               </a>
             </div>

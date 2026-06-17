@@ -36,7 +36,7 @@ export default function VolsPasChersIndex() {
         <div className="mt-6">
           <Link
             href="/#inscription"
-            className="inline-block rounded-lg bg-brand px-6 py-3 font-semibold text-white hover:bg-brand-dark"
+            className="inline-block rounded-lg bg-accent px-6 py-3 font-semibold text-white hover:bg-accent-dark"
           >
             S&apos;inscrire gratuitement
           </Link>

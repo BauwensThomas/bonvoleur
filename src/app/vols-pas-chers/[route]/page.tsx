@@ -161,7 +161,7 @@ export default async function RoutePage({
         <div className="mt-6">
           <Link
             href="/#inscription"
-            className="inline-block rounded-lg bg-brand px-6 py-3 font-semibold text-white hover:bg-brand-dark"
+            className="inline-block rounded-lg bg-accent px-6 py-3 font-semibold text-white hover:bg-accent-dark"
           >
             Recevoir les alertes {r.destCity}
           </Link>
@@ -224,7 +224,7 @@ export default async function RoutePage({
             </p>
             <Link
               href="/#inscription"
-              className="shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
+              className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-dark"
             >
               Recevoir les bons plans
             </Link>

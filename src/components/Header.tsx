@@ -23,7 +23,7 @@ export default function Header() {
           </Link>
           <Link
             href="/#inscription"
-            className="rounded-lg bg-brand px-4 py-2 text-white hover:bg-brand-dark transition-colors"
+            className="rounded-lg bg-accent px-4 py-2 font-semibold text-white hover:bg-accent-dark transition-colors"
           >
             S&apos;inscrire
           </Link>
