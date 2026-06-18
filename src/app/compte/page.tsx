@@ -35,7 +35,7 @@ export default async function Compte({
   const maxPriceNum = sp.maxPrice ? Number(sp.maxPrice) : undefined;
   const view: "grid" | "list" = sp.view === "list" ? "list" : "grid";
 
-  const { deals, liveLockedForFree } = await getMemberDeals(tier, {
+  const { deals, total, liveLockedForFree } = await getMemberDeals(tier, {
     origin: origin || undefined,
     destination: destination || undefined,
     maxPrice: maxPriceNum,
@@ -98,11 +98,17 @@ export default async function Compte({
         {tier === "free" && liveLockedForFree > 0 && (
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand/5 px-5 py-4">
             <p className="text-sm text-slate-700">
-              <strong>{liveLockedForFree}</strong> bon
-              {liveLockedForFree > 1 ? "s" : ""} plan
-              {liveLockedForFree > 1 ? "s" : ""} {liveLockedForFree > 1 ? "sont" : "est"}{" "}
-              deja disponible{liveLockedForFree > 1 ? "s" : ""} en direct pour les
-              premium. Les bons prix partent vite.
+              En premium, <strong>{total}</strong> bon{total > 1 ? "s" : ""} plan
+              {total > 1 ? "s" : ""} {total > 1 ? "sont" : "est"} visible
+              {total > 1 ? "s" : ""} en direct sur ces filtres.{" "}
+              {liveLockedForFree > 0 && (
+                <>
+                  Dont <strong>{liveLockedForFree}</strong> tout récent
+                  {liveLockedForFree > 1 ? "s" : ""} que tu ne verras qu&apos;avec
+                  48h de retard.{" "}
+                </>
+              )}
+              Passe premium pour tout voir tout de suite.
             </p>
             <Link
               href="/#inscription"
