@@ -70,7 +70,7 @@ export default async function Desinscription({
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-xl px-4 py-16 text-center">
+      <main className="mx-auto w-full max-w-xl px-4 py-16 text-center">
         {status === "done" && (
           <>
             <h1 className="text-2xl font-bold">Tu es bien désinscrit</h1>

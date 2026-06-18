@@ -12,7 +12,7 @@ export default function MentionsLegales() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-7xl px-4 py-12">
+      <main className="mx-auto w-full max-w-7xl px-4 py-12">
         <h1 className="text-3xl font-bold">Mentions légales</h1>
         <div className="mt-6 space-y-6 text-slate-700 leading-relaxed">
           <section>

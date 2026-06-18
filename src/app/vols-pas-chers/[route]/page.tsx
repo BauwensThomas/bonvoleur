@@ -135,7 +135,7 @@ export default async function RoutePage({
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-7xl px-4 py-12">
+      <main className="mx-auto w-full max-w-7xl px-4 py-12">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}

@@ -12,7 +12,7 @@ export default function ConditionsGenerales() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-7xl px-4 py-12">
+      <main className="mx-auto w-full max-w-7xl px-4 py-12">
         <h1 className="text-3xl font-bold">
           Conditions générales d&apos;utilisation et de vente
         </h1>

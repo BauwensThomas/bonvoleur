@@ -50,7 +50,7 @@ export default async function Confirmer({
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-xl px-4 py-16 text-center">
+      <main className="mx-auto w-full max-w-xl px-4 py-16 text-center">
         {status === "confirmed" && (
           <>
             <h1 className="text-2xl font-bold">Inscription confirmée</h1>

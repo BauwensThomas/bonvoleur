@@ -24,7 +24,7 @@ export default function VolsPasChersIndex() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-7xl px-4 py-12">
+      <main className="mx-auto w-full max-w-7xl px-4 py-12">
         <h1 className="text-3xl font-bold sm:text-4xl">
           Vols pas chers depuis la Belgique et la France
         </h1>

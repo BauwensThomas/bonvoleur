@@ -55,7 +55,7 @@ export default async function Compte({
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-7xl px-4 py-12">
+      <main className="mx-auto w-full max-w-7xl px-4 py-12">
         {/* Bandeau dev : auth simulee */}
         <div className="mb-6 rounded-lg bg-yellow-100 px-4 py-2 text-sm text-yellow-900">
           Mode demo : la connexion reelle (Supabase Auth) arrive en Phase 1. Ici
