@@ -28,7 +28,7 @@ export default function VolsPasChersIndex() {
         <h1 className="text-3xl font-bold sm:text-4xl">
           Vols pas chers depuis la Belgique et la France
         </h1>
-        <p className="mt-3 max-w-3xl text-lg text-slate-600">
+        <p className="mt-3 text-lg text-slate-600">
           On surveille les prix sur ces routes et on t&apos;alerte dès
           qu&apos;un bon plan tombe. Choisis ta route, ou inscris-toi pour
           recevoir les alertes par email.

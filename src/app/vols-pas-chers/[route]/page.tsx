@@ -151,7 +151,7 @@ export default async function RoutePage({
         <h1 className="mt-3 text-3xl font-bold sm:text-4xl">
           Vols pas chers {r.originCity} - {r.destCity}
         </h1>
-        <p className="mt-3 max-w-3xl text-lg text-slate-600">
+        <p className="mt-3 text-lg text-slate-600">
           On surveille les prix des vols {r.originCity} ({r.originIata}) vers{" "}
           {r.destCity} ({r.destIata}) et on t&apos;alerte dès qu&apos;un tarif
           anormalement bas apparaît. Inscris-toi gratuitement pour ne plus rater
@@ -169,7 +169,7 @@ export default async function RoutePage({
 
         {/* Infos pratiques RÉELLES sur la route (si générées) */}
         {content && (
-          <section className="mt-10 max-w-3xl">
+          <section className="mt-10">
             <p className="leading-relaxed text-slate-700">{content.intro}</p>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -267,7 +267,7 @@ export default async function RoutePage({
         </section>
 
         {/* FAQ */}
-        <section className="mt-10 max-w-3xl">
+        <section className="mt-10">
           <h2 className="text-2xl font-bold">Questions fréquentes</h2>
           <div className="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
             {faq.map((f, i) => (
