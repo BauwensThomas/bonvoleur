@@ -7,6 +7,9 @@ import type { Deal, Tier } from "./types";
 
 export const FREE_DELAY_HOURS = 48;
 const FREE_DELAY_MS = FREE_DELAY_HOURS * 3600 * 1000;
+// Le gratuit ne voit qu'un aperçu limité (les plus récents de +48h). Le premium
+// voit tout. C'est ce qui crée la vraie raison de passer premium.
+export const FREE_MAX_DEALS = 3;
 
 export interface MemberFilters {
   origin?: string; // code IATA de départ (ex. "BRU")
@@ -49,7 +52,10 @@ export async function getMemberDeals(
   const total = all.length;
   const liveLockedForFree = all.filter((d) => isFresh(d, now)).length;
 
-  const deals = tier === "premium" ? all : all.filter((d) => !isFresh(d, now));
+  const deals =
+    tier === "premium"
+      ? all
+      : all.filter((d) => !isFresh(d, now)).slice(0, FREE_MAX_DEALS);
 
   return { deals, total, liveLockedForFree };
 }

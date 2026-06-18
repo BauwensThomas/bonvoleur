@@ -52,9 +52,11 @@ export default function DealCard({
       {postedAt && (
         <p className="mt-2 text-xs text-slate-400">
           Déniché le{" "}
-          {new Date(postedAt).toLocaleDateString("fr-BE", {
+          {new Date(postedAt).toLocaleString("fr-BE", {
             day: "numeric",
             month: "long",
+            hour: "2-digit",
+            minute: "2-digit",
           })}
         </p>
       )}

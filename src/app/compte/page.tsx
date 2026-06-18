@@ -17,6 +17,16 @@ export const metadata: Metadata = {
 // via ?tier= pour tester le gating gratuit/premium.
 export const dynamic = "force-dynamic";
 
+// Date + heure de détection du deal (suivi de fraîcheur).
+function detectedAt(iso: string): string {
+  return new Date(iso).toLocaleString("fr-BE", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default async function Compte({
   searchParams,
 }: {
@@ -227,6 +237,9 @@ export default async function Compte({
                       {d.dates}
                       {d.airline ? ` · ${d.airline}` : ""}
                     </p>
+                    <p className="text-xs text-slate-400">
+                      Déniché le {detectedAt(d.created_at)}
+                    </p>
                   </div>
                   {pct ? (
                     <span className="rounded-full bg-accent/15 px-2.5 py-1 text-xs font-semibold text-accent-dark">
@@ -310,6 +323,9 @@ export default async function Compte({
                   {d.dates && (
                     <p className="mt-2 text-sm text-slate-600">Dates : {d.dates}</p>
                   )}
+                  <p className="mt-1 text-xs text-slate-400">
+                    Déniché le {detectedAt(d.created_at)}
+                  </p>
                   <a
                     href={d.booking_url}
                     target="_blank"
