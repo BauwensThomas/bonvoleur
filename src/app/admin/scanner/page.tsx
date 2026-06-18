@@ -40,13 +40,13 @@ export default async function ScannerAdmin() {
 
           <ScannerRunsTable runs={runs} />
 
-          <p className="mt-3 text-xs text-slate-400">
+          <p className="mt-3 text-xs text-slate-700">
             Clique sur un run pour dérouler son log complet (comme dans un
             terminal).
           </p>
 
           {repo && (
-            <p className="mt-3 text-xs text-slate-400">
+            <p className="mt-3 text-xs text-slate-700">
               Dépôt : {repo} · workflow scanner-feed.yml
             </p>
           )}

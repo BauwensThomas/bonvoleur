@@ -149,7 +149,7 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
                 <td className="px-4 py-2">
                   {d.price}€{" "}
                   {d.normal_price && (
-                    <span className="text-slate-400">(-{d.discount_pct}%)</span>
+                    <span className="text-slate-700">(-{d.discount_pct}%)</span>
                   )}
                 </td>
                 <td className="px-4 py-2">
@@ -166,7 +166,7 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
                 </td>
                 <td className="px-4 py-2">
                   {busyEmailId === d.id ? (
-                    <span className="text-xs text-slate-400">génération...</span>
+                    <span className="text-xs text-slate-700">génération...</span>
                   ) : d.email ? (
                     <button
                       onClick={() => setEmailDeal(d)}
@@ -201,7 +201,7 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
             ))}
             {items.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={5} className="px-4 py-6 text-center text-slate-700">
                   Aucun deal.
                 </td>
               </tr>
@@ -318,12 +318,12 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
               </h2>
               <button
                 onClick={() => setEmailDeal(null)}
-                className="text-slate-400 hover:text-slate-700"
+                className="text-slate-700 hover:text-slate-700"
               >
                 Fermer
               </button>
             </div>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-700">
               Généré le{" "}
               {new Date(emailDeal.email.generated_at).toLocaleString("fr-BE")}
             </p>

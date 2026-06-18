@@ -109,7 +109,7 @@ export default function PartnersManager({ initial }: { initial: Partner[] }) {
           <tbody className="divide-y divide-slate-100">
             {filtered.map((p) => (
               <tr key={p.id}>
-                <td className="px-4 py-2 text-slate-400">{p.position}</td>
+                <td className="px-4 py-2 text-slate-700">{p.position}</td>
                 <td className="px-4 py-2 font-medium">{p.name}</td>
                 <td className="px-4 py-2 text-slate-600">{p.category}</td>
                 <td className="px-4 py-2">
@@ -142,7 +142,7 @@ export default function PartnersManager({ initial }: { initial: Partner[] }) {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={5} className="px-4 py-6 text-center text-slate-700">
                   Aucun partenaire.
                 </td>
               </tr>

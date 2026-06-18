@@ -238,7 +238,7 @@ export default async function Compte({
                       {d.airline ? ` · ${d.airline}` : ""}
                     </p>
                     <p className="text-xs font-medium text-accent-dark">
-                      Déniché le {detectedAt(d.created_at)}
+                      Déniché le {detectedAt(d.published_at ?? d.created_at)}
                     </p>
                   </div>
                   {pct ? (
@@ -324,7 +324,7 @@ export default async function Compte({
                     <p className="mt-2 text-sm text-slate-600">Dates : {d.dates}</p>
                   )}
                   <p className="mt-1 text-xs font-medium text-accent-dark">
-                    Déniché le {detectedAt(d.created_at)}
+                    Déniché le {detectedAt(d.published_at ?? d.created_at)}
                   </p>
                   <a
                     href={d.booking_url}

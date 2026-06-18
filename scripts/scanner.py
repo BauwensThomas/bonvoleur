@@ -98,6 +98,10 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 
 
+def _now_iso() -> str:
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
 def _sb_headers() -> dict:
     return {
         "apikey": SUPABASE_KEY,
@@ -116,6 +120,19 @@ def deal_exists_in_db(booking_url: str) -> bool:
     return r.ok and len(r.json()) > 0
 
 
+def touch_deal(booking_url: str) -> None:
+    """Deal deja en base : on rafraichit sa date 'vu pour la derniere fois'
+    (published_at) pour que l'affichage 'Deniche le' reste recent. created_at
+    (premiere detection) reste fige pour le gating 48h."""
+    requests.patch(
+        f"{SUPABASE_URL}/rest/v1/deals",
+        headers={**_sb_headers(), "Prefer": "return=minimal"},
+        params={"booking_url": f"eq.{booking_url}"},
+        json={"published_at": _now_iso()},
+        timeout=20,
+    )
+
+
 def insert_deal_in_db(deal: dict) -> tuple[bool, str]:
     row = {
         "id": str(_uuid.uuid4()),
@@ -130,7 +147,7 @@ def insert_deal_in_db(deal: dict) -> tuple[bool, str]:
         "is_error_fare": bool(deal.get("is_error_fare", False)),
         "is_hot": deal.get("is_hot", True),
         "valid_until": None,
-        "published_at": None,
+        "published_at": _now_iso(),  # date 'vu' = maintenant
         "email": None,
     }
     r = requests.post(
@@ -318,6 +335,7 @@ def run_supabase() -> None:
             skipped += 1
             continue
         if deal_exists_in_db(d["booking_url"]):
+            touch_deal(d["booking_url"])  # rafraichit la date 'vu'
             dup += 1
             continue
         ok, info = insert_deal_in_db(d)

@@ -47,7 +47,9 @@ export async function getMemberDeals(
     all = all.filter((d) => d.price <= filters.maxPrice!);
   }
 
-  all.sort((a, b) => b.created_at.localeCompare(a.created_at));
+  // Tri par date "vu pour la dernière fois" (published_at), puis première détection.
+  const seenAt = (d: Deal) => d.published_at ?? d.created_at;
+  all.sort((a, b) => seenAt(b).localeCompare(seenAt(a)));
 
   const total = all.length;
   const liveLockedForFree = all.filter((d) => isFresh(d, now)).length;

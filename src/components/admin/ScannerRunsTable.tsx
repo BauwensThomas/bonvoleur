@@ -75,7 +75,7 @@ export default function ScannerRunsTable({ runs }: { runs: WorkflowRun[] }) {
                   className="cursor-pointer hover:bg-slate-50"
                 >
                   <td className="px-4 py-2 text-slate-700">
-                    <span className="mr-1 inline-block w-3 text-slate-400">
+                    <span className="mr-1 inline-block w-3 text-slate-700">
                       {open ? "▾" : "▸"}
                     </span>
                     #{r.runNumber}
@@ -107,7 +107,7 @@ export default function ScannerRunsTable({ runs }: { runs: WorkflowRun[] }) {
                   <tr>
                     <td colSpan={5} className="bg-slate-900 px-4 py-3">
                       {log?.loading && (
-                        <p className="font-mono text-xs text-slate-400">Chargement du log...</p>
+                        <p className="font-mono text-xs text-slate-300">Chargement du log...</p>
                       )}
                       {log?.error && (
                         <p className="font-mono text-xs text-red-400">Erreur : {log.error}</p>

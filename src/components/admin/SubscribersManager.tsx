@@ -108,7 +108,7 @@ export default function SubscribersManager({
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={5} className="px-4 py-6 text-center text-slate-700">
                   Aucun abonné.
                 </td>
               </tr>
