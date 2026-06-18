@@ -25,6 +25,7 @@ export interface MemberDealsResult {
   deals: Deal[];
   total: number; // nombre de routes visibles en premium
   liveLockedForFree: number; // routes que le premium voit mais pas le gratuit
+  lastRefresh: string | null; // date réelle du dernier scan (max published_at/created_at)
 }
 
 const routeKey = (d: Deal) => `${d.origin}||${d.destination}`;
@@ -47,6 +48,12 @@ export async function getMemberDeals(
 ): Promise<MemberDealsResult> {
   const now = Date.now();
   let all = (await getAll("deals")).filter((d) => d.is_hot !== false);
+
+  // Date réelle du dernier scan : le plus récent "vu" de tous les deals.
+  const lastRefresh =
+    all.length > 0
+      ? all.reduce((m, d) => (seenAt(d) > m ? seenAt(d) : m), seenAt(all[0]))
+      : null;
 
   // Filtres (s'appliquent aux deux tiers).
   if (filters.origin) {
@@ -81,5 +88,5 @@ export async function getMemberDeals(
 
   const deals = tier === "premium" ? premium : free.slice(0, FREE_MAX_DEALS);
 
-  return { deals, total, liveLockedForFree };
+  return { deals, total, liveLockedForFree, lastRefresh };
 }

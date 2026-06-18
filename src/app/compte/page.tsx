@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { site, airports, discountPct, scanTimes } from "@/lib/site";
+import { site, airports, discountPct } from "@/lib/site";
 import { getMemberDeals, FREE_DELAY_HOURS } from "@/lib/member-deals";
-import RefreshCountdown from "@/components/RefreshCountdown";
 import type { Tier } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -45,7 +44,7 @@ export default async function Compte({
   const maxPriceNum = sp.maxPrice ? Number(sp.maxPrice) : undefined;
   const view: "grid" | "list" = sp.view === "list" ? "list" : "grid";
 
-  const { deals, total, liveLockedForFree } = await getMemberDeals(tier, {
+  const { deals, total, liveLockedForFree, lastRefresh } = await getMemberDeals(tier, {
     origin: origin || undefined,
     destination: destination || undefined,
     maxPrice: maxPriceNum,
@@ -83,7 +82,7 @@ export default async function Compte({
             <p className="mt-1 text-slate-600">
               {tier === "premium"
                 ? "Acces en direct a tous les bons plans, des qu'ils sont denichees."
-                : `En gratuit, tu vois les bons plans avec ${FREE_DELAY_HOURS}h de retard.`}
+                : `En gratuit, tu vois quelques bons plans avec ${FREE_DELAY_HOURS}h de retard.`}
             </p>
           </div>
           <span
@@ -97,10 +96,19 @@ export default async function Compte({
           </span>
         </div>
 
-        {/* Compte a rebours premium : prochaine actualisation du scanner */}
+        {/* Premium : info reelle de derniere actualisation (les heures de scan
+            ne sont pas garanties a la minute, on n'affiche donc pas de promesse). */}
         {tier === "premium" && (
-          <div className="mt-5">
-            <RefreshCountdown times={scanTimes} />
+          <div className="mt-5 rounded-xl border border-brand/30 bg-brand/5 px-4 py-3 text-sm text-slate-700">
+            Bons plans actualisés plusieurs fois par jour.
+            {lastRefresh && (
+              <>
+                {" "}
+                <span className="font-medium text-brand-dark">
+                  Dernière actualisation : {detectedAt(lastRefresh)}.
+                </span>
+              </>
+            )}
           </div>
         )}
 
