@@ -21,7 +21,7 @@ export default function MentionsLegales() {
               {site.name}{" "}({site.domain}), service édité par une personne
               physique.
               <br />
-              1700 Dilbeek, Belgique.
+              Bruxelles, Belgique.
               <br />
               Contact :{" "}
               <a className="underline" href={`mailto:${site.email}`}>
@@ -32,7 +32,7 @@ export default function MentionsLegales() {
 
           <section>
             <h2 className="text-xl font-semibold">Responsable de la publication</h2>
-            <p className="mt-2">Bauwens Thomas, administrateur.</p>
+            <p className="mt-2">Thomas, administrateur.</p>
           </section>
 
           <section>

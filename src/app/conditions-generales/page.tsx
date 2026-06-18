@@ -35,7 +35,7 @@ export default function ConditionsGenerales() {
             <h2 className="text-xl font-semibold">2. Éditeur</h2>
             <p className="mt-2">
               Le service {site.name}{" "}est édité par Bauwens Thomas (personne
-              physique), 1700 Dilbeek, Belgique. Contact :{" "}
+              physique), Bruxelles, Belgique. Contact :{" "}
               <a className="underline" href={`mailto:${site.email}`}>
                 {site.email}
               </a>

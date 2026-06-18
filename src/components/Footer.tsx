@@ -33,6 +33,11 @@ export default function Footer() {
           <p className="font-semibold mb-2">Liens</p>
           <ul className="space-y-1 text-slate-600">
             <li>
+              <Link href="/vols-pas-chers" className="hover:text-slate-900">
+                Vols pas chers
+              </Link>
+            </li>
+            <li>
               <Link href="/blog" className="hover:text-slate-900">
                 Blog
               </Link>

@@ -24,8 +24,8 @@ export default function Confidentialite() {
           <section>
             <h2 className="text-xl font-semibold">Responsable du traitement</h2>
             <p className="mt-2">
-              {site.name}{" "}({site.domain}), service édité par Bauwens Thomas
-              (personne physique), 1700 Dilbeek, Belgique. Contact :{" "}
+              {site.name}{" "}({site.domain}), service édité par Thomas
+              (personne physique), Bruxelles, Belgique. Contact :{" "}
               <a className="underline" href={`mailto:${site.email}`}>
                 {site.email}
               </a>
