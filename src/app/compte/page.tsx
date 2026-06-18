@@ -99,15 +99,12 @@ export default async function Compte({
         {/* Premium : info reelle de derniere actualisation (les heures de scan
             ne sont pas garanties a la minute, on n'affiche donc pas de promesse). */}
         {tier === "premium" && (
-          <div className="mt-5 rounded-xl border border-brand/30 bg-brand/5 px-4 py-3 text-sm text-slate-700">
-            Bons plans actualisés plusieurs fois par jour.
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-brand/30 bg-brand/5 px-4 py-3 text-sm text-slate-700">
+            <span>Bons plans actualisés plusieurs fois par jour.</span>
             {lastRefresh && (
-              <>
-                {" "}
-                <span className="font-medium text-brand-dark">
-                  Dernière actualisation : {detectedAt(lastRefresh)}.
-                </span>
-              </>
+              <span className="font-medium text-brand-dark">
+                Dernière actualisation : {detectedAt(lastRefresh)}
+              </span>
             )}
           </div>
         )}
