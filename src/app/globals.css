@@ -6,9 +6,11 @@ html {
      Tailwind) rend de facon plus compacte, equivalent a ~90% de zoom. Evite
      l'effet "trop grand" sur les ecrans Windows en mise a l'echelle 125%. */
   font-size: 90%;
-  /* Reserve toujours la place de la barre de defilement : le contenu centre ne
-     se decale plus quand le contenu change de hauteur (ex. bascule grille/liste,
-     pages courtes vs longues). C'est ce qui causait l'ecart de largeur percu. */
+  /* Largeur CONSTANTE sur tout le site : la barre de defilement verticale est
+     toujours presente (overflow-y: scroll) + son espace reserve
+     (scrollbar-gutter). Le contenu centre ne se decale donc plus jamais, que la
+     page soit courte ou longue, ni quand on bascule grille/liste. */
+  overflow-y: scroll;
   scrollbar-gutter: stable;
 }
 
