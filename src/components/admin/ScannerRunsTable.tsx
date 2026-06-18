@@ -113,7 +113,7 @@ export default function ScannerRunsTable({ runs }: { runs: WorkflowRun[] }) {
                         <p className="font-mono text-xs text-red-400">Erreur : {log.error}</p>
                       )}
                       {log?.text && (
-                        <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-slate-100">
+                        <pre className="max-h-105 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-xs leading-relaxed text-slate-100">
                           {log.text}
                         </pre>
                       )}
