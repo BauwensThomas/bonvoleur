@@ -98,17 +98,9 @@ export default async function Compte({
         {tier === "free" && liveLockedForFree > 0 && (
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand/5 px-5 py-4">
             <p className="text-sm text-slate-700">
-              En premium, <strong>{total}</strong> bon{total > 1 ? "s" : ""} plan
-              {total > 1 ? "s" : ""} {total > 1 ? "sont" : "est"} visible
-              {total > 1 ? "s" : ""} en direct sur ces filtres.{" "}
-              {liveLockedForFree > 0 && (
-                <>
-                  Dont <strong>{liveLockedForFree}</strong> tout récent
-                  {liveLockedForFree > 1 ? "s" : ""} que tu ne verras qu&apos;avec
-                  48h de retard.{" "}
-                </>
-              )}
-              Passe premium pour tout voir tout de suite.
+              <strong>{total}</strong> bon{total > 1 ? "s" : ""} plan
+              {total > 1 ? "s" : ""} actuellement disponible
+              {total > 1 ? "s" : ""} en premium.
             </p>
             <Link
               href="/#inscription"
