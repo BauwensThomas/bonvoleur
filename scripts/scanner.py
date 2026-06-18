@@ -120,17 +120,47 @@ def deal_exists_in_db(booking_url: str) -> bool:
     return r.ok and len(r.json()) > 0
 
 
-def touch_deal(booking_url: str) -> None:
-    """Deal deja en base : on rafraichit sa date 'vu pour la derniere fois'
-    (published_at) pour que l'affichage 'Deniche le' reste recent. created_at
-    (premiere detection) reste fige pour le gating 48h."""
-    requests.patch(
+def find_route_deal(origin: str, destination: str) -> str | None:
+    """Renvoie l'id du deal existant pour cette route (origine + destination),
+    s'il y en a un. Dedoublonnage par ROUTE : un seul deal par route."""
+    r = requests.get(
+        f"{SUPABASE_URL}/rest/v1/deals",
+        headers=_sb_headers(),
+        params={
+            "origin": f"eq.{origin}",
+            "destination": f"eq.{destination}",
+            "select": "id",
+            "limit": "1",
+        },
+        timeout=15,
+    )
+    if r.ok and r.json():
+        return r.json()[0]["id"]
+    return None
+
+
+def update_deal_in_db(deal_id: str, deal: dict) -> tuple[bool, str]:
+    """Met a jour le deal existant d'une route (prix, dates, lien, compagnie) et
+    rafraichit sa date 'vu' (published_at = maintenant). created_at (premiere
+    detection) reste fige pour le gating 48h."""
+    row = {
+        "price": deal["price"],
+        "normal_price": deal.get("normal_price"),
+        "dates": deal.get("dates", ""),
+        "airline": deal.get("airline"),
+        "booking_url": deal["booking_url"],
+        "is_error_fare": bool(deal.get("is_error_fare", False)),
+        "is_hot": deal.get("is_hot", True),
+        "published_at": _now_iso(),
+    }
+    r = requests.patch(
         f"{SUPABASE_URL}/rest/v1/deals",
         headers={**_sb_headers(), "Prefer": "return=minimal"},
-        params={"booking_url": f"eq.{booking_url}"},
-        json={"published_at": _now_iso()},
+        params={"id": f"eq.{deal_id}"},
+        json=row,
         timeout=20,
     )
+    return r.ok, f"{r.status_code} {r.text}"
 
 
 def insert_deal_in_db(deal: dict) -> tuple[bool, str]:
@@ -327,16 +357,21 @@ def run_supabase() -> None:
     if not SUPABASE_URL or not SUPABASE_KEY:
         raise SystemExit("Definis SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY.")
     deals = find_deals()
-    added = dup = skipped = 0
+    added = updated = skipped = 0
     print(f"{len(deals)} deal(s) candidat(s)")
     for d in deals:
         if not link_is_accessible(d["booking_url"]):
             print(f"SKIP lien mort : {d['booking_url']}")
             skipped += 1
             continue
-        if deal_exists_in_db(d["booking_url"]):
-            touch_deal(d["booking_url"])  # rafraichit la date 'vu'
-            dup += 1
+        existing_id = find_route_deal(d["origin"], d["destination"])
+        if existing_id:
+            ok, info = update_deal_in_db(existing_id, d)
+            if ok:
+                print(f"MAJ {d['origin']} -> {d['destination']} ({d['price']} EUR)")
+                updated += 1
+            else:
+                print(f"ERR maj : {info}")
             continue
         ok, info = insert_deal_in_db(d)
         if ok:
@@ -344,7 +379,7 @@ def run_supabase() -> None:
             added += 1
         else:
             print(f"ERR insert : {info}")
-    print(f"Supabase : {added} ajout(s), {dup} doublon(s), {skipped} lien(s) mort(s)")
+    print(f"Supabase : {added} ajout(s), {updated} mise(s) a jour, {skipped} lien(s) mort(s)")
 
 
 if __name__ == "__main__":
