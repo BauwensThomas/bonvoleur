@@ -175,7 +175,7 @@ export default async function RoutePage({
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               {content.airlines.length > 0 && (
                 <div className="rounded-xl border border-slate-200 bg-white p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
                     Compagnies
                   </p>
                   <p className="mt-1 text-slate-700">
@@ -185,7 +185,7 @@ export default async function RoutePage({
               )}
               {content.duration && (
                 <div className="rounded-xl border border-slate-200 bg-white p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
                     Durée de vol
                   </p>
                   <p className="mt-1 text-slate-700">{content.duration}</p>

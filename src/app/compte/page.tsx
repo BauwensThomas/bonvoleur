@@ -237,7 +237,7 @@ export default async function Compte({
                       {d.dates}
                       {d.airline ? ` · ${d.airline}` : ""}
                     </p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs font-medium text-accent-dark">
                       Déniché le {detectedAt(d.created_at)}
                     </p>
                   </div>
@@ -254,7 +254,7 @@ export default async function Compte({
                   <span className="text-xl font-bold text-brand">
                     {d.price}€
                     {pct && (
-                      <span className="ml-2 text-sm font-normal text-slate-400 line-through">
+                      <span className="ml-2 text-sm font-normal text-slate-700 line-through">
                         {d.normal_price}€
                       </span>
                     )}
@@ -312,7 +312,7 @@ export default async function Compte({
                       {d.price}€
                     </span>
                     {pct && (
-                      <span className="ml-2 text-sm text-slate-400 line-through">
+                      <span className="ml-2 text-sm text-slate-700 line-through">
                         {d.normal_price}€
                       </span>
                     )}
@@ -323,7 +323,7 @@ export default async function Compte({
                   {d.dates && (
                     <p className="mt-2 text-sm text-slate-600">Dates : {d.dates}</p>
                   )}
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs font-medium text-accent-dark">
                     Déniché le {detectedAt(d.created_at)}
                   </p>
                   <a
@@ -340,7 +340,7 @@ export default async function Compte({
           </div>
         )}
 
-        <p className="mt-8 text-center text-xs text-slate-400">
+        <p className="mt-8 text-center text-xs text-slate-700">
           {site.name}{" "}ne vend pas de billets : la reservation se fait sur le site
           de la compagnie ou d&apos;un partenaire.
         </p>

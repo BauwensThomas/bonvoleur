@@ -50,7 +50,7 @@ export default function RefreshCountdown({ times }: { times: readonly string[] }
           {pad(h)}:{pad(m)}:{pad(s)}
         </span>
       </span>
-      <span className="text-xs text-slate-400">
+      <span className="text-xs text-slate-700">
         scan a {times.join(", ")}
       </span>
     </div>

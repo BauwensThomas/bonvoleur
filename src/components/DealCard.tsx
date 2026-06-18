@@ -42,7 +42,7 @@ export default function DealCard({
         <span className="text-sm text-slate-500">aux alentours de </span>
         <span className="text-2xl font-bold text-brand">{price}€</span>
         {pct && (
-          <span className="ml-2 text-sm text-slate-400 line-through">
+          <span className="ml-2 text-sm text-slate-700 line-through">
             {normal_price}€
           </span>
         )}
@@ -50,7 +50,7 @@ export default function DealCard({
       </p>
       {dates && <p className="mt-2 text-sm text-slate-600">Dates : {dates}</p>}
       {postedAt && (
-        <p className="mt-2 text-xs text-slate-400">
+        <p className="mt-2 text-xs font-medium text-accent-dark">
           Déniché le{" "}
           {new Date(postedAt).toLocaleString("fr-BE", {
             day: "numeric",
