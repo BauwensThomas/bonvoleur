@@ -238,7 +238,12 @@ export default async function Compte({
                       {d.airline ? ` · ${d.airline}` : ""}
                     </p>
                     <p className="text-xs font-medium text-accent-dark">
-                      Déniché le {detectedAt(d.published_at ?? d.created_at)}
+                      Déniché le{" "}
+                      {detectedAt(
+                        tier === "premium"
+                          ? d.published_at ?? d.created_at
+                          : d.created_at,
+                      )}
                     </p>
                   </div>
                   {pct ? (

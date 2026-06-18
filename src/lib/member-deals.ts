@@ -1,14 +1,18 @@
 // Deals affichés dans l'espace membre (/compte).
-// Gating par tier : le premium voit tout en direct, le gratuit ne voit que les
-// deals dont la détection date de plus de 48h (champ created_at). Pas de job
-// différé : un simple filtre à la lecture.
+//
+// Principe : on garde TOUS les deals en base (historique / contrôle des
+// aéroports). L'affichage déduplique par route et applique le gating par tier :
+//  - premium : voit chaque route avec son deal le plus récent (date "vu" =
+//    published_at, rafraîchie à chaque scan) -> dates récentes.
+//  - gratuit : ne voit qu'un aperçu (FREE_MAX_DEALS) des deals DÉCOUVERTS il y a
+//    plus de 72h (created_at), et on affiche leur date de découverte -> dates
+//    anciennes. C'est ce qui rend le premium intéressant.
 import { getAll } from "./db";
 import type { Deal, Tier } from "./types";
 
-export const FREE_DELAY_HOURS = 48;
+export const FREE_DELAY_HOURS = 72;
 const FREE_DELAY_MS = FREE_DELAY_HOURS * 3600 * 1000;
-// Le gratuit ne voit qu'un aperçu limité (les plus récents de +48h). Le premium
-// voit tout. C'est ce qui crée la vraie raison de passer premium.
+// Le gratuit ne voit qu'un aperçu limité. Le premium voit toutes les routes.
 export const FREE_MAX_DEALS = 3;
 
 export interface MemberFilters {
@@ -19,12 +23,22 @@ export interface MemberFilters {
 
 export interface MemberDealsResult {
   deals: Deal[];
-  total: number; // nombre de deals après filtres, avant gating
-  liveLockedForFree: number; // deals en direct cachés à un gratuit (incitation premium)
+  total: number; // nombre de routes visibles en premium
+  liveLockedForFree: number; // routes que le premium voit mais pas le gratuit
 }
 
-function isFresh(deal: Deal, now: number): boolean {
-  return now - new Date(deal.created_at).getTime() < FREE_DELAY_MS;
+const routeKey = (d: Deal) => `${d.origin}||${d.destination}`;
+// Date "vu pour la dernière fois" (premium). À défaut, première détection.
+const seenAt = (d: Deal) => d.published_at ?? d.created_at;
+
+// Garde, pour chaque route, le deal qui maximise `pick` (ex. date la plus récente).
+function newestPerRoute(deals: Deal[], pick: (d: Deal) => string): Deal[] {
+  const best = new Map<string, Deal>();
+  for (const d of deals) {
+    const cur = best.get(routeKey(d));
+    if (!cur || pick(d).localeCompare(pick(cur)) > 0) best.set(routeKey(d), d);
+  }
+  return [...best.values()];
 }
 
 export async function getMemberDeals(
@@ -47,17 +61,25 @@ export async function getMemberDeals(
     all = all.filter((d) => d.price <= filters.maxPrice!);
   }
 
-  // Tri par date "vu pour la dernière fois" (published_at), puis première détection.
-  const seenAt = (d: Deal) => d.published_at ?? d.created_at;
-  all.sort((a, b) => seenAt(b).localeCompare(seenAt(a)));
+  // Premium : une entrée par route, la plus récemment vue.
+  const premium = newestPerRoute(all, seenAt).sort((a, b) =>
+    seenAt(b).localeCompare(seenAt(a)),
+  );
 
-  const total = all.length;
-  const liveLockedForFree = all.filter((d) => isFresh(d, now)).length;
+  // Gratuit : une entrée par route, parmi les deals découverts il y a >= 72h,
+  // le plus récemment découvert. On trie/affiche sur la date de découverte.
+  const olderThanDelay = all.filter(
+    (d) => now - new Date(d.created_at).getTime() >= FREE_DELAY_MS,
+  );
+  const free = newestPerRoute(olderThanDelay, (d) => d.created_at).sort((a, b) =>
+    b.created_at.localeCompare(a.created_at),
+  );
 
-  const deals =
-    tier === "premium"
-      ? all
-      : all.filter((d) => !isFresh(d, now)).slice(0, FREE_MAX_DEALS);
+  const total = premium.length;
+  const freeVisible = Math.min(free.length, FREE_MAX_DEALS);
+  const liveLockedForFree = Math.max(0, total - freeVisible);
+
+  const deals = tier === "premium" ? premium : free.slice(0, FREE_MAX_DEALS);
 
   return { deals, total, liveLockedForFree };
 }
