@@ -262,7 +262,18 @@ export default function HeroCinematic() {
     }
 
     window.addEventListener('scroll', onScroll, { passive: true })
-    window.scrollTo(0, 0)
+    // Si on arrive sur une ancre (#inscription, #deals...), on la respecte au
+    // lieu de forcer le haut (sinon la navigation par ancre est cassee).
+    if (window.location.hash) {
+      const el = document.querySelector(window.location.hash)
+      if (el) {
+        requestAnimationFrame(() =>
+          el.scrollIntoView({ behavior: 'auto', block: 'start' })
+        )
+      }
+    } else {
+      window.scrollTo(0, 0)
+    }
 
     let tick = 0
     const planePos = { x: 16, y: -1, z: 0 }

@@ -114,7 +114,7 @@ export default async function Home() {
           ) : (
             <p className="mt-6 rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
               Les premiers bons plans arrivent très bientôt. Inscris-toi pour
-              être prévenu dès qu&apos;ils tombent.
+              les recevoir par email.
             </p>
           )}
         </section>

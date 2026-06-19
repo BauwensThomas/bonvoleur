@@ -10,7 +10,7 @@ export function welcomeEmail(to: string, unsubscribeUrl: string): EmailMessage {
     <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 28px;">
       <h1 style="font-size: 20px; margin: 0 0 8px;">Bienvenue chez ${site.name}</h1>
       <p style="margin: 0 0 12px;">${site.promise}</p>
-      <p style="margin: 0 0 12px;">Tu recevras nos meilleures alertes de vols pas chers depuis la Belgique et la France, dès qu'un bon plan tombe.</p>
+      <p style="margin: 0 0 12px;">Tu recevras par email nos meilleures alertes de vols pas chers depuis la Belgique et la France.</p>
       <p style="margin: 0 0 12px;">En attendant, garde un oeil sur ta boite mail. Les premiers deals arrivent bientot.</p>
       <p style="margin: 16px 0 6px; font-size: 14px;">Rejoins-nous aussi sur les reseaux :</p>
       <p style="margin: 0 0 12px;">

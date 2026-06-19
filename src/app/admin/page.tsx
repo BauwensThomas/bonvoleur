@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAll } from "@/lib/db";
+import { getScannerRuns } from "@/lib/github-actions";
 
 function Stat({ label, value, href }: { label: string; value: number; href: string }) {
   return (
@@ -7,19 +8,20 @@ function Stat({ label, value, href }: { label: string; value: number; href: stri
       href={href}
       className="rounded-xl border border-slate-200 bg-white p-5 hover:border-brand hover:shadow-sm transition"
     >
-      <p className="text-3xl font-bold">{value}</p>
+      <p className="text-3xl font-bold tabular-nums">{value}</p>
       <p className="mt-1 text-sm text-slate-500">{label}</p>
     </Link>
   );
 }
 
 export default async function AdminDashboard() {
-  const [subscribers, deals, posts, partners, runs] = await Promise.all([
+  const [subscribers, deals, posts, partners, runs, scanner] = await Promise.all([
     getAll("subscribers"),
     getAll("deals"),
     getAll("posts"),
     getAll("partners"),
     getAll("agent_runs"),
+    getScannerRuns(),
   ]);
 
   const recentRuns = [...runs]
@@ -31,11 +33,16 @@ export default async function AdminDashboard() {
       <h1 className="text-2xl font-bold">Tableau de bord</h1>
       <p className="mt-1 text-slate-500">Vue d&apos;ensemble de BonVoleur.</p>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Stat label="Abonnés" value={subscribers.length} href="/admin/subscribers" />
         <Stat label="Deals" value={deals.length} href="/admin/deals" />
         <Stat label="Articles" value={posts.length} href="/admin/blog" />
         <Stat label="Partenaires" value={partners.length} href="/admin/partners" />
+        <Stat
+          label="Exécutions scanner"
+          value={scanner.runs.length}
+          href="/admin/scanner"
+        />
       </div>
 
       <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5">

@@ -98,7 +98,7 @@ function faqFor(r: SeoRoute) {
     },
     {
       q: `Quand réserver un vol ${r.originCity} - ${r.destCity} pas cher ?`,
-      a: `Les meilleurs prix partent vite, souvent en quelques heures pour les erreurs de prix. Le plus simple est de s'inscrire gratuitement pour être prévenu dès qu'un bon plan tombe sur cette route.`,
+      a: `Les meilleurs prix partent vite, souvent en quelques heures pour les erreurs de prix. Le plus simple est de s'inscrire gratuitement pour recevoir nos bons plans sur cette route par email.`,
     },
     {
       q: `BonVoleur vend-il les billets ${r.originCity} - ${r.destCity} ?`,
@@ -161,7 +161,7 @@ export default async function RoutePage({
         <div className="mt-6">
           <Link
             href="/#inscription"
-            className="inline-block rounded-lg bg-accent px-6 py-3 font-semibold text-white hover:bg-accent-dark"
+            className="inline-block rounded-lg bg-brand px-6 py-3 font-semibold text-white hover:bg-brand-dark"
           >
             Recevoir les alertes {r.destCity}
           </Link>
@@ -224,47 +224,40 @@ export default async function RoutePage({
             </p>
             <Link
               href="/#inscription"
-              className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-dark"
+              className="shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
             >
               Recevoir les bons plans
             </Link>
           </div>
         )}
 
-        {/* Preuve sociale : bons plans des semaines passées (pas les actuels) */}
-        <section className="mt-10">
-          <h2 className="text-2xl font-bold">
-            Ce qu&apos;on a déniché récemment {r.originCity} - {r.destCity}
-          </h2>
-          {past.length === 0 ? (
-            <p className="mt-4 rounded-xl border border-dashed border-slate-300 p-6 text-slate-500">
-              {weekCount > 0
-                ? `Les bons plans en cours sont réservés aux inscrits. Inscris-toi gratuitement pour recevoir les bons plans ${r.destCity} dès qu'ils tombent.`
-                : `On commence tout juste à suivre cette route. Inscris-toi gratuitement pour recevoir les bons plans ${r.destCity} dès qu'ils tombent.`}
+        {/* Preuve sociale : on n'affiche cette section QUE s'il y a de vrais
+            bons plans passés à montrer (sinon page propre, pas de remplissage). */}
+        {past.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-2xl font-bold">
+              Ce qu&apos;on a déniché récemment {r.originCity} - {r.destCity}
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Voici des bons plans que nos abonnés ont reçus. Les offres en cours
+              sont réservées aux inscrits.
             </p>
-          ) : (
-            <>
-              <p className="mt-1 text-sm text-slate-500">
-                Voici des bons plans que nos abonnés ont reçus. Les offres en
-                cours sont réservées aux inscrits.
-              </p>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {past.map((d, i) => (
-                  <DealCard
-                    key={`${d.origin}-${d.destination}-${i}`}
-                    origin={d.origin}
-                    destination={d.destination}
-                    price={d.price}
-                    normal_price={d.normal_price}
-                    dates={d.dates}
-                    airline={d.airline}
-                    postedAt={d.postedAt}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </section>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {past.map((d, i) => (
+                <DealCard
+                  key={`${d.origin}-${d.destination}-${i}`}
+                  origin={d.origin}
+                  destination={d.destination}
+                  price={d.price}
+                  normal_price={d.normal_price}
+                  dates={d.dates}
+                  airline={d.airline}
+                  postedAt={d.postedAt}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* FAQ */}
         <section className="mt-10">

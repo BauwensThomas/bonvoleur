@@ -8,7 +8,7 @@ import { seoRoutes } from "@/lib/seo-routes";
 export const metadata: Metadata = {
   title: "Vols pas chers depuis la Belgique et la France",
   description:
-    "Toutes nos routes surveillées : vols pas chers depuis Bruxelles, Charleroi, Paris et Lyon. On t'alerte dès qu'un bon plan tombe.",
+    "Toutes nos routes surveillées : vols pas chers depuis Bruxelles, Charleroi, Paris et Lyon. On te prévient par email.",
   alternates: { canonical: `${site.url}/vols-pas-chers` },
 };
 
@@ -36,7 +36,7 @@ export default function VolsPasChersIndex() {
         <div className="mt-6">
           <Link
             href="/#inscription"
-            className="inline-block rounded-lg bg-accent px-6 py-3 font-semibold text-white hover:bg-accent-dark"
+            className="inline-block rounded-lg bg-brand px-6 py-3 font-semibold text-white hover:bg-brand-dark"
           >
             S&apos;inscrire gratuitement
           </Link>

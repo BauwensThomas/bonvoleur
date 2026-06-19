@@ -50,7 +50,7 @@ export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Rechercher dans le résumé..."
-          className="flex-1 min-w-[200px] rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          className="flex-1 min-w-50 rounded-lg border border-slate-300 px-3 py-2 text-sm"
         />
         {(agent || date || query) && (
           <button

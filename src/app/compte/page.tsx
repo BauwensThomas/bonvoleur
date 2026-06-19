@@ -119,7 +119,7 @@ export default async function Compte({
             </p>
             <Link
               href="/#inscription"
-              className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-dark"
+              className="shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
             >
               Passer premium
             </Link>
