@@ -210,7 +210,7 @@ Style attendu (identique à nos pages de route) : factuel et concret, avec de vr
 
 Contraintes impératives :
 - Français natif (BE/FR), ton complice, malin, direct, jamais corporate. Phrases courtes.
-- INTERDIT : tiret long (em dash) et émoji, partout.
+- INTERDIT : tiret long (em dash) et émoji, partout. OBLIGATOIRE : français correct avec TOUS les accents (é, è, ê, à, â, ç, ô, î, ù...), jamais de texte sans accents.
 - Article TRES LONG et fouillé : viser 1800 à 2500 mots. C'est important pour le SEO : développe vraiment chaque section, donne des exemples concrets, des chiffres d'ordre de grandeur, des listes, des conseils actionnables.
 - Structure Markdown claire : plusieurs sections "## " et sous-sections "### ", des listes à puces, du **gras** sur les points clés. NE PAS mettre de titre H1 dans "content" (le H1 est géré à part).
 - Couvre le sujet en profondeur : contexte, conseils pratiques, exemples de routes réelles depuis BRU (Bruxelles), CRL (Charleroi), CDG (Paris), LYS (Lyon), erreurs à éviter, astuces de réservation, bagages, périodes idéales.
