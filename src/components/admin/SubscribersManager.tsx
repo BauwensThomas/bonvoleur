@@ -79,7 +79,17 @@ export default function SubscribersManager({
                 <td className="px-4 py-2 text-slate-600">
                   {s.home_airports?.length ? s.home_airports.join(", ") : "-"}
                 </td>
-                <td className="px-4 py-2">{s.tier}</td>
+                <td className="px-4 py-2">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      s.tier === "premium"
+                        ? "bg-brand/10 text-brand-dark"
+                        : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {s.tier === "premium" ? "Premium" : "Gratuit"}
+                  </span>
+                </td>
                 <td className="px-4 py-2 text-slate-500">
                   {new Date(s.created_at).toLocaleDateString("fr-BE")}
                 </td>

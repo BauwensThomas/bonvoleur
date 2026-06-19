@@ -64,6 +64,7 @@ export default function BlogManager({ initial }: { initial: Post[] }) {
             <tr>
               <th className="px-4 py-2 font-medium">Titre</th>
               <th className="px-4 py-2 font-medium">Statut</th>
+              <th className="px-4 py-2 font-medium">Date</th>
               <th className="px-4 py-2 font-medium text-right">Actions</th>
             </tr>
           </thead>
@@ -81,6 +82,17 @@ export default function BlogManager({ initial }: { initial: Post[] }) {
                   >
                     {p.status === "published" ? "Publié" : "Brouillon"}
                   </span>
+                </td>
+                <td className="px-4 py-2 whitespace-nowrap text-slate-600">
+                  {p.published_at || p.created_at
+                    ? new Date(
+                        p.published_at ?? p.created_at
+                      ).toLocaleDateString("fr-BE", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : "-"}
                 </td>
                 <td className="px-4 py-2 text-right space-x-3">
                   <button
@@ -100,7 +112,7 @@ export default function BlogManager({ initial }: { initial: Post[] }) {
             ))}
             {items.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-4 py-6 text-center text-slate-700">
+                <td colSpan={4} className="px-4 py-6 text-center text-slate-700">
                   Aucun article.
                 </td>
               </tr>
