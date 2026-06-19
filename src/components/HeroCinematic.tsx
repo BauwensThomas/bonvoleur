@@ -496,8 +496,16 @@ export default function HeroCinematic() {
           <div className="max-w-xl pointer-events-none">
 
             <div className={`transition-all duration-700 ${stage >= 0 ? "opacity-100" : "opacity-0"}`}>
-              <span className={`inline-block rounded-full backdrop-blur-sm px-4 py-1.5 text-sm font-semibold tracking-widest uppercase mb-6 border ${newsletterStyle.bg} ${newsletterStyle.border} ${newsletterStyle.text}`}>
-                ✈️ Newsletter · Deals vols BE / FR
+              <span className={`inline-flex items-center gap-2 rounded-full backdrop-blur-sm px-4 py-1.5 text-sm font-semibold tracking-widest uppercase mb-6 border ${newsletterStyle.bg} ${newsletterStyle.border} ${newsletterStyle.text}`}>
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4 shrink-0"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" />
+                </svg>
+                Newsletter · Deals vols BE / FR
               </span>
             </div>
 
@@ -518,7 +526,7 @@ export default function HeroCinematic() {
             </div>
 
             <div className={`transition-all duration-700 delay-150 ${stage >= 3 ? "opacity-100" : "opacity-0"}`}>
-              <a href="#inscription" className="pointer-events-auto inline-block rounded-xl bg-accent hover:bg-accent-dark px-8 py-3 font-bold text-white transition-all hover:scale-105 mt-4">
+              <a href="#inscription" className="pointer-events-auto inline-block rounded-xl bg-brand hover:bg-brand-dark px-8 py-3 font-bold text-white transition-all hover:scale-105 mt-4">
                 S&apos;inscrire
               </a>
             </div>

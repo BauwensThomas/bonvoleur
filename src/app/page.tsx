@@ -45,7 +45,8 @@ export default async function Home() {
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
             <div>
               <h2 className="text-4xl font-extrabold tracking-tight">
-                Les meilleurs vols pas chers,{" "}
+                Les meilleurs vols pas chers,
+                <br />
                 <span className="text-brand">droit dans ta boîte mail.</span>
               </h2>
               <p className="mt-4 text-lg text-slate-600">
