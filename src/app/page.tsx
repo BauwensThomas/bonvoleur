@@ -95,8 +95,8 @@ export default async function Home() {
           <div>
             <h2 className="text-2xl font-bold">Un aperçu de nos bons plans</h2>
             <p className="mt-1 text-slate-600">
-              Juste la route et le prix. Les dates, la compagnie et le lien de
-              réservation arrivent par email, réservés aux inscrits.
+              Inscris-toi gratuitement pour recevoir les offres complètes, dès
+              qu&apos;elles tombent.
             </p>
           </div>
           {teaserDeals ? (
