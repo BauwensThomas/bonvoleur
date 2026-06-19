@@ -81,7 +81,7 @@ export default async function Compte({
             <h1 className="text-3xl font-bold">Mes bons plans</h1>
             <p className="mt-1 text-slate-600">
               {tier === "premium"
-                ? "Acces en direct a tous les bons plans, des qu'ils sont denichees."
+                ? "Accès en direct à tous les bons plans, dès qu'ils sont dénichés."
                 : `En gratuit, tu vois quelques bons plans avec ${FREE_DELAY_HOURS}h de retard.`}
             </p>
           </div>
@@ -219,7 +219,7 @@ export default async function Compte({
 
         {deals.length === 0 ? (
           <p className="mt-10 text-center text-slate-500">
-            Aucun bon plan ne correspond pour le moment. Reviens bientot ou ajuste
+            Aucun bon plan ne correspond pour le moment. Reviens bientôt ou ajuste
             les filtres.
           </p>
         ) : view === "list" ? (

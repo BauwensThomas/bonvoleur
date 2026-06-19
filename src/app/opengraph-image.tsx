@@ -42,7 +42,7 @@ export default function OpengraphImage() {
             fontWeight: 700,
           }}
         >
-          On deniche, tu reserves.
+          On déniche, tu réserves.
         </div>
       </div>
     ),

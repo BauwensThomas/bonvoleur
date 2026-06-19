@@ -82,12 +82,12 @@ function localEmail(deal: Deal): GeneratedEmail {
     deal.airline ? `Compagnie : ${deal.airline}` : null,
     `Réserver : ${deal.booking_url}`,
     "",
-    "Conseil : les bons prix partent vite, reserve rapidement.",
+    "Conseil : les bons prix partent vite, réserve rapidement.",
     deal.is_error_fare
-      ? "Attention : il s'agit probablement d'une erreur de prix. Elle peut etre annulee par la compagnie. Reserve vite, sans frais non remboursables."
+      ? "Attention : il s'agit probablement d'une erreur de prix. Elle peut être annulée par la compagnie. Réserve vite, sans frais non remboursables."
       : null,
     "",
-    "Tu peux te desinscrire a tout moment.",
+    "Tu peux te désinscrire à tout moment.",
   ].filter((l) => l !== null);
 
   return { subject, body: lines.join("\n") };

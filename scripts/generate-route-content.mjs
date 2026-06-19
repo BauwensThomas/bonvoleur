@@ -53,15 +53,15 @@ for (const r of routes) {
       tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
       messages: [{
         role: "user",
-        content: `Cherche sur le web des infos REELLES et verifiables sur la liaison aerienne ${r.oc} (${r.o}) vers ${r.dc} (${r.d}). Donne uniquement des faits exacts (ne devine pas). Reponds STRICTEMENT en JSON, sans texte autour, avec ce format :
+        content: `Cherche sur le web des infos RÉELLES et vérifiables sur la liaison aérienne ${r.oc} (${r.o}) vers ${r.dc} (${r.d}). Donne uniquement des faits exacts (ne devine pas). Réponds STRICTEMENT en JSON, sans texte autour, avec ce format :
 {
- "intro": "2 a 3 phrases factuelles sur cette liaison (frequence, direct ou escale, contexte). Francais, pas d'emoji, pas de tiret long.",
- "airlines": ["compagnies qui operent reellement cette route"],
- "duration": "duree de vol realiste, ex 'environ 2h en direct' ou 'environ 9h, souvent avec escale'",
- "bestPeriod": "meilleure periode pour partir (prix bas et/ou meteo)",
- "tips": ["3 a 4 conseils concrets et reels pour cette destination ou cette route"]
+ "intro": "2 à 3 phrases factuelles sur cette liaison (fréquence, direct ou escale, contexte).",
+ "airlines": ["compagnies qui opèrent réellement cette route"],
+ "duration": "durée de vol réaliste, ex 'environ 2h en direct' ou 'environ 9h, souvent avec escale'",
+ "bestPeriod": "meilleure période pour partir (prix bas et/ou météo)",
+ "tips": ["3 à 4 conseils concrets et réels pour cette destination ou cette route"]
 }
-Pas de prix inventes presentes comme garantis.` }],
+IMPÉRATIF : écris un français correct avec TOUS les accents (é, è, ê, à, â, ç, ô, î, ù...). Pas d'émoji, pas de tiret long (em dash). Pas de prix inventés présentés comme garantis.` }],
     });
     const text = res.content.map((b) => (b.type === "text" ? b.text : "")).join("\n");
     const data = extractJson(text);

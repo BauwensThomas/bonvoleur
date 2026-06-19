@@ -60,7 +60,7 @@ function dealCard(deal: Deal): string {
     ? `<div style="margin-top:6px;font-size:13px;color:#475569;">${notes.join(" &nbsp;-&nbsp; ")}</div>`
     : "";
   const errorHtml = deal.is_error_fare
-    ? `<div style="margin-top:8px;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;font-size:12px;color:#92400e;">Erreur de prix probable. Le tarif peut etre annule par la compagnie. Reserve vite.</div>`
+    ? `<div style="margin-top:8px;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;font-size:12px;color:#92400e;">Erreur de prix probable. Le tarif peut être annulé par la compagnie. Réserve vite.</div>`
     : "";
   return `<tr><td style="padding:8px 20px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:12px;">
@@ -93,7 +93,7 @@ function wrap(subtitle: string, inner: string, unsubscribeUrl: string): string {
             <a href="${site.social.instagram}" style="${linkStyle}margin-right:16px;">${IG_LOGO}Instagram</a>
             <a href="${site.social.facebook}" style="${linkStyle}">${FB_LOGO}Facebook</a>
           </p>
-          <p style="margin:0 0 10px;font-size:12px;color:#94a3b8;">${site.name} - tu recois cet email car tu es inscrit.</p>
+          <p style="margin:0 0 10px;font-size:12px;color:#94a3b8;">${site.name} - tu reçois cet email car tu es inscrit.</p>
           <a href="${unsubscribeUrl}" style="display:inline-block;border:1px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;color:#64748b;text-decoration:none;">Se desinscrire</a>
         </td></tr>
       </table>
