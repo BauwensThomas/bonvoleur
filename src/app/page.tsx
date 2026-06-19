@@ -20,7 +20,7 @@ const features = [
     text: "Bruxelles, Charleroi, Paris et Lyon. On part de chez toi.",
   },
   {
-    title: "Alertes dès qu'un deal tombe",
+    title: "Des alertes au bon moment",
     text: "Tu reçois l'info à temps pour réserver avant que ça disparaisse.",
   },
 ];
@@ -80,8 +80,8 @@ export default async function Home() {
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
               <h3 className="text-xl font-bold">Inscris-toi gratuitement</h3>
               <p className="mt-1 text-sm text-slate-600">
-                Choisis tes aéroports de départ et reçois les bons plans qui te
-                concernent, dès qu&apos;ils tombent.
+                Choisis tes aéroports de départ et reçois par email les bons
+                plans qui te concernent.
               </p>
               <div className="mt-4">
                 <SignupForm />
