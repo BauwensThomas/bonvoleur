@@ -22,7 +22,7 @@ export default function DealCard({
   const pct =
     normal_price && normal_price > 0 ? discountPct(price, normal_price) : null;
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-md">
       <div className="flex items-center justify-between">
         {pct ? (
           <span className="rounded-full bg-accent/15 px-2.5 py-1 text-xs font-semibold text-accent-dark">
@@ -40,9 +40,11 @@ export default function DealCard({
       </p>
       <p className="mt-2">
         <span className="text-sm text-slate-500">aux alentours de </span>
-        <span className="text-2xl font-bold text-brand">{price}€</span>
+        <span className="text-2xl font-bold text-brand tabular-nums">
+          {price}€
+        </span>
         {pct && (
-          <span className="ml-2 text-sm text-slate-700 line-through">
+          <span className="ml-2 text-sm text-slate-700 line-through tabular-nums">
             {normal_price}€
           </span>
         )}

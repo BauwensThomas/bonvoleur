@@ -47,3 +47,39 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-rubik), system-ui, sans-serif;
 }
+
+/* Selection de texte aux couleurs de la marque */
+::selection {
+  background: var(--brand);
+  color: #fff;
+}
+
+/* Focus clavier visible sur tous les liens / boutons (accessibilite).
+   Les champs de formulaire gardent leur propre anneau (focus:ring). */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Defilement doux pour les ancres (#inscription, #deals...) */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Respecte le reglage systeme "reduire les animations". */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

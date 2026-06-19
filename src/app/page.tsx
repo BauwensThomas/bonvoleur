@@ -104,7 +104,7 @@ export default async function Home() {
             {weekCount > 0 && (
               <a
                 href="#inscription"
-                className="rounded-full bg-accent/15 px-4 py-2 text-sm font-semibold text-accent-dark hover:bg-accent/25"
+                className="rounded-full bg-accent/15 px-4 py-2 text-sm font-semibold text-accent-dark transition-colors hover:bg-accent/25"
               >
                 {weekCount} bon{weekCount > 1 ? "s" : ""} plan
                 {weekCount > 1 ? "s" : ""} cette semaine, inscris-toi pour les

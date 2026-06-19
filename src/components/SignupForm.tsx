@@ -137,7 +137,9 @@ export default function SignupForm() {
       </button>
 
       {status === "error" && (
-        <p className="text-sm text-red-600">{message}</p>
+        <p role="alert" className="text-sm text-red-600">
+          {message}
+        </p>
       )}
       <p className="text-xs text-slate-500 text-center">
         Gratuit. Désinscription en un clic. Pas de spam.
