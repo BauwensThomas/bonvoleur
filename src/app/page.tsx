@@ -103,7 +103,7 @@ export default async function Home() {
             {totalFound > 0 && (
               <a
                 href="#inscription"
-                className="rounded-full bg-accent/15 px-4 py-2 text-sm font-semibold text-accent-dark transition-colors hover:bg-accent/25"
+                className="ml-auto shrink-0 rounded-full bg-accent/15 px-4 py-2 text-sm font-semibold text-accent-dark transition-colors hover:bg-accent/25"
               >
                 {totalFound} bon{totalFound > 1 ? "s" : ""} plan
                 {totalFound > 1 ? "s" : ""} déjà déniché
