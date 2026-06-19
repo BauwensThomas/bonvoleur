@@ -238,9 +238,9 @@ export default async function RoutePage({
           </h2>
           {past.length === 0 ? (
             <p className="mt-4 rounded-xl border border-dashed border-slate-300 p-6 text-slate-500">
-              On commence tout juste à suivre cette route. Inscris-toi
-              gratuitement pour recevoir les bons plans {r.destCity} dès
-              qu&apos;ils tombent.
+              {weekCount > 0
+                ? `Les bons plans en cours sont réservés aux inscrits. Inscris-toi gratuitement pour recevoir les bons plans ${r.destCity} dès qu'ils tombent.`
+                : `On commence tout juste à suivre cette route. Inscris-toi gratuitement pour recevoir les bons plans ${r.destCity} dès qu'ils tombent.`}
             </p>
           ) : (
             <>
