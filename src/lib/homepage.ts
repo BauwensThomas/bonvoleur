@@ -17,7 +17,7 @@ export interface HomeDeal {
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 export async function getHomepageDeals(): Promise<{
-  weekCount: number;
+  totalFound: number;
   pastDeals: HomeDeal[] | null;
 }> {
   const all = await getAll("deals");
@@ -27,10 +27,10 @@ export async function getHomepageDeals(): Promise<{
   // simples "meilleurs prix dispo" gardés pour la garantie hebdo.
   const found = all.filter((d) => d.created_at && d.is_hot !== false);
 
-  // Teaser : nombre de deals dénichés cette semaine (gardés pour les abonnés).
-  const weekCount = found.filter(
-    (d) => now - new Date(d.created_at).getTime() < WEEK_MS
-  ).length;
+  // Teaser : nombre TOTAL de bons plans dénichés par le script (preuve sociale
+  // qui grandit avec le temps). On garde tous les deals, donc ce compteur
+  // reflète tout ce qui a été trouvé.
+  const totalFound = found.length;
 
   // Vitrine publique : deals de PLUS d'une semaine (on ne dévoile pas l'actuel).
   const past = found
@@ -59,5 +59,5 @@ export async function getHomepageDeals(): Promise<{
         }))
       : null;
 
-  return { weekCount, pastDeals };
+  return { totalFound, pastDeals };
 }

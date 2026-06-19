@@ -27,7 +27,7 @@ const features = [
 
 export default async function Home() {
   // Uniquement de vrais deals des semaines passées (aucun exemple fictif).
-  const { weekCount, pastDeals } = await getHomepageDeals();
+  const { totalFound, pastDeals } = await getHomepageDeals();
 
   return (
     <>
@@ -102,14 +102,15 @@ export default async function Home() {
                 sont réservés aux inscrits.
               </p>
             </div>
-            {weekCount > 0 && (
+            {totalFound > 0 && (
               <a
                 href="#inscription"
                 className="rounded-full bg-accent/15 px-4 py-2 text-sm font-semibold text-accent-dark transition-colors hover:bg-accent/25"
               >
-                {weekCount} bon{weekCount > 1 ? "s" : ""} plan
-                {weekCount > 1 ? "s" : ""} cette semaine, inscris-toi pour les
-                recevoir
+                {totalFound} bon{totalFound > 1 ? "s" : ""} plan
+                {totalFound > 1 ? "s" : ""} déjà déniché
+                {totalFound > 1 ? "s" : ""}, inscris-toi pour recevoir les
+                prochains
               </a>
             )}
           </div>
@@ -130,8 +131,9 @@ export default async function Home() {
             </div>
           ) : (
             <p className="mt-6 rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
-              Les premiers bons plans arrivent très bientôt. Inscris-toi pour
-              être prévenu dès qu&apos;ils tombent.
+              {totalFound > 0
+                ? "Les bons plans en cours sont réservés aux inscrits. Inscris-toi pour les recevoir dès qu'ils tombent."
+                : "Les premiers bons plans arrivent très bientôt. Inscris-toi pour être prévenu dès qu'ils tombent."}
             </p>
           )}
         </section>
