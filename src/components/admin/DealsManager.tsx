@@ -118,6 +118,7 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
             <tr>
               <th className="px-4 py-2 font-medium">Route</th>
               <th className="px-4 py-2 font-medium">Prix</th>
+              <th className="px-4 py-2 font-medium">Date</th>
               <th className="px-4 py-2 font-medium">Email</th>
               <th className="px-4 py-2 font-medium text-right">Actions</th>
             </tr>
@@ -138,6 +139,17 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
                   {d.normal_price && (
                     <span className="text-slate-700">(-{d.discount_pct}%)</span>
                   )}
+                </td>
+                <td className="px-4 py-2 whitespace-nowrap text-slate-600">
+                  {d.published_at || d.created_at
+                    ? new Date(
+                        d.published_at ?? d.created_at
+                      ).toLocaleDateString("fr-BE", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : "-"}
                 </td>
                 <td className="px-4 py-2">
                   {busyEmailId === d.id ? (
@@ -176,7 +188,7 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
             ))}
             {items.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-slate-700">
+                <td colSpan={5} className="px-4 py-6 text-center text-slate-700">
                   Aucun deal.
                 </td>
               </tr>

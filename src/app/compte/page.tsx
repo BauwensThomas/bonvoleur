@@ -261,7 +261,7 @@ export default async function Compte({
                     </span>
                   ) : null}
                   <span className="text-sm text-slate-500">aux alentours de</span>
-                  <span className="text-xl font-bold text-brand">
+                  <span className="text-xl font-bold text-brand tabular-nums">
                     {d.price}€
                     {pct && (
                       <span className="ml-2 text-sm font-normal text-slate-700 line-through">
@@ -318,7 +318,7 @@ export default async function Compte({
                     <span className="text-sm text-slate-500">
                       aux alentours de{" "}
                     </span>
-                    <span className="text-2xl font-bold text-brand">
+                    <span className="text-2xl font-bold text-brand tabular-nums">
                       {d.price}€
                     </span>
                     {pct && (
@@ -334,7 +334,12 @@ export default async function Compte({
                     <p className="mt-2 text-sm text-slate-600">Dates : {d.dates}</p>
                   )}
                   <p className="mt-1 text-xs font-medium text-accent-dark">
-                    Déniché le {detectedAt(d.published_at ?? d.created_at)}
+                    Déniché le{" "}
+                    {detectedAt(
+                      tier === "premium"
+                        ? d.published_at ?? d.created_at
+                        : d.created_at,
+                    )}
                   </p>
                   <a
                     href={d.booking_url}

@@ -52,9 +52,9 @@ export default function ScannerRunsTable({ runs }: { runs: WorkflowRun[] }) {
   }
 
   return (
-    <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <div className="mt-3 max-h-120 overflow-y-auto rounded-xl border border-slate-200 bg-white">
       <table className="w-full text-sm">
-        <thead className="bg-slate-50 text-left text-slate-500">
+        <thead className="sticky top-0 z-10 bg-slate-50 text-left text-slate-500">
           <tr>
             <th className="px-4 py-2 font-medium">Run</th>
             <th className="px-4 py-2 font-medium">Date</th>

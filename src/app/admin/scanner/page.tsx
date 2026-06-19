@@ -38,11 +38,15 @@ export default async function ScannerAdmin() {
             </p>
           )}
 
+          <p className="mt-5 text-sm font-semibold text-slate-700">
+            Historique des exécutions ({runs.length} dernière
+            {runs.length > 1 ? "s" : ""}, 15 max)
+          </p>
           <ScannerRunsTable runs={runs} />
 
           <p className="mt-3 text-xs text-slate-700">
-            Clique sur un run pour dérouler son log complet (comme dans un
-            terminal).
+            Fais défiler la liste pour voir les exécutions plus anciennes.
+            Clique sur un run pour dérouler son log complet.
           </p>
 
           {repo && (

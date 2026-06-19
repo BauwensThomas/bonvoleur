@@ -43,7 +43,16 @@ export default async function BlogIndex() {
                 href={`/blog/${p.slug}`}
                 className="rounded-xl border border-slate-200 bg-white p-5 hover:border-brand hover:shadow-sm transition"
               >
-                <h2 className="font-semibold text-lg">{p.title}</h2>
+                <p className="text-xs font-medium text-slate-500">
+                  {new Date(
+                    p.published_at ?? p.created_at
+                  ).toLocaleDateString("fr-BE", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+                <h2 className="mt-1 font-semibold text-lg">{p.title}</h2>
                 <p className="mt-2 text-sm text-slate-600">{p.excerpt}</p>
                 <span className="mt-3 inline-block text-sm font-medium text-brand">
                   Lire l&apos;article

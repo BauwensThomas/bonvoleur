@@ -37,7 +37,7 @@ export async function getScannerRuns(): Promise<ScannerRuns> {
 
   try {
     const res = await fetch(
-      `${GH_API}/repos/${repo}/actions/workflows/${WORKFLOW_FILE}/runs?per_page=20`,
+      `${GH_API}/repos/${repo}/actions/workflows/${WORKFLOW_FILE}/runs?per_page=15`,
       { headers: ghHeaders(token), cache: "no-store" }
     );
     if (!res.ok) {
