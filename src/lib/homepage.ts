@@ -1,63 +1,50 @@
 // Données de la page d'accueil.
-// On NE montre PAS les deals de la semaine en cours (sinon personne ne
-// s'inscrit). On affiche les deals plus anciens (semaine passée) comme preuve,
-// et on tease le nombre de deals trouvés cette semaine pour donner envie.
+// La vitrine sert UNIQUEMENT à attirer : on montre 3 cartes "teaser" avec la
+// route et le prix seulement. Aucune info actionnable (dates, compagnie, lien
+// de réservation) n'est dévoilée -> impossible de retrouver l'offre soi-même,
+// donc on peut montrer des deals récents sans casser l'incitation à s'inscrire.
 import { getAll } from "./db";
 
-export interface HomeDeal {
+export interface TeaserDeal {
   origin: string;
   destination: string;
   price: number;
-  normal_price: number | null;
-  dates: string;
-  airline: string | null;
-  postedAt: string; // date à laquelle le deal a été déniché
 }
-
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 export async function getHomepageDeals(): Promise<{
   totalFound: number;
-  pastDeals: HomeDeal[] | null;
+  teaserDeals: TeaserDeal[] | null;
 }> {
   const all = await getAll("deals");
-  const now = Date.now();
 
-  // Vitrine et compteur : uniquement les vrais bons plans (is_hot), pas les
-  // simples "meilleurs prix dispo" gardés pour la garantie hebdo.
+  // Compteur et vitrine : uniquement les vrais bons plans (is_hot).
   const found = all.filter((d) => d.created_at && d.is_hot !== false);
 
-  // Teaser : nombre TOTAL de bons plans dénichés par le script (preuve sociale
-  // qui grandit avec le temps). On garde tous les deals, donc ce compteur
-  // reflète tout ce qui a été trouvé.
+  // Compteur : total des bons plans dénichés (preuve sociale qui grandit).
   const totalFound = found.length;
 
-  // Vitrine publique : deals de PLUS d'une semaine (on ne dévoile pas l'actuel).
-  const past = found
-    .filter((d) => now - new Date(d.created_at).getTime() >= WEEK_MS)
-    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  // Teaser : 3 deals les plus récents, un seul par route (pas de doublon).
+  const seenAt = (d: (typeof found)[number]) => d.published_at ?? d.created_at;
+  const byRecent = [...found].sort((a, b) =>
+    seenAt(b).localeCompare(seenAt(a)),
+  );
 
-  // Un seul deal par trajet (pas de doublon de route), le plus récent gardé.
   const seenRoutes = new Set<string>();
-  const unique = past.filter((d) => {
+  const unique = byRecent.filter((d) => {
     const key = `${d.origin}->${d.destination}`;
     if (seenRoutes.has(key)) return false;
     seenRoutes.add(key);
     return true;
   });
 
-  const pastDeals =
+  const teaserDeals =
     unique.length > 0
-      ? unique.slice(0, 6).map((d) => ({
+      ? unique.slice(0, 3).map((d) => ({
           origin: d.origin,
           destination: d.destination,
           price: d.price,
-          normal_price: d.normal_price,
-          dates: d.dates,
-          airline: d.airline,
-          postedAt: d.published_at ?? d.created_at,
         }))
       : null;
 
-  return { totalFound, pastDeals };
+  return { totalFound, teaserDeals };
 }

@@ -26,8 +26,8 @@ const features = [
 ];
 
 export default async function Home() {
-  // Uniquement de vrais deals des semaines passées (aucun exemple fictif).
-  const { totalFound, pastDeals } = await getHomepageDeals();
+  // Vitrine "teaser" : route + prix uniquement (aucune info actionnable).
+  const { totalFound, teaserDeals } = await getHomepageDeals();
 
   return (
     <>
@@ -94,12 +94,10 @@ export default async function Home() {
         <section id="deals" className="mx-auto max-w-7xl px-4 py-12">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-bold">
-                Nos bons plans de la semaine dernière
-              </h2>
+              <h2 className="text-2xl font-bold">Un aperçu de nos bons plans</h2>
               <p className="mt-1 text-slate-600">
-                Voilà ce que nos abonnés ont reçu. Les deals de cette semaine
-                sont réservés aux inscrits.
+                Juste la route et le prix. Les dates, la compagnie et le lien de
+                réservation arrivent par email, réservés aux inscrits.
               </p>
             </div>
             {totalFound > 0 && (
@@ -114,26 +112,22 @@ export default async function Home() {
               </a>
             )}
           </div>
-          {pastDeals ? (
+          {teaserDeals ? (
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {pastDeals.map((d, i) => (
+              {teaserDeals.map((d, i) => (
                 <DealCard
                   key={`${d.origin}-${d.destination}-${i}`}
                   origin={d.origin}
                   destination={d.destination}
                   price={d.price}
-                  normal_price={d.normal_price}
-                  dates={d.dates}
-                  airline={d.airline}
-                  postedAt={d.postedAt}
+                  teaser
                 />
               ))}
             </div>
           ) : (
             <p className="mt-6 rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
-              {totalFound > 0
-                ? "Les bons plans en cours sont réservés aux inscrits. Inscris-toi pour les recevoir dès qu'ils tombent."
-                : "Les premiers bons plans arrivent très bientôt. Inscris-toi pour être prévenu dès qu'ils tombent."}
+              Les premiers bons plans arrivent très bientôt. Inscris-toi pour
+              être prévenu dès qu&apos;ils tombent.
             </p>
           )}
         </section>

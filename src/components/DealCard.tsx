@@ -5,9 +5,12 @@ interface DealCardProps {
   destination: string;
   price: number;
   normal_price?: number | null;
-  dates: string;
+  dates?: string;
   airline?: string | null;
   postedAt?: string;
+  // Mode vitrine accueil : route + prix uniquement (aucune info qui aiderait
+  // a retrouver l'offre soi-meme : ni dates, ni compagnie, ni date de decouverte).
+  teaser?: boolean;
 }
 
 export default function DealCard({
@@ -18,9 +21,12 @@ export default function DealCard({
   dates,
   airline,
   postedAt,
+  teaser = false,
 }: DealCardProps) {
   const pct =
-    normal_price && normal_price > 0 ? discountPct(price, normal_price) : null;
+    !teaser && normal_price && normal_price > 0
+      ? discountPct(price, normal_price)
+      : null;
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-md">
       <div className="flex items-center justify-between">
@@ -33,7 +39,9 @@ export default function DealCard({
             Bon plan
           </span>
         )}
-        {airline && <span className="text-xs text-slate-500">{airline}</span>}
+        {!teaser && airline && (
+          <span className="text-xs text-slate-500">{airline}</span>
+        )}
       </div>
       <p className="mt-3 font-semibold text-slate-900">
         {origin} vers {destination}
@@ -50,8 +58,10 @@ export default function DealCard({
         )}
         <span className="ml-1 text-sm text-slate-500">aller-retour</span>
       </p>
-      {dates && <p className="mt-2 text-sm text-slate-600">Dates : {dates}</p>}
-      {postedAt && (
+      {!teaser && dates && (
+        <p className="mt-2 text-sm text-slate-600">Dates : {dates}</p>
+      )}
+      {!teaser && postedAt && (
         <p className="mt-2 text-xs font-medium text-accent-dark">
           Déniché le{" "}
           {new Date(postedAt).toLocaleString("fr-BE", {
