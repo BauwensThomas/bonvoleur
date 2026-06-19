@@ -27,7 +27,7 @@ const features = [
 
 export default async function Home() {
   // Vitrine "teaser" : route + prix uniquement (aucune info actionnable).
-  const { totalFound, teaserDeals } = await getHomepageDeals();
+  const { teaserDeals } = await getHomepageDeals();
 
   return (
     <>
@@ -92,25 +92,12 @@ export default async function Home() {
 
         {/* ── Deals ── */}
         <section id="deals" className="mx-auto max-w-7xl px-4 py-12">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h2 className="text-2xl font-bold">Un aperçu de nos bons plans</h2>
-              <p className="mt-1 text-slate-600">
-                Juste la route et le prix. Les dates, la compagnie et le lien de
-                réservation arrivent par email, réservés aux inscrits.
-              </p>
-            </div>
-            {totalFound > 0 && (
-              <a
-                href="#inscription"
-                className="ml-auto shrink-0 rounded-full bg-accent/15 px-4 py-2 text-sm font-semibold text-accent-dark transition-colors hover:bg-accent/25"
-              >
-                {totalFound} bon{totalFound > 1 ? "s" : ""} plan
-                {totalFound > 1 ? "s" : ""} déjà déniché
-                {totalFound > 1 ? "s" : ""}, inscris-toi pour recevoir les
-                prochains
-              </a>
-            )}
+          <div>
+            <h2 className="text-2xl font-bold">Un aperçu de nos bons plans</h2>
+            <p className="mt-1 text-slate-600">
+              Juste la route et le prix. Les dates, la compagnie et le lien de
+              réservation arrivent par email, réservés aux inscrits.
+            </p>
           </div>
           {teaserDeals ? (
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
