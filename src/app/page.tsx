@@ -95,8 +95,8 @@ export default async function Home() {
           <div>
             <h2 className="text-2xl font-bold">Un aperçu de nos bons plans</h2>
             <p className="mt-1 text-slate-600">
-              Inscris-toi gratuitement pour recevoir les offres complètes, dès
-              qu&apos;elles tombent.
+              Inscris-toi gratuitement et reçois nos meilleurs bons plans par
+              email, avec tous les détails pour réserver.
             </p>
           </div>
           {teaserDeals ? (
