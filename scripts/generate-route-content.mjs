@@ -18,11 +18,12 @@ const ORIGIN = { BRU: "Bruxelles", CRL: "Charleroi", CDG: "Paris", LYS: "Lyon" }
 const DEST = {
   LIS: "Lisbonne", BCN: "Barcelone", RAK: "Marrakech", FCO: "Rome", JFK: "New York",
   BKK: "Bangkok", AGP: "Malaga", OPO: "Porto", KRK: "Cracovie", ALC: "Alicante", ATH: "Athènes",
+  GIG: "Rio de Janeiro",
 };
 const WATCH = {
   BRU: ["LIS", "BCN", "RAK", "FCO", "JFK", "BKK"],
   CRL: ["AGP", "OPO", "FCO", "KRK", "ALC"],
-  CDG: ["JFK", "LIS", "BCN", "ATH", "BKK"],
+  CDG: ["JFK", "LIS", "BCN", "ATH", "BKK", "GIG"],
   LYS: ["BCN", "LIS", "FCO"],
 };
 const slug = (s) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");

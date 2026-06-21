@@ -29,13 +29,14 @@ const DEST_CITY: Record<string, string> = {
   KRK: "Cracovie",
   ALC: "Alicante",
   ATH: "Athènes",
+  GIG: "Rio de Janeiro",
 };
 
 // origine -> destinations (mêmes paires que le scanner).
 const WATCH: Record<string, string[]> = {
   BRU: ["LIS", "BCN", "RAK", "FCO", "JFK", "BKK"],
   CRL: ["AGP", "OPO", "FCO", "KRK", "ALC"],
-  CDG: ["JFK", "LIS", "BCN", "ATH", "BKK"],
+  CDG: ["JFK", "LIS", "BCN", "ATH", "BKK", "GIG"],
   LYS: ["BCN", "LIS", "FCO"],
 };
 

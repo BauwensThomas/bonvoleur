@@ -20,6 +20,7 @@ export const DESTINATIONS: Record<string, DestinationInfo> = {
   ALC: { slug: "alicante", city: "Alicante" },
   ATH: { slug: "athenes", city: "Athènes" },
   AGP: { slug: "malaga", city: "Malaga" },
+  GIG: { slug: "rio-de-janeiro", city: "Rio de Janeiro" },
 };
 
 // Extrait le code IATA d'un libellé du type "Lisbonne (LIS)".

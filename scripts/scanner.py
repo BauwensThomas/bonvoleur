@@ -49,7 +49,7 @@ AIRPORT_NAMES = {
     "LIS": "Lisbonne", "BCN": "Barcelone", "RAK": "Marrakech", "FCO": "Rome",
     "JFK": "New York", "BKK": "Bangkok", "AGP": "Malaga", "OPO": "Porto",
     "KRK": "Cracovie", "ALC": "Alicante", "ATH": "Athènes", "MAD": "Madrid",
-    "VLC": "Valence", "NAP": "Naples", "OPO2": "Porto",
+    "VLC": "Valence", "NAP": "Naples", "OPO2": "Porto", "GIG": "Rio de Janeiro",
 }
 
 
@@ -64,7 +64,7 @@ def label(iata: str) -> str:
 TRAVELPAYOUTS_WATCH = {
     "BRU": {"LIS": 130, "BCN": 90, "RAK": 130, "FCO": 90, "JFK": 400, "BKK": 500},
     "CRL": {"AGP": 80, "OPO": 90, "FCO": 90, "KRK": 80, "ALC": 80},
-    "CDG": {"JFK": 400, "LIS": 130, "BCN": 90, "ATH": 140, "BKK": 500},
+    "CDG": {"JFK": 400, "LIS": 130, "BCN": 90, "ATH": 140, "BKK": 500, "GIG": 600},
     "LYS": {"BCN": 90, "LIS": 140, "FCO": 90},
 }
 
