@@ -9,6 +9,7 @@ const empty: Draft = {
   slug: "",
   excerpt: "",
   content: "",
+  cover_image: "",
   meta_title: "",
   meta_description: "",
   status: "draft",
@@ -141,6 +142,26 @@ export default function BlogManager({ initial }: { initial: Post[] }) {
                   value={draft.slug ?? ""}
                   onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
                 />
+              </L>
+              <L label="URL de l'image de couverture (vide = photo auto Unsplash)">
+                <input
+                  className="in"
+                  value={draft.cover_image ?? ""}
+                  onChange={(e) =>
+                    setDraft({ ...draft, cover_image: e.target.value })
+                  }
+                  placeholder="https://.../photo.jpg"
+                />
+                {draft.cover_image ? (
+                  <span className="mt-2 block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={draft.cover_image}
+                      alt=""
+                      className="h-24 w-auto rounded-lg border border-slate-200 object-cover"
+                    />
+                  </span>
+                ) : null}
               </L>
               <L label="Résumé (excerpt)">
                 <textarea
