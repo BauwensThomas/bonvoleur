@@ -186,7 +186,7 @@ export default async function Home() {
                 {popularDestinations.map((d) => (
                   <Link
                     key={d.routeSlug}
-                    href={`/vols-pas-chers/${d.routeSlug}`}
+                    href={`/vols-pas-chers/destination/${d.slug}`}
                     className="group relative block aspect-4/3 overflow-hidden rounded-2xl bg-slate-200 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
                   >
                     <div
