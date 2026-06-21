@@ -14,6 +14,7 @@ export interface GeneratedArticle {
   content: string;
   meta_title: string;
   meta_description: string;
+  image_query: string;
   faq: FaqItem[];
 }
 
@@ -187,6 +188,30 @@ async function gatherFacts(topic: string): Promise<string> {
   }
 }
 
+// Photo d'illustration de l'article via Unsplash (URL hébergée). Renvoie null
+// sans clé ou en cas d'échec (l'article reste publiable sans image).
+async function unsplashImage(query: string): Promise<string | null> {
+  const key = process.env.UNSPLASH_ACCESS_KEY;
+  if (!key || !query) return null;
+  try {
+    const res = await fetch(
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&orientation=landscape&per_page=1&content_filter=high`,
+      { headers: { Authorization: `Client-ID ${key}` } }
+    );
+    if (!res.ok) return null;
+    const p = (await res.json())?.results?.[0];
+    if (!p) return null;
+    if (p.links?.download_location) {
+      fetch(p.links.download_location, {
+        headers: { Authorization: `Client-ID ${key}` },
+      }).catch(() => {});
+    }
+    return p.urls?.regular ?? p.urls?.full ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function generateArticle(): Promise<GeneratedArticle> {
   if (!process.env.ANTHROPIC_API_KEY) {
     return localDraft(await pickTopic());
@@ -222,6 +247,7 @@ Contraintes impératives :
 - "meta_title" : max 60 caractères, accrocheur, avec le mot-clé. "meta_description" : max 155 caractères.
 - "excerpt" : 1 à 2 phrases d'accroche.
 - "slug" : court, minuscules, mots séparés par des tirets.
+- "image_query" : 2 à 4 mots EN ANGLAIS décrivant une photo d'illustration qui colle à l'article (ex. "Lisbon tram", "airplane window view", "Barcelona skyline"). Vise une image qui représente vraiment le sujet de l'article.
 - N'invente pas de prix présentés comme garantis : reste sur des fourchettes ou des ordres de grandeur ("aux alentours de", "à partir d'environ").`;
 
   const response = await client.messages.create({
@@ -269,7 +295,7 @@ export async function runContentPublisher(
       excerpt: article.excerpt,
       content: article.content,
       faq: article.faq,
-      cover_image: null,
+      cover_image: await unsplashImage(article.image_query || article.title),
       meta_title: article.meta_title,
       meta_description: article.meta_description,
       status: "draft", // relecture humaine avant publication
@@ -333,6 +359,7 @@ Pour ne rater aucun bon plan, inscris-toi gratuitement à la newsletter ${site.n
         0,
         155
       ),
+    image_query: "travel airplane",
     content,
     faq: [
       {

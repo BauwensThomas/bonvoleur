@@ -29,7 +29,8 @@ const schema = {
   additionalProperties: false,
   properties: {
     title: { type: "string" }, slug: { type: "string" }, excerpt: { type: "string" },
-    meta_title: { type: "string" }, meta_description: { type: "string" }, content: { type: "string" },
+    meta_title: { type: "string" }, meta_description: { type: "string" },
+    image_query: { type: "string" }, content: { type: "string" },
     faq: {
       type: "array",
       items: {
@@ -39,7 +40,7 @@ const schema = {
       },
     },
   },
-  required: ["title", "slug", "excerpt", "meta_title", "meta_description", "content", "faq"],
+  required: ["title", "slug", "excerpt", "meta_title", "meta_description", "image_query", "content", "faq"],
 };
 
 const slugify = (s) =>
@@ -61,7 +62,27 @@ Contraintes impératives :
 - Termine le corps par un appel à s'inscrire à la newsletter.
 - FAQ : 5 à 6 questions/réponses utiles (2 à 4 phrases). PAS dans "content", dans le champ "faq".
 - "meta_title" max 60 caractères ; "meta_description" max 155 caractères ; "excerpt" 1 à 2 phrases ; "slug" court en minuscules avec tirets.
+- "image_query" : 2 à 4 mots EN ANGLAIS pour une photo d'illustration qui colle au sujet (ex. "Lisbon tram", "airplane window view").
 - N'invente pas de prix garantis : fourchettes ou ordres de grandeur ("aux alentours de").`;
+}
+
+async function unsplashImage(query) {
+  if (!env.UNSPLASH_ACCESS_KEY || !query) return null;
+  try {
+    const res = await fetch(
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&orientation=landscape&per_page=1&content_filter=high`,
+      { headers: { Authorization: `Client-ID ${env.UNSPLASH_ACCESS_KEY}` } }
+    );
+    if (!res.ok) return null;
+    const p = (await res.json())?.results?.[0];
+    if (!p) return null;
+    if (p.links?.download_location) {
+      fetch(p.links.download_location, { headers: { Authorization: `Client-ID ${env.UNSPLASH_ACCESS_KEY}` } }).catch(() => {});
+    }
+    return p.urls?.regular ?? p.urls?.full ?? null;
+  } catch {
+    return null;
+  }
 }
 
 const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
@@ -87,7 +108,8 @@ for (const topic of TOPICS) {
     slug: slugify(a.slug || a.title),
     title: a.title, excerpt: a.excerpt, content: a.content,
     faq: Array.isArray(a.faq) ? a.faq : [],
-    cover_image: null, meta_title: a.meta_title, meta_description: a.meta_description,
+    cover_image: await unsplashImage(a.image_query || a.title),
+    meta_title: a.meta_title, meta_description: a.meta_description,
     status: "published", author: "Thomas & l'équipe Bon Voleur",
     published_at: now, updated_at: now, created_at: now,
   });

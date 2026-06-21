@@ -100,18 +100,34 @@ export default async function BlogPost({
         <Link href="/blog" className="text-sm text-brand hover:underline">
           ← Retour au blog
         </Link>
-        <h1 className="mt-4 text-3xl font-bold">{post.title}</h1>
-        <p className="mt-2 text-sm text-slate-500">
-          Par <span className="text-slate-700">{post.author}</span>
-          {" · "}
-          {new Date(post.published_at ?? post.created_at).toLocaleDateString(
-            "fr-BE",
-            { day: "numeric", month: "long", year: "numeric" }
+
+        {/* En-tete : cadre avec la photo a gauche, titre + meta a cote. */}
+        <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sm:flex">
+          {post.cover_image && (
+            <div
+              className="h-52 bg-cover bg-center sm:h-auto sm:w-2/5"
+              style={{ backgroundImage: `url(${post.cover_image})` }}
+            />
           )}
-          {" · "}
-          {readingMinutes(post.content)} min de lecture
-        </p>
-        <article className="prose prose-slate mt-6 max-w-none prose-headings:font-bold prose-a:text-brand">
+          <div className="flex flex-col justify-center p-6 sm:w-3/5">
+            <h1 className="text-2xl font-bold sm:text-3xl">{post.title}</h1>
+            <p className="mt-3 text-sm text-slate-500">
+              Par <span className="text-slate-700">{post.author}</span>
+              {" · "}
+              {new Date(
+                post.published_at ?? post.created_at
+              ).toLocaleDateString("fr-BE", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+              {" · "}
+              {readingMinutes(post.content)} min de lecture
+            </p>
+          </div>
+        </div>
+
+        <article className="prose prose-slate mt-8 max-w-none prose-headings:font-bold prose-a:text-brand">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {post.content}
           </ReactMarkdown>
