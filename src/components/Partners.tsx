@@ -11,18 +11,18 @@ export default async function Partners() {
 
   return (
     <section className="border-t border-slate-200 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-12">
+      <div className="mx-auto max-w-7xl px-4 py-16">
         <h2 className="text-center text-sm font-semibold uppercase tracking-wide text-slate-500">
           Nos partenaires voyage
         </h2>
-        <div className="mt-6 flex flex-wrap justify-center gap-4">
+        <div className="mt-8 flex flex-wrap justify-center gap-4">
           {partners.map((p) => (
             <a
               key={p.id}
               href={p.affiliate_url || p.url}
               target="_blank"
               rel="sponsored noopener noreferrer"
-              className="flex w-full flex-col rounded-xl border border-slate-200 p-4 transition hover:border-brand hover:shadow-sm sm:w-72"
+              className="flex w-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg sm:w-72"
             >
               <span className="text-xs font-semibold uppercase tracking-wide text-brand-dark">
                 {p.category}
