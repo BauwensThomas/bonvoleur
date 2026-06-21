@@ -262,21 +262,37 @@ export default function HeroCinematic() {
 
   return (
     <div ref={wrapRef} style={{ height: '400vh' }} className="relative">
+      {/* Precharge la 1re image du hero (meilleur LCP). */}
+      <link rel="preload" as="image" href={PHOTOS[0]} />
+
       <div className="sticky top-16 w-full h-[85vh] overflow-hidden z-0">
         {/* Degrade de secours (visible si une photo manque) */}
         <div className="absolute inset-0 bg-linear-to-b from-[#050d1f] via-[#0b2a4a] to-[#7fb4e6]" />
 
-        {/* Photos "vue du ciel" qui se fondent au scroll */}
-        {PHOTOS.map((src, i) => (
-          <div
-            key={src}
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${src})`, opacity: layerOpacity(i) }}
-          />
-        ))}
+        {/* Photos "vue du ciel" qui se fondent au scroll, avec lent zoom (Ken Burns) */}
+        <div
+          className="absolute inset-0 will-change-transform"
+          style={{ animation: 'hero-kenburns 26s ease-in-out infinite alternate' }}
+        >
+          {PHOTOS.map((src, i) => (
+            <div
+              key={src}
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${src})`, opacity: layerOpacity(i) }}
+            />
+          ))}
+        </div>
 
-        {/* Voile pour garder le texte lisible par-dessus les photos */}
-        <div className="absolute inset-0 bg-linear-to-r from-black/65 via-black/25 to-black/10" />
+        {/* Scrim cinematique : bas + gauche + vignette (profondeur, lisibilite) */}
+        <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/15 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-black/55 via-black/10 to-transparent" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(125% 100% at 50% 0%, transparent 55%, rgba(0,0,0,0.5) 100%)',
+          }}
+        />
 
         {/* Avion 3D (canvas transparent) */}
         <div
@@ -301,7 +317,10 @@ export default function HeroCinematic() {
             </div>
 
             <div className={`transition-all duration-700 ${stage >= 1 ? 'opacity-100' : 'opacity-0'}`}>
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.05] drop-shadow-lg">
+              <h1
+                className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.03] tracking-tight"
+                style={{ textShadow: '0 2px 24px rgba(0,0,0,0.45)' }}
+              >
                 Vole plus loin,
                 <br />
                 <span className="text-sky-300">paye moins.</span>
@@ -309,7 +328,10 @@ export default function HeroCinematic() {
             </div>
 
             <div className={`transition-all duration-700 delay-75 ${stage >= 2 ? 'opacity-100' : 'opacity-0'}`}>
-              <p className={`text-lg ${getDescriptionStyle} mt-2 drop-shadow`}>
+              <p
+                className={`text-lg ${getDescriptionStyle} mt-3 max-w-md`}
+                style={{ textShadow: '0 1px 12px rgba(0,0,0,0.5)' }}
+              >
                 Deals vérifiés depuis la Belgique et la France.
               </p>
             </div>
@@ -317,7 +339,7 @@ export default function HeroCinematic() {
             <div className={`transition-all duration-700 delay-150 ${stage >= 3 ? 'opacity-100' : 'opacity-0'}`}>
               <a
                 href="#inscription"
-                className="pointer-events-auto inline-block rounded-xl bg-brand hover:bg-brand-dark px-8 py-3 font-bold text-white transition-all hover:scale-105 mt-4"
+                className="pointer-events-auto inline-block rounded-xl bg-brand hover:bg-brand-dark px-8 py-3 font-bold text-white shadow-lg shadow-brand/30 ring-1 ring-white/10 transition-all hover:scale-105 mt-5"
               >
                 S&apos;inscrire
               </a>

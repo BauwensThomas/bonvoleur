@@ -81,6 +81,16 @@ summary:focus-visible,
   border-radius: 6px;
 }
 
+/* Hero : tres lent zoom (effet Ken Burns) sur les photos vue du ciel. */
+@keyframes hero-kenburns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.09);
+  }
+}
+
 /* Defilement doux pour les ancres (#inscription, #deals...) */
 @media (prefers-reduced-motion: no-preference) {
   html {
