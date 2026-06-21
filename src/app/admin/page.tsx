@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAll } from "@/lib/db";
+import { getMemberDeals } from "@/lib/member-deals";
 import { getScannerRuns } from "@/lib/github-actions";
 
 function Stat({ label, value, href }: { label: string; value: number; href: string }) {
@@ -15,14 +16,15 @@ function Stat({ label, value, href }: { label: string; value: number; href: stri
 }
 
 export default async function AdminDashboard() {
-  const [subscribers, deals, posts, partners, runs, scanner] = await Promise.all([
-    getAll("subscribers"),
-    getAll("deals"),
-    getAll("posts"),
-    getAll("partners"),
-    getAll("agent_runs"),
-    getScannerRuns(),
-  ]);
+  const [subscribers, memberDeals, posts, partners, runs, scanner] =
+    await Promise.all([
+      getAll("subscribers"),
+      getMemberDeals("premium"), // ce que voit le premium : 1 deal par route
+      getAll("posts"),
+      getAll("partners"),
+      getAll("agent_runs"),
+      getScannerRuns(),
+    ]);
 
   const recentRuns = [...runs]
     .sort((a, b) => b.started_at.localeCompare(a.started_at))
@@ -35,7 +37,7 @@ export default async function AdminDashboard() {
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Stat label="Abonnés" value={subscribers.length} href="/admin/subscribers" />
-        <Stat label="Deals" value={deals.length} href="/admin/deals" />
+        <Stat label="Deals" value={memberDeals.total} href="/admin/deals" />
         <Stat label="Articles" value={posts.length} href="/admin/blog" />
         <Stat label="Partenaires" value={partners.length} href="/admin/partners" />
         <Stat

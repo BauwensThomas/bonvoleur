@@ -3,7 +3,6 @@
 import { Fragment, useState } from "react";
 import type { Deal } from "@/lib/types";
 
-const CURRENT_MS = 3 * 24 * 60 * 60 * 1000; // "actuel" = revu par le scanner < 3 jours
 const seenAt = (d: Deal) => d.published_at ?? d.created_at;
 const fmtDate = (iso: string | null) =>
   iso
@@ -112,8 +111,8 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
     reload();
   }
 
-  // Une ligne par route (deal le plus récent) + historique dépliable.
-  const now = Date.now();
+  // Une ligne par route = le deal que voit le PREMIUM (le plus récent de la
+  // route, sans filtre d'ancienneté). L'historique (doublons) est dépliable.
   const groups = new Map<string, Deal[]>();
   for (const d of items) {
     const key = `${d.origin} → ${d.destination}`;
@@ -126,10 +125,7 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
       const sorted = [...deals].sort((a, b) =>
         seenAt(b).localeCompare(seenAt(a))
       );
-      const current = deals.filter(
-        (d) => now - new Date(seenAt(d)).getTime() <= CURRENT_MS
-      ).length;
-      return { key, latest: sorted[0], deals: sorted, current, total: deals.length };
+      return { key, latest: sorted[0], deals: sorted, total: deals.length };
     })
     .sort((a, b) => seenAt(b.latest).localeCompare(seenAt(a.latest)));
 
@@ -144,6 +140,11 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
           Nouveau deal
         </button>
       </div>
+      <p className="mt-1 text-sm text-slate-500">
+        Une ligne par route = le deal que voit le <strong>premium</strong> (le
+        plus récent). Clique une ligne pour dérouler tout l&apos;historique de la
+        route.
+      </p>
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="w-full text-sm">
@@ -152,7 +153,7 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
               <th className="px-4 py-2 font-medium">Route</th>
               <th className="px-4 py-2 font-medium">Dernier prix</th>
               <th className="px-4 py-2 font-medium">Vu le</th>
-              <th className="px-4 py-2 font-medium">Deals actifs</th>
+              <th className="px-4 py-2 font-medium">Historique</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -182,12 +183,12 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
                       {fmtDate(seenAt(r.latest))}
                     </td>
                     <td className="px-4 py-2 whitespace-nowrap">
-                      <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand-dark">
-                        {r.current} actuel{r.current > 1 ? "s" : ""}
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                        {r.total} deal{r.total > 1 ? "s" : ""}
                       </span>
-                      {r.total > r.current && (
+                      {r.total > 1 && (
                         <span className="ml-2 text-xs text-slate-400">
-                          {r.total} au total
+                          (clique pour voir)
                         </span>
                       )}
                     </td>
