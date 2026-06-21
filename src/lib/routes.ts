@@ -83,10 +83,14 @@ export interface DestinationGroup {
   destCity: string;
   slug: string;
   image: string | null;
+  imageCredit: string | null;
+  content: RouteContent | null;
   routes: FullRoute[];
 }
 
-// Regroupe par destination (pour la grille accueil + son menu d'aéroports).
+// Regroupe par destination (1 fiche par ville d'arrivée). Contenu et photo
+// pris sur la 1re route disponible vers cette destination (le contenu concerne
+// la ville, pas le couple) -> pas de doublon de fiche.
 export async function getDestinations(): Promise<DestinationGroup[]> {
   const routes = await getRoutes();
   const map = new Map<string, DestinationGroup>();
@@ -94,11 +98,23 @@ export async function getDestinations(): Promise<DestinationGroup[]> {
     const slug = destinationSlug(r.destCity);
     let g = map.get(slug);
     if (!g) {
-      g = { destIata: r.destIata, destCity: r.destCity, slug, image: null, routes: [] };
+      g = {
+        destIata: r.destIata,
+        destCity: r.destCity,
+        slug,
+        image: null,
+        imageCredit: null,
+        content: null,
+        routes: [],
+      };
       map.set(slug, g);
     }
     g.routes.push(r);
-    if (!g.image && r.image) g.image = r.image; // 1re image dispo pour la destination
+    if (!g.image && r.image) {
+      g.image = r.image;
+      g.imageCredit = r.imageCredit;
+    }
+    if (!g.content && r.content) g.content = r.content;
   }
   return [...map.values()];
 }

@@ -1,18 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import DealCard from "@/components/DealCard";
+import AirportDeals, { type AirportProof } from "@/components/AirportDeals";
 import { getAll } from "@/lib/db";
 import { site } from "@/lib/site";
-import { type SeoRoute } from "@/lib/seo-routes";
-import { getRoute, getRoutes } from "@/lib/routes";
+import {
+  getDestination,
+  getDestinations,
+  getRoute,
+  destinationSlug,
+} from "@/lib/routes";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 export const dynamic = "force-dynamic";
 
+// Le segment [route] gère désormais les fiches DESTINATION (slug = ville d'arrivée,
+// ex "lisbonne"). Les anciennes URLs origine-destination ("bruxelles-lisbonne")
+// redirigent vers la fiche destination.
 type Params = { route: string };
 
 export async function generateMetadata({
@@ -21,46 +28,37 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { route } = await params;
-  const r = await getRoute(route);
-  if (!r) return { title: "Route introuvable" };
-  const title = `Vols pas chers ${r.originCity} - ${r.destCity}`;
-  const description = `Les meilleurs bons plans de vols ${r.originCity} vers ${r.destCity} (${r.originIata} - ${r.destIata}). On surveille les prix et on t'alerte quand c'est le moment de réserver.`;
+  const d = await getDestination(route);
+  const city = d?.destCity ?? (await getRoute(route))?.destCity;
+  if (!city) return { title: "Destination introuvable" };
+  const title = `Vols pas chers vers ${city}`;
+  const description = `Les meilleurs bons plans de vols vers ${city}. Choisis ton aéroport de départ, on surveille les prix et on te prévient par email.`;
   return {
     title,
     description,
-    alternates: { canonical: `${site.url}/vols-pas-chers/${r.slug}` },
+    alternates: {
+      canonical: `${site.url}/vols-pas-chers/${d?.slug ?? destinationSlug(city)}`,
+    },
     openGraph: {
       type: "website",
       title: `${title} - ${site.name}`,
       description,
-      url: `${site.url}/vols-pas-chers/${r.slug}`,
     },
   };
 }
 
-interface RouteProof {
-  past: {
-    origin: string;
-    destination: string;
-    price: number;
-    normal_price: number | null;
-    dates: string;
-    airline: string | null;
-    postedAt: string;
-  }[];
-  weekCount: number; // deals de cette semaine (réservés aux inscrits) -> teaser
-}
-
-// On NE montre PAS les deals en cours (ils sont réservés aux inscrits).
-// On montre les deals des semaines passées comme preuve sociale, et on tease
-// le nombre trouvé cette semaine pour donner envie de s'inscrire.
-async function routeProof(r: SeoRoute): Promise<RouteProof> {
+// Preuve sociale par aéroport : deals passés (plus d'1 semaine) + nombre de la
+// semaine en cours (teaser). On NE montre PAS les deals en cours (inscrits).
+async function proofFor(
+  originIata: string,
+  destIata: string
+): Promise<{ past: AirportProof["past"]; weekCount: number }> {
   try {
     const all = (await getAll("deals")).filter(
       (d) =>
         d.is_hot !== false &&
-        d.origin.toUpperCase().includes(`(${r.originIata})`) &&
-        d.destination.toUpperCase().includes(`(${r.destIata})`)
+        d.origin.toUpperCase().includes(`(${originIata})`) &&
+        d.destination.toUpperCase().includes(`(${destIata})`)
     );
     const now = Date.now();
     const past = all
@@ -85,43 +83,63 @@ async function routeProof(r: SeoRoute): Promise<RouteProof> {
   }
 }
 
-function faqFor(r: SeoRoute) {
+function faqFor(city: string, originCities: string[]) {
+  const depuis =
+    originCities.length > 0
+      ? originCities.join(", ")
+      : "nos aéroports surveillés";
   return [
     {
-      q: `Quel est le prix d'un vol ${r.originCity} - ${r.destCity} ?`,
-      a: `Les prix varient selon la saison et la compagnie. On repère et on t'alerte dès qu'un tarif anormalement bas apparaît sur ${r.originCity} - ${r.destCity}. Les prix affichés sont indicatifs : le tarif exact se confirme au moment de réserver.`,
+      q: `Quel est le prix d'un vol vers ${city} ?`,
+      a: `Les prix varient selon la saison, l'aéroport de départ et la compagnie. On repère les tarifs anormalement bas vers ${city} et on te prévient par email. Les prix affichés sont indicatifs : le tarif exact se confirme au moment de réserver.`,
     },
     {
-      q: `Quand réserver un vol ${r.originCity} - ${r.destCity} pas cher ?`,
-      a: `Les meilleurs prix partent vite, souvent en quelques heures pour les erreurs de prix. Le plus simple est de s'inscrire gratuitement pour recevoir nos bons plans sur cette route par email.`,
+      q: `Depuis quels aéroports peut-on rejoindre ${city} ?`,
+      a: `On surveille les départs depuis ${depuis}. Choisis ton aéroport ci-dessus pour voir les bons plans correspondants.`,
     },
     {
-      q: `BonVoleur vend-il les billets ${r.originCity} - ${r.destCity} ?`,
+      q: `Quand réserver un vol vers ${city} pas cher ?`,
+      a: `Les meilleurs prix partent vite. Le plus simple est de s'inscrire gratuitement pour recevoir nos bons plans vers ${city} par email.`,
+    },
+    {
+      q: `BonVoleur vend-il les billets ?`,
       a: `Non. ${site.name} déniche les bons plans et te renvoie vers le site de la compagnie ou d'un partenaire pour réserver. Tu réserves toujours en direct.`,
     },
   ];
 }
 
-export default async function RoutePage({
+export default async function DestinationPage({
   params,
 }: {
   params: Promise<Params>;
 }) {
   const { route } = await params;
-  const r = await getRoute(route);
-  if (!r) notFound();
 
-  const { past, weekCount } = await routeProof(r);
-  const destImg = r.image; // photo de la destination (base ou auto), si dispo
-  const content = r.content; // vraies infos (compagnies, durée...), si générées
-  const faq = faqFor(r);
-  const allRoutes = await getRoutes();
-  const others = allRoutes
-    .filter((x) => x.originIata === r.originIata && x.slug !== r.slug)
-    .slice(0, 6);
-  const inbound = allRoutes
-    .filter((x) => x.destIata === r.destIata && x.slug !== r.slug)
-    .slice(0, 4);
+  // Ancienne URL origine-destination -> redirige vers la fiche destination.
+  const dest = await getDestination(route);
+  if (!dest) {
+    const r = await getRoute(route);
+    if (r) redirect(`/vols-pas-chers/${destinationSlug(r.destCity)}`);
+    notFound();
+  }
+
+  const content = dest.content;
+  const image = dest.image;
+  const originCities = dest.routes.map((r) => r.originCity);
+  const faq = faqFor(dest.destCity, originCities);
+
+  // Preuve par aéroport de départ.
+  const airports: AirportProof[] = await Promise.all(
+    dest.routes.map(async (r) => {
+      const { past, weekCount } = await proofFor(r.originIata, dest.destIata);
+      return { originCity: r.originCity, originIata: r.originIata, past, weekCount };
+    })
+  );
+
+  // Maillage interne : autres destinations.
+  const others = (await getDestinations())
+    .filter((x) => x.slug !== dest.slug)
+    .slice(0, 12);
 
   const faqJsonLd = {
     "@context": "https://schema.org",
@@ -146,42 +164,44 @@ export default async function RoutePage({
           <Link href="/vols-pas-chers" className="hover:text-slate-900">
             Vols pas chers
           </Link>{" "}
-          / {r.originCity} - {r.destCity}
+          / {dest.destCity}
         </nav>
 
-        {/* Banniere : photo de la destination (degrade de secours si absente) */}
+        {/* Bannière : photo de la destination (dégradé de secours si absente) */}
         <div className="relative mt-3 overflow-hidden rounded-2xl bg-linear-to-br from-brand-dark to-brand">
-          {destImg && (
+          {image && (
             <div
               className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${destImg})` }}
+              style={{ backgroundImage: `url(${image})` }}
             />
           )}
           <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/45 to-black/25" />
           <div className="relative px-6 py-12 sm:px-10 sm:py-16">
             <h1 className="text-3xl font-bold text-white drop-shadow sm:text-4xl">
-              Vols pas chers {r.originCity} - {r.destCity}
+              Vols pas chers vers {dest.destCity}
             </h1>
             <p className="mt-3 max-w-2xl text-lg text-white/90 drop-shadow">
-              On surveille les prix des vols {r.originCity} ({r.originIata}) vers{" "}
-              {r.destCity} ({r.destIata}) et on t&apos;alerte dès qu&apos;un tarif
-              anormalement bas apparaît. Inscris-toi gratuitement pour ne plus
-              rater un bon plan sur cette route.
+              On surveille les prix vers {dest.destCity} et on te prévient par
+              email. Choisis ton aéroport de départ et inscris-toi pour ne plus
+              rater un bon plan.
             </p>
             <div className="mt-6">
               <Link
                 href="/#inscription"
                 className="inline-block rounded-lg bg-white px-6 py-3 font-semibold text-brand-dark shadow-lg ring-1 ring-black/5 transition hover:bg-slate-100"
               >
-                Recevoir les alertes {r.destCity}
+                Recevoir les bons plans {dest.destCity}
               </Link>
             </div>
           </div>
         </div>
 
-        {/* Infos pratiques RÉELLES sur la route (si générées) */}
+        {/* Sélecteur d'aéroport + preuve sociale / teaser */}
+        <AirportDeals airports={airports} destCity={dest.destCity} />
+
+        {/* Infos pratiques sur la destination (si disponibles) */}
         {content && (
-          <section className="mt-10">
+          <section className="mt-12">
             <p className="leading-relaxed text-slate-700">{content.intro}</p>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -214,7 +234,7 @@ export default async function RoutePage({
             {content.tips.length > 0 && (
               <>
                 <h2 className="mt-8 text-2xl font-bold">
-                  Conseils pour {r.originCity} - {r.destCity}
+                  Conseils pour {dest.destCity}
                 </h2>
                 <ul className="mt-3 list-disc space-y-2 pl-5 text-slate-700">
                   {content.tips.map((t, i) => (
@@ -226,53 +246,8 @@ export default async function RoutePage({
           </section>
         )}
 
-        {/* Teaser : deals de cette semaine, réservés aux inscrits */}
-        {weekCount > 0 && (
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand/30 bg-brand/5 px-5 py-4">
-            <p className="text-sm text-slate-700">
-              <strong>{weekCount}</strong> bon{weekCount > 1 ? "s" : ""} plan
-              {weekCount > 1 ? "s" : ""} {r.originCity} - {r.destCity} cette
-              semaine, réservé{weekCount > 1 ? "s" : ""} aux inscrits.
-            </p>
-            <Link
-              href="/#inscription"
-              className="shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
-            >
-              Recevoir les bons plans
-            </Link>
-          </div>
-        )}
-
-        {/* Preuve sociale : on n'affiche cette section QUE s'il y a de vrais
-            bons plans passés à montrer (sinon page propre, pas de remplissage). */}
-        {past.length > 0 && (
-          <section className="mt-10">
-            <h2 className="text-2xl font-bold">
-              Ce qu&apos;on a déniché récemment {r.originCity} - {r.destCity}
-            </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Voici des bons plans que nos abonnés ont reçus. Les offres en cours
-              sont réservées aux inscrits.
-            </p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {past.map((d, i) => (
-                <DealCard
-                  key={`${d.origin}-${d.destination}-${i}`}
-                  origin={d.origin}
-                  destination={d.destination}
-                  price={d.price}
-                  normal_price={d.normal_price}
-                  dates={d.dates}
-                  airline={d.airline}
-                  postedAt={d.postedAt}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* FAQ */}
-        <section className="mt-10">
+        <section className="mt-12">
           <h2 className="text-2xl font-bold">Questions fréquentes</h2>
           <div className="mt-4 divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             {faq.map((f, i) => (
@@ -286,27 +261,18 @@ export default async function RoutePage({
           </div>
         </section>
 
-        {/* Maillage interne */}
-        {(others.length > 0 || inbound.length > 0) && (
-          <section className="mt-10">
+        {/* Maillage interne : autres destinations */}
+        {others.length > 0 && (
+          <section className="mt-12">
             <h2 className="text-xl font-bold">Autres destinations</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {others.map((o) => (
                 <Link
                   key={o.slug}
                   href={`/vols-pas-chers/${o.slug}`}
-                  className="rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:border-brand hover:text-brand"
+                  className="rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-600 transition hover:border-brand hover:text-brand"
                 >
-                  {o.originCity} - {o.destCity}
-                </Link>
-              ))}
-              {inbound.map((o) => (
-                <Link
-                  key={o.slug}
-                  href={`/vols-pas-chers/${o.slug}`}
-                  className="rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:border-brand hover:text-brand"
-                >
-                  {o.originCity} - {o.destCity}
+                  {o.destCity}
                 </Link>
               ))}
             </div>

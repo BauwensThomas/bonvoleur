@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAll } from "@/lib/db";
 import { site } from "@/lib/site";
-import { seoRoutes } from "@/lib/seo-routes";
+import { getDestinations } from "@/lib/routes";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = site.url;
@@ -15,12 +15,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/vols-pas-chers`, changeFrequency: "weekly", priority: 0.7 },
   ];
 
-  // Pages SEO par route (vols pas chers {origine}-{destination}).
-  const routePages: MetadataRoute.Sitemap = seoRoutes.map((r) => ({
-    url: `${base}/vols-pas-chers/${r.slug}`,
-    changeFrequency: "daily",
-    priority: 0.7,
-  }));
+  // Pages SEO par destination (vols pas chers vers {ville}).
+  let routePages: MetadataRoute.Sitemap = [];
+  try {
+    const dests = await getDestinations();
+    routePages = dests.map((d) => ({
+      url: `${base}/vols-pas-chers/${d.slug}`,
+      changeFrequency: "daily",
+      priority: 0.7,
+    }));
+  } catch {
+    // DB indispo : on garde au moins les pages statiques.
+  }
 
   let postPages: MetadataRoute.Sitemap = [];
   try {
