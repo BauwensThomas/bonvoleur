@@ -2,26 +2,37 @@
 // cartes deals. Une photo par destination dans public/destinations/{slug}.jpg.
 // Si l'image manque, l'affichage retombe sur un dégradé (rien ne casse).
 
+export type Region = "Europe" | "Afrique" | "Amérique" | "Asie" | "Océanie";
+
 export interface DestinationInfo {
   slug: string; // nom de fichier sans extension (public/destinations/{slug}.jpg)
   city: string;
+  region: Region;
 }
 
 // Clé = code IATA de la destination (celui qu'on surveille).
 export const DESTINATIONS: Record<string, DestinationInfo> = {
-  LIS: { slug: "lisbonne", city: "Lisbonne" },
-  BCN: { slug: "barcelone", city: "Barcelone" },
-  RAK: { slug: "marrakech", city: "Marrakech" },
-  FCO: { slug: "rome", city: "Rome" },
-  JFK: { slug: "new-york", city: "New York" },
-  BKK: { slug: "bangkok", city: "Bangkok" },
-  OPO: { slug: "porto", city: "Porto" },
-  KRK: { slug: "cracovie", city: "Cracovie" },
-  ALC: { slug: "alicante", city: "Alicante" },
-  ATH: { slug: "athenes", city: "Athènes" },
-  AGP: { slug: "malaga", city: "Malaga" },
-  GIG: { slug: "rio-de-janeiro", city: "Rio de Janeiro" },
+  LIS: { slug: "lisbonne", city: "Lisbonne", region: "Europe" },
+  BCN: { slug: "barcelone", city: "Barcelone", region: "Europe" },
+  RAK: { slug: "marrakech", city: "Marrakech", region: "Afrique" },
+  FCO: { slug: "rome", city: "Rome", region: "Europe" },
+  JFK: { slug: "new-york", city: "New York", region: "Amérique" },
+  BKK: { slug: "bangkok", city: "Bangkok", region: "Asie" },
+  OPO: { slug: "porto", city: "Porto", region: "Europe" },
+  KRK: { slug: "cracovie", city: "Cracovie", region: "Europe" },
+  ALC: { slug: "alicante", city: "Alicante", region: "Europe" },
+  ATH: { slug: "athenes", city: "Athènes", region: "Europe" },
+  AGP: { slug: "malaga", city: "Malaga", region: "Europe" },
+  GIG: { slug: "rio-de-janeiro", city: "Rio de Janeiro", region: "Amérique" },
 };
+
+// Région d'une destination (par libellé "Ville (XXX)" ou code IATA). "Autre"
+// si inconnue (destination auto pas encore catégorisée).
+export function destinationRegion(labelOrIata: string): Region | "Autre" {
+  const iata =
+    labelOrIata.length === 3 ? labelOrIata.toUpperCase() : iataOf(labelOrIata);
+  return (iata && DESTINATIONS[iata]?.region) || "Autre";
+}
 
 // Extrait le code IATA d'un libellé du type "Lisbonne (LIS)".
 function iataOf(label: string): string | null {

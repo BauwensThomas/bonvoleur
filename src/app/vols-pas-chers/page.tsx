@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import DestinationsGrid from "@/components/DestinationsGrid";
+import DestinationsExplorer from "@/components/DestinationsExplorer";
 import { site } from "@/lib/site";
 import { getDestinations } from "@/lib/routes";
+import { destinationRegion } from "@/lib/destinations";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ export default async function VolsPasChersIndex() {
     city: d.destCity,
     slug: d.slug,
     image: d.image,
+    region: destinationRegion(d.destIata),
     origins: d.routes.map((r) => ({
       city: r.originCity,
       iata: r.originIata,
@@ -50,7 +52,7 @@ export default async function VolsPasChersIndex() {
 
         {destinations.length > 0 ? (
           <div className="mt-10">
-            <DestinationsGrid destinations={destinations} />
+            <DestinationsExplorer destinations={destinations} />
           </div>
         ) : (
           <p className="mt-10 text-slate-500">
