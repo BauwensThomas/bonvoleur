@@ -82,15 +82,16 @@ export default async function Home() {
     return (m && imgByDestIata.get(m[1])) || null;
   };
 
-  // 3 derniers articles de blog publiés.
-  const articles = (await getAll("posts"))
+  // 3 derniers articles de blog publiés (+ total pour le bouton « voir tous »).
+  const publishedPosts = (await getAll("posts"))
     .filter((p) => p.status === "published")
     .sort((a, b) =>
       (b.published_at ?? b.created_at).localeCompare(
         a.published_at ?? a.created_at
       )
-    )
-    .slice(0, 3);
+    );
+  const totalArticles = publishedPosts.length;
+  const articles = publishedPosts.slice(0, 3);
 
   return (
     <>
@@ -239,20 +240,10 @@ export default async function Home() {
         {/* ── Derniers articles du blog ── */}
         {articles.length > 0 && (
           <section className="mx-auto max-w-7xl px-4 py-20">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight">Le blog</h2>
-                <p className="mt-2 text-slate-600">
-                  Nos derniers conseils pour voyager moins cher.
-                </p>
-              </div>
-              <a
-                href="/blog"
-                className="shrink-0 text-sm font-semibold text-brand hover:underline"
-              >
-                Voir tous les articles
-              </a>
-            </div>
+            <h2 className="text-3xl font-bold tracking-tight">Le blog</h2>
+            <p className="mt-2 text-slate-600">
+              Nos derniers conseils pour voyager moins cher.
+            </p>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {articles.map((p) => (
                 <a
@@ -276,6 +267,16 @@ export default async function Home() {
                 </a>
               ))}
             </div>
+            {totalArticles > articles.length && (
+              <div className="mt-8 text-center">
+                <a
+                  href="/blog"
+                  className="inline-block rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:border-brand hover:text-brand"
+                >
+                  Voir tous les articles ({totalArticles})
+                </a>
+              </div>
+            )}
           </section>
         )}
 
