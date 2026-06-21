@@ -267,16 +267,14 @@ export default async function Home() {
                 </a>
               ))}
             </div>
-            {totalArticles > articles.length && (
-              <div className="mt-8 text-center">
-                <a
-                  href="/blog"
-                  className="inline-block rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:border-brand hover:text-brand"
-                >
-                  Voir tous les articles ({totalArticles})
-                </a>
-              </div>
-            )}
+            <div className="mt-8 text-center">
+              <a
+                href="/blog"
+                className="inline-block rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:border-brand hover:text-brand"
+              >
+                Voir tous les articles ({totalArticles})
+              </a>
+            </div>
           </section>
         )}
 
