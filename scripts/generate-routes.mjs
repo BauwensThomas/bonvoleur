@@ -1,16 +1,25 @@
-// Génère le contenu PAR DESTINATION (ville d'arrivée) : un seul appel Claude
-// par ville (pas par couple origine-destination) + une photo Unsplash, puis
-// applique ce contenu à toutes les routes de cette destination (table `routes`).
-// Le contenu est centré sur la VILLE (pas sur un aéroport de départ précis).
-// Lancer : node scripts/generate-routes.mjs   (relançable ; réutilise les photos déjà présentes)
+// Génère les fiches PAR DESTINATION (ville d'arrivée) dans la table `routes`.
+//  - Découvre les destinations depuis la liste surveillée ET depuis les deals
+//    réellement trouvés (toute nouvelle route auto).
+//  - SAUTE les destinations qui ont déjà une fiche (contenu + photo) -> aucun
+//    token gaspillé. Utiliser --force pour tout régénérer.
+//  - Contenu centré sur la VILLE (1 appel Claude par ville) + photo Unsplash.
+// Local : node scripts/generate-routes.mjs   |  CI : variables d'env (secrets).
 
 import { readFile } from "node:fs/promises";
 import Anthropic from "@anthropic-ai/sdk";
 
-const env = {};
-for (const l of (await readFile(".env.local", "utf-8")).split(/\r?\n/)) {
-  const m = l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
-  if (m) env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
+const FORCE = process.argv.includes("--force");
+
+// En CI, les variables viennent de l'environnement (secrets). En local, .env.local.
+const env = { ...process.env };
+try {
+  for (const l of (await readFile(".env.local", "utf-8")).split(/\r?\n/)) {
+    const m = l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+    if (m) env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
+  }
+} catch {
+  /* pas de .env.local (CI) : on garde process.env */
 }
 
 const SB = env.SUPABASE_URL;
@@ -32,21 +41,40 @@ const WATCH = {
 };
 const slugify = (s) =>
   s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+const parseLabel = (l) => {
+  const m = String(l).match(/^(.*?)\s*\(([A-Z]{3})\)\s*$/);
+  return m ? { city: m[1].trim(), iata: m[2] } : null;
+};
 
-// Regroupe par destination (ville d'arrivée).
+// Destinations à considérer : ville d'arrivée -> { dc, origins:[{o,oc,slug}] }.
 const dests = {};
-for (const [o, ds] of Object.entries(WATCH)) {
-  for (const d of ds) {
-    if (!dests[d]) dests[d] = { d, dc: DEST[d], origins: [] };
-    dests[d].origins.push({ o, oc: ORIGIN[o], slug: `${slugify(ORIGIN[o])}-${slugify(DEST[d])}` });
+function addRoute(oIata, oCity, dIata, dCity) {
+  if (!dests[dIata]) dests[dIata] = { d: dIata, dc: dCity, origins: [] };
+  const slug = `${slugify(oCity)}-${slugify(dCity)}`;
+  if (!dests[dIata].origins.some((x) => x.slug === slug)) {
+    dests[dIata].origins.push({ o: oIata, oc: oCity, slug });
   }
 }
 
-// Photos déjà présentes (pour ne pas re-télécharger).
-const existing = await fetch(`${SB}/rest/v1/routes?select=slug,image_url`, { headers: sbHeaders })
+// 1) Liste surveillée (codée en dur).
+for (const [o, ds] of Object.entries(WATCH)) {
+  for (const d of ds) addRoute(o, ORIGIN[o], d, DEST[d]);
+}
+// 2) Deals réellement trouvés (toute nouvelle route auto).
+const deals = await fetch(`${SB}/rest/v1/deals?select=origin,destination,is_hot`, { headers: sbHeaders })
   .then((r) => (r.ok ? r.json() : []))
   .catch(() => []);
-const imgBySlug = new Map(existing.map((r) => [r.slug, r.image_url]));
+for (const d of deals) {
+  if (d.is_hot === false) continue;
+  const o = parseLabel(d.origin), dd = parseLabel(d.destination);
+  if (o && dd) addRoute(o.iata, o.city, dd.iata, dd.city);
+}
+
+// Fiches déjà en base (slug -> { intro, image_url }) pour sauter le connu.
+const existing = await fetch(`${SB}/rest/v1/routes?select=slug,intro,image_url`, { headers: sbHeaders })
+  .then((r) => (r.ok ? r.json() : []))
+  .catch(() => []);
+const bySlug = new Map(existing.map((r) => [r.slug, r]));
 
 const client = env.ANTHROPIC_API_KEY ? new Anthropic({ apiKey: env.ANTHROPIC_API_KEY }) : null;
 const model = env.ANTHROPIC_MODEL || "claude-opus-4-8";
@@ -66,7 +94,7 @@ async function genCityContent(city, origins) {
       role: "user",
       content: `Cherche sur le web des infos RÉELLES et vérifiables sur les vols vers ${city} depuis la Belgique et la France (aéroports possibles : ${origins.join(", ")}). Le contenu doit être centré sur LA DESTINATION ${city}, PAS sur un seul aéroport de départ. Réponds STRICTEMENT en JSON, sans texte autour :
 {
- "intro": "2 à 3 phrases sur ${city} comme destination et l'accès en avion depuis la Belgique et la France (vols directs ou avec escale, compagnies, contexte général). Ne commence pas par 'La liaison X vers ${city}'.",
+ "intro": "2 à 3 phrases sur ${city} comme destination et l'accès en avion depuis la Belgique et la France. Ne commence pas par 'La liaison X vers ${city}'.",
  "airlines": ["principales compagnies qui desservent ${city} depuis la Belgique/France"],
  "duration": "durée de vol typique vers ${city} depuis la Belgique/France (ordre de grandeur)",
  "bestPeriod": "meilleure période pour visiter ${city} (prix et/ou météo)",
@@ -98,19 +126,21 @@ async function unsplashPhoto(city) {
   }
 }
 
-let done = 0;
+let generated = 0, skipped = 0;
 for (const dest of Object.values(dests)) {
+  const hasContent = dest.origins.some((o) => bySlug.get(o.slug)?.intro);
+  const knownImg = dest.origins.map((o) => bySlug.get(o.slug)?.image_url).find(Boolean) || null;
+
+  // Déjà connue (contenu + photo) et pas de --force -> on saute (zéro token).
+  if (!FORCE && hasContent && knownImg) {
+    skipped++;
+    continue;
+  }
+
   process.stdout.write(`${dest.dc}... `);
+  const content = FORCE || !hasContent ? await genCityContent(dest.dc, dest.origins.map((o) => o.oc)) : null;
+  const photo = knownImg ? { url: knownImg, credit: null } : await unsplashPhoto(dest.dc);
 
-  const content = await genCityContent(dest.dc, dest.origins.map((o) => o.oc));
-
-  // Photo : réutilise celle déjà en base si une route de cette ville en a une.
-  let photo = null;
-  const known = dest.origins.map((o) => imgBySlug.get(o.slug)).find(Boolean);
-  if (known) photo = { url: known, credit: null };
-  else photo = await unsplashPhoto(dest.dc);
-
-  // Applique le MÊME contenu (centré ville) + photo à toutes les routes de la destination.
   let ok = 0;
   for (const o of dest.origins) {
     const row = {
@@ -137,8 +167,8 @@ for (const dest of Object.values(dests)) {
     if (res.ok) ok++;
     else console.log(`\n  ERREUR ${o.slug} ${res.status}: ${await res.text()}`);
   }
-  console.log(`OK (${ok}/${dest.origins.length} routes${content?.intro ? " +contenu" : ""}${photo?.url ? " +photo" : ""})`);
-  done++;
+  console.log(`OK (${ok}/${dest.origins.length}${content?.intro ? " +contenu" : ""}${photo?.url ? " +photo" : ""})`);
+  generated++;
 }
 
-console.log(`\nTerminé. ${done} destination(s) traitée(s).`);
+console.log(`\nTerminé. ${generated} destination(s) générée(s), ${skipped} déjà à jour (sautées).`);

@@ -47,7 +47,7 @@ export default async function Home() {
   const { teaserDeals } = await getHomepageDeals();
 
   // Destinations populaires : par ville, avec ses aéroports de départ.
-  const destinations = (await getDestinations()).slice(0, 8).map((d) => ({
+  const destinations = (await getDestinations()).map((d) => ({
     city: d.destCity,
     slug: d.slug,
     image: d.image,
