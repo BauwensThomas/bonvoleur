@@ -72,7 +72,21 @@ export default function BlogManager({ initial }: { initial: Post[] }) {
           <tbody className="divide-y divide-slate-100">
             {items.map((p) => (
               <tr key={p.id}>
-                <td className="px-4 py-2 font-medium">{p.title}</td>
+                <td className="px-4 py-2 font-medium">
+                  <span className="flex items-center gap-3">
+                    {p.cover_image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={p.cover_image}
+                        alt=""
+                        className="h-10 w-16 shrink-0 rounded object-cover"
+                      />
+                    ) : (
+                      <span className="h-10 w-16 shrink-0 rounded bg-slate-100" />
+                    )}
+                    {p.title}
+                  </span>
+                </td>
                 <td className="px-4 py-2">
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${

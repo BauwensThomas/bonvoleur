@@ -35,11 +35,6 @@ export default function DestinationsGrid({
           <span className="absolute bottom-3 left-4 text-lg font-bold text-white drop-shadow">
             {d.city}
           </span>
-          {d.origins.length > 1 && (
-            <span className="absolute right-3 bottom-3 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-slate-700">
-              {d.origins.length} départs
-            </span>
-          )}
         </Link>
       ))}
     </div>

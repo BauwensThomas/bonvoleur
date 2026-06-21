@@ -31,8 +31,16 @@ export default function AirportDeals({
   destCity: string;
   destImage?: string | null;
 }) {
-  const [active, setActive] = useState(airports[0]?.originIata ?? "");
-  const a = airports.find((x) => x.originIata === active) ?? airports[0];
+  // Aéroports avec des deals (preuve ou teaser) en premier ; on ouvre sur un
+  // onglet rempli (jamais une vue vide d'entrée).
+  const hasDeals = (x: AirportProof) => x.past.length > 0 || x.weekCount > 0;
+  const ordered = [...airports].sort(
+    (x, y) => Number(hasDeals(y)) - Number(hasDeals(x))
+  );
+  const [active, setActive] = useState(
+    (ordered.find(hasDeals) ?? ordered[0])?.originIata ?? ""
+  );
+  const a = ordered.find((x) => x.originIata === active) ?? ordered[0];
   if (!a) return null;
 
   return (
@@ -43,7 +51,7 @@ export default function AirportDeals({
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {airports.map((x) => {
+        {ordered.map((x) => {
           const on = x.originIata === active;
           return (
             <button
