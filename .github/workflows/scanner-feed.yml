@@ -35,7 +35,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - run: npm ci
+      # npm install (tolerant) plutot que npm ci : evite l'echec lie aux binaires
+      # optionnels par plateforme (sharp, dependance optionnelle de Next).
+      - run: npm install --no-audit --no-fund
       - name: Fiches auto des nouvelles destinations
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
