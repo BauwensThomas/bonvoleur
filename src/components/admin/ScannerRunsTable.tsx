@@ -52,7 +52,7 @@ export default function ScannerRunsTable({ runs }: { runs: WorkflowRun[] }) {
   }
 
   return (
-    <div className="mt-3 max-h-120 overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="mt-3 max-h-150 overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
       <table className="w-full text-sm">
         <thead className="sticky top-0 z-10 bg-slate-50 text-left text-slate-500">
           <tr>

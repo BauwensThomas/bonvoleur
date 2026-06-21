@@ -5,7 +5,7 @@ import ScannerRunsTable from "@/components/admin/ScannerRunsTable";
 export const dynamic = "force-dynamic";
 
 export default async function ScannerAdmin() {
-  const { configured, repo, runs, error } = await getScannerRuns();
+  const { configured, repo, runs, total, error } = await getScannerRuns(true);
 
   return (
     <div>
@@ -39,8 +39,7 @@ export default async function ScannerAdmin() {
           )}
 
           <p className="mt-5 text-sm font-semibold text-slate-700">
-            Historique des exécutions ({runs.length} dernière
-            {runs.length > 1 ? "s" : ""}, 15 max)
+            Historique des exécutions ({total} au total)
           </p>
           <ScannerRunsTable runs={runs} />
 

@@ -40,7 +40,7 @@ export default async function AdminDashboard() {
         <Stat label="Partenaires" value={partners.length} href="/admin/partners" />
         <Stat
           label="Exécutions scanner"
-          value={scanner.runs.length}
+          value={scanner.total}
           href="/admin/scanner"
         />
       </div>

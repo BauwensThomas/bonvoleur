@@ -19,6 +19,7 @@ export interface ScannerRuns {
   configured: boolean;
   repo: string | null;
   runs: WorkflowRun[];
+  total: number; // nombre TOTAL d'exécutions (au-delà de la liste récupérée)
   error?: string;
 }
 
@@ -30,38 +31,58 @@ function ghHeaders(token: string): HeadersInit {
   };
 }
 
-export async function getScannerRuns(): Promise<ScannerRuns> {
+function mapRun(r: unknown): WorkflowRun {
+  const w = r as Record<string, unknown>;
+  return {
+    id: Number(w.id),
+    status: String(w.status),
+    conclusion: w.conclusion ? String(w.conclusion) : null,
+    createdAt: String(w.created_at),
+    htmlUrl: String(w.html_url),
+    event: String(w.event),
+    runNumber: Number(w.run_number),
+  };
+}
+
+// allPages=false (dashboard) : 1 appel, on lit juste le total_count.
+// allPages=true (page Scanner) : pagine pour récupérer TOUTES les exécutions
+// (borné par la rétention GitHub ~90 jours, donc pas réellement infini).
+export async function getScannerRuns(allPages = false): Promise<ScannerRuns> {
   const repo = process.env.GITHUB_REPO ?? null;
   const token = process.env.GITHUB_TOKEN;
-  if (!repo || !token) return { configured: false, repo, runs: [] };
+  if (!repo || !token) return { configured: false, repo, runs: [], total: 0 };
 
+  const MAX_PAGES = 20; // garde-fou (jusqu'a 2000 runs)
   try {
-    const res = await fetch(
-      `${GH_API}/repos/${repo}/actions/workflows/${WORKFLOW_FILE}/runs?per_page=15`,
-      { headers: ghHeaders(token), cache: "no-store" }
-    );
-    if (!res.ok) {
-      return { configured: true, repo, runs: [], error: `GitHub ${res.status}` };
-    }
-    const data = (await res.json()) as { workflow_runs?: unknown[] };
-    const runs: WorkflowRun[] = (data.workflow_runs ?? []).map((r) => {
-      const w = r as Record<string, unknown>;
-      return {
-        id: Number(w.id),
-        status: String(w.status),
-        conclusion: w.conclusion ? String(w.conclusion) : null,
-        createdAt: String(w.created_at),
-        htmlUrl: String(w.html_url),
-        event: String(w.event),
-        runNumber: Number(w.run_number),
+    const all: WorkflowRun[] = [];
+    let total = 0;
+    for (let page = 1; page <= MAX_PAGES; page += 1) {
+      const res = await fetch(
+        `${GH_API}/repos/${repo}/actions/workflows/${WORKFLOW_FILE}/runs?per_page=100&page=${page}`,
+        { headers: ghHeaders(token), cache: "no-store" }
+      );
+      if (!res.ok) {
+        if (page === 1) {
+          return { configured: true, repo, runs: [], total: 0, error: `GitHub ${res.status}` };
+        }
+        break;
+      }
+      const data = (await res.json()) as {
+        workflow_runs?: unknown[];
+        total_count?: number;
       };
-    });
-    return { configured: true, repo, runs };
+      if (page === 1) total = data.total_count ?? 0;
+      const batch = (data.workflow_runs ?? []).map(mapRun);
+      all.push(...batch);
+      if (!allPages || batch.length < 100) break;
+    }
+    return { configured: true, repo, runs: all, total: total || all.length };
   } catch (err) {
     return {
       configured: true,
       repo,
       runs: [],
+      total: 0,
       error: err instanceof Error ? err.message : "Erreur GitHub",
     };
   }
