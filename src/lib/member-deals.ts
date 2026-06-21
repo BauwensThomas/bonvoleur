@@ -8,6 +8,7 @@
 //    plus de 72h (created_at), et on affiche leur date de découverte -> dates
 //    anciennes. C'est ce qui rend le premium intéressant.
 import { getAll } from "./db";
+import { FRESH_MAX_MS } from "./deal-freshness";
 import type { Deal, Tier } from "./types";
 
 export const FREE_DELAY_HOURS = 72;
@@ -49,11 +50,16 @@ export async function getMemberDeals(
   const now = Date.now();
   let all = (await getAll("deals")).filter((d) => d.is_hot !== false);
 
-  // Date réelle du dernier scan : le plus récent "vu" de tous les deals.
+  // Date réelle du dernier scan : le plus récent "vu" de tous les deals
+  // (calculé AVANT le filtre de fraîcheur, pour refléter le vrai dernier scan).
   const lastRefresh =
     all.length > 0
       ? all.reduce((m, d) => (seenAt(d) > m ? seenAt(d) : m), seenAt(all[0]))
       : null;
+
+  // Fraîcheur : on ne montre PAS aux membres les deals non revus depuis plus de
+  // FRESH_MAX_DAYS jours (ils restent en base pour l'historique).
+  all = all.filter((d) => now - new Date(seenAt(d)).getTime() <= FRESH_MAX_MS);
 
   // Filtres (s'appliquent aux deux tiers).
   if (filters.origin) {

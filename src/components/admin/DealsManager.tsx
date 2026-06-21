@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import { FRESH_MAX_DAYS, FRESH_MAX_MS } from "@/lib/deal-freshness";
 import type { Deal } from "@/lib/types";
 
 const seenAt = (d: Deal) => d.published_at ?? d.created_at;
@@ -111,8 +112,10 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
     reload();
   }
 
-  // Une ligne par route = le deal que voit le PREMIUM (le plus récent de la
-  // route, sans filtre d'ancienneté). L'historique (doublons) est dépliable.
+  // Une ligne par route = le deal que voit le PREMIUM (le plus récent). Une
+  // route dont le dernier deal n'a plus été vu depuis +FRESH_MAX_DAYS jours est
+  // masquée du premium (mais gardée en base / affichée ici, marquée "masqué").
+  const now = Date.now();
   const groups = new Map<string, Deal[]>();
   for (const d of items) {
     const key = `${d.origin} → ${d.destination}`;
@@ -125,7 +128,16 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
       const sorted = [...deals].sort((a, b) =>
         seenAt(b).localeCompare(seenAt(a))
       );
-      return { key, latest: sorted[0], deals: sorted, total: deals.length };
+      const latest = sorted[0];
+      const elapsed = now - new Date(seenAt(latest)).getTime();
+      const stale = elapsed > FRESH_MAX_MS;
+      // Compteur : repart à FRESH_MAX_DAYS dès que le scanner revoit le deal
+      // (published_at rafraîchi -> elapsed ~0).
+      const daysLeft = Math.max(
+        0,
+        Math.ceil((FRESH_MAX_MS - elapsed) / 86_400_000)
+      );
+      return { key, latest, deals: sorted, total: deals.length, stale, daysLeft };
     })
     .sort((a, b) => seenAt(b.latest).localeCompare(seenAt(a.latest)));
 
@@ -142,8 +154,11 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
       </div>
       <p className="mt-1 text-sm text-slate-500">
         Une ligne par route = le deal que voit le <strong>premium</strong> (le
-        plus récent). Clique une ligne pour dérouler tout l&apos;historique de la
-        route.
+        plus récent). Le compteur rouge indique les jours avant qu&apos;il ne
+        disparaisse du premium ; il repart à {FRESH_MAX_DAYS} jours dès que le
+        scanner le retrouve. Au-delà de {FRESH_MAX_DAYS} jours sans le revoir, il
+        est masqué du premium mais conservé en base. Clique une ligne pour voir
+        tout l&apos;historique.
       </p>
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -163,13 +178,20 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
                 <Fragment key={r.key}>
                   <tr
                     onClick={() => setOpen(isOpen ? null : r.key)}
-                    className="cursor-pointer hover:bg-slate-50"
+                    className={`cursor-pointer hover:bg-slate-50 ${
+                      r.stale ? "text-slate-400" : ""
+                    }`}
                   >
                     <td className="px-4 py-2 font-medium">
                       <span className="mr-1 inline-block w-3 text-slate-400">
                         {isOpen ? "▾" : "▸"}
                       </span>
                       {r.latest.origin} → {r.latest.destination}
+                      {r.stale && (
+                        <span className="ml-2 rounded bg-slate-200 px-1.5 text-xs font-medium text-slate-600">
+                          masqué du premium
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-2 whitespace-nowrap">
                       {r.latest.price}€{" "}
@@ -181,6 +203,12 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
                     </td>
                     <td className="px-4 py-2 whitespace-nowrap text-slate-600">
                       {fmtDate(seenAt(r.latest))}
+                      {!r.stale && (
+                        <span className="ml-2 rounded bg-red-100 px-1.5 text-xs font-semibold text-red-600">
+                          {r.daysLeft} jour{r.daysLeft > 1 ? "s" : ""} restant
+                          {r.daysLeft > 1 ? "s" : ""}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-2 whitespace-nowrap">
                       <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">

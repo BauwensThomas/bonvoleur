@@ -45,6 +45,20 @@ describe("getMemberDeals — gating par tier", () => {
     expect(deals).toHaveLength(2);
   });
 
+  it("masque les deals non revus depuis plus de 5 jours (premium)", async () => {
+    mockDeals([
+      deal({ destination: "Lisbonne (LIS)", published_at: iso(2 * HOUR) }), // frais
+      deal({
+        destination: "Barcelone (BCN)",
+        published_at: iso(8 * 24 * HOUR), // vu il y a 8 jours -> masqué
+        created_at: iso(8 * 24 * HOUR),
+      }),
+    ]);
+    const { deals, total } = await getMemberDeals("premium");
+    expect(total).toBe(1);
+    expect(deals[0].destination).toBe("Lisbonne (LIS)");
+  });
+
   it("gratuit ne voit que les deals découverts il y a >= 72h", async () => {
     mockDeals([
       deal({ destination: "Lisbonne (LIS)", created_at: iso(80 * HOUR) }), // ancien -> visible
