@@ -8,6 +8,7 @@ import DestinationsGrid from "@/components/DestinationsGrid";
 import { site } from "@/lib/site";
 import { getHomepageDeals } from "@/lib/homepage";
 import { getDestinations } from "@/lib/routes";
+import { getAll } from "@/lib/db";
 
 // Rendu dynamique : l'accueil relit les deals à chaque visite (compteur à jour).
 export const dynamic = "force-dynamic";
@@ -48,16 +49,32 @@ export default async function Home() {
 
   // Destinations populaires : par ville, avec ses aéroports de départ.
   const destGroups = await getDestinations();
-  const destinations = destGroups.map((d) => ({
-    city: d.destCity,
-    slug: d.slug,
-    image: d.image,
-    origins: d.routes.map((r) => ({
-      city: r.originCity,
-      iata: r.originIata,
-      routeSlug: r.slug,
-    })),
-  }));
+  // Met en avant un nombre limité (scalable) : destinations avec des deals
+  // d'abord, puis les autres. Le reste est sur le hub /vols-pas-chers.
+  const FEATURED = 8;
+  const dealDestIatas = new Set(
+    (await getAll("deals"))
+      .filter((d) => d.is_hot !== false)
+      .map((d) => d.destination.match(/\(([A-Z]{3})\)/)?.[1] ?? "")
+  );
+  const totalDest = destGroups.length;
+  const destinations = [...destGroups]
+    .sort(
+      (a, b) =>
+        Number(dealDestIatas.has(b.destIata)) -
+        Number(dealDestIatas.has(a.destIata))
+    )
+    .slice(0, FEATURED)
+    .map((d) => ({
+      city: d.destCity,
+      slug: d.slug,
+      image: d.image,
+      origins: d.routes.map((r) => ({
+        city: r.originCity,
+        iata: r.originIata,
+        routeSlug: r.slug,
+      })),
+    }));
   // Photo de chaque destination (par code IATA) pour les cartes deals.
   const imgByDestIata = new Map(destGroups.map((d) => [d.destIata, d.image]));
   const dealImage = (label: string) => {
@@ -195,6 +212,16 @@ export default async function Home() {
               <div className="mt-8">
                 <DestinationsGrid destinations={destinations} />
               </div>
+              {totalDest > destinations.length && (
+                <div className="mt-8 text-center">
+                  <a
+                    href="/vols-pas-chers"
+                    className="inline-block rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:border-brand hover:text-brand"
+                  >
+                    Voir toutes les destinations ({totalDest})
+                  </a>
+                </div>
+              )}
             </div>
           </section>
         )}
