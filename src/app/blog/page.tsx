@@ -57,13 +57,13 @@ export default async function BlogIndex() {
                     style={{ backgroundImage: `url(${p.cover_image})` }}
                   />
                 )}
-                <div className="p-5">
+                <div className="flex flex-1 flex-col p-5">
                   <p className="text-xs font-medium text-slate-500">
                     {frDate(p.published_at ?? p.created_at)}
                   </p>
                   <h2 className="mt-1 text-lg font-semibold">{p.title}</h2>
                   <p className="mt-2 text-sm text-slate-600">{p.excerpt}</p>
-                  <span className="mt-3 inline-block text-sm font-medium text-brand">
+                  <span className="mt-auto pt-3 text-sm font-medium text-brand">
                     Lire l&apos;article
                   </span>
                 </div>
