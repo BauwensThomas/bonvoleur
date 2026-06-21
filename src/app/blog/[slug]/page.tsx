@@ -105,11 +105,11 @@ export default async function BlogPost({
         <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sm:flex">
           {post.cover_image && (
             <div
-              className="h-52 bg-cover bg-center sm:h-auto sm:w-2/5"
+              className="min-h-60 w-full bg-cover bg-center sm:min-h-80 sm:w-1/2"
               style={{ backgroundImage: `url(${post.cover_image})` }}
             />
           )}
-          <div className="flex flex-col justify-center p-6 sm:w-3/5">
+          <div className="flex flex-col justify-center p-6 sm:w-1/2">
             <h1 className="text-2xl font-bold sm:text-3xl">{post.title}</h1>
             <p className="mt-3 text-sm text-slate-500">
               Par <span className="text-slate-700">{post.author}</span>
