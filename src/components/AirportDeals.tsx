@@ -97,11 +97,11 @@ export default function AirportDeals({
             ))}
           </div>
         </>
-      ) : (
+      ) : a.weekCount === 0 ? (
         <p className="mt-6 rounded-2xl border border-dashed border-slate-300 p-6 text-slate-500">
           {`Pas encore de bon plan ${a.originCity} - ${destCity} à afficher. Inscris-toi pour les recevoir par email dès qu'on en déniche.`}
         </p>
-      )}
+      ) : null}
     </section>
   );
 }
