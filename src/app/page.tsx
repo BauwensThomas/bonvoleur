@@ -82,6 +82,16 @@ export default async function Home() {
     return (m && imgByDestIata.get(m[1])) || null;
   };
 
+  // 3 derniers articles de blog publiés.
+  const articles = (await getAll("posts"))
+    .filter((p) => p.status === "published")
+    .sort((a, b) =>
+      (b.published_at ?? b.created_at).localeCompare(
+        a.published_at ?? a.created_at
+      )
+    )
+    .slice(0, 3);
+
   return (
     <>
       <Header />
@@ -222,6 +232,49 @@ export default async function Home() {
                   </a>
                 </div>
               )}
+            </div>
+          </section>
+        )}
+
+        {/* ── Derniers articles du blog ── */}
+        {articles.length > 0 && (
+          <section className="mx-auto max-w-7xl px-4 py-20">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight">Le blog</h2>
+                <p className="mt-2 text-slate-600">
+                  Nos derniers conseils pour voyager moins cher.
+                </p>
+              </div>
+              <a
+                href="/blog"
+                className="shrink-0 text-sm font-semibold text-brand hover:underline"
+              >
+                Voir tous les articles
+              </a>
+            </div>
+            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {articles.map((p) => (
+                <a
+                  key={p.id}
+                  href={`/blog/${p.slug}`}
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
+                >
+                  {p.cover_image && (
+                    <div
+                      className="h-40 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                      style={{ backgroundImage: `url(${p.cover_image})` }}
+                    />
+                  )}
+                  <div className="flex flex-1 flex-col p-5">
+                    <h3 className="text-lg font-semibold">{p.title}</h3>
+                    <p className="mt-2 text-sm text-slate-600">{p.excerpt}</p>
+                    <span className="mt-auto pt-3 text-sm font-medium text-brand">
+                      Lire l&apos;article
+                    </span>
+                  </div>
+                </a>
+              ))}
             </div>
           </section>
         )}
