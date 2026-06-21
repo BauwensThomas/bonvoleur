@@ -1,47 +1,104 @@
-// Couche routes : pour l'instant basée sur les routes codées en dur (seo-routes),
-// mais async et centralisée pour que la base (table `routes`) puisse l'augmenter
-// plus tard (Étapes 3-4 : auto-génération de fiches) sans changer les pages.
+// Couche routes : fusionne les routes codées en dur (seo-routes + route-content)
+// avec la table `routes` de la base. La base AUGMENTE/écrase par slug (contenu +
+// photo générés). Tolérant : si la table est absente, on garde le codé en dur.
 
+import { getAll } from "./db";
 import { seoRoutes, slugify, type SeoRoute } from "./seo-routes";
+import { ROUTE_CONTENT, type RouteContent } from "./route-content";
 import { destinationImage } from "./destinations";
+import type { Route } from "./types";
 
-// Slug d'une destination (par ville), ex "Rio de Janeiro" -> "rio-de-janeiro".
+export interface FullRoute extends SeoRoute {
+  content: RouteContent | null;
+  image: string | null;
+  imageCredit: string | null;
+}
+
 export function destinationSlug(destCity: string): string {
   return slugify(destCity);
+}
+
+function hardcodedBase(): Map<string, FullRoute> {
+  const m = new Map<string, FullRoute>();
+  for (const r of seoRoutes) {
+    m.set(r.slug, {
+      ...r,
+      content: ROUTE_CONTENT[r.slug] ?? null,
+      image: destinationImage(r.destIata), // /public/destinations/{slug}.jpg si connu
+      imageCredit: null,
+    });
+  }
+  return m;
+}
+
+function fromDbRow(r: Route): FullRoute {
+  return {
+    slug: r.slug,
+    originIata: r.origin_iata,
+    originCity: r.origin_city,
+    destIata: r.destination_iata,
+    destCity: r.destination_city,
+    content: r.intro
+      ? {
+          intro: r.intro,
+          airlines: r.airlines ?? [],
+          duration: r.duration ?? "",
+          bestPeriod: r.best_period ?? "",
+          tips: r.tips ?? [],
+        }
+      : null,
+    image: r.image_url ?? null,
+    imageCredit: r.image_credit ?? null,
+  };
+}
+
+export async function getRoutes(): Promise<FullRoute[]> {
+  const map = hardcodedBase();
+  try {
+    const rows = await getAll("routes");
+    for (const r of rows) {
+      const db = fromDbRow(r);
+      const base = map.get(db.slug);
+      map.set(db.slug, {
+        ...(base ?? db),
+        ...db,
+        // garder le codé en dur quand la base n'a pas (encore) l'info
+        content: db.content ?? base?.content ?? null,
+        image: db.image ?? base?.image ?? null,
+        imageCredit: db.imageCredit ?? base?.imageCredit ?? null,
+      });
+    }
+  } catch {
+    // table `routes` absente ou Supabase indispo : on garde le codé en dur
+  }
+  return [...map.values()];
+}
+
+export async function getRoute(slug: string): Promise<FullRoute | undefined> {
+  return (await getRoutes()).find((r) => r.slug === slug);
 }
 
 export interface DestinationGroup {
   destIata: string;
   destCity: string;
-  slug: string; // slug de destination
-  image: string | null; // photo de la destination (si dispo)
-  routes: SeoRoute[]; // les routes (origines) qui desservent cette destination
+  slug: string;
+  image: string | null;
+  routes: FullRoute[];
 }
 
-// Toutes les routes connues. Codées en dur pour l'instant ; la base viendra
-// s'ajouter ici (merge par slug) aux étapes suivantes.
-export async function getRoutes(): Promise<SeoRoute[]> {
-  return seoRoutes;
-}
-
-// Regroupe les routes par destination (pour la page destination + onglets).
+// Regroupe par destination (pour la grille accueil + son menu d'aéroports).
 export async function getDestinations(): Promise<DestinationGroup[]> {
   const routes = await getRoutes();
   const map = new Map<string, DestinationGroup>();
   for (const r of routes) {
     const slug = destinationSlug(r.destCity);
-    let group = map.get(slug);
-    if (!group) {
-      group = {
-        destIata: r.destIata,
-        destCity: r.destCity,
-        slug,
-        image: destinationImage(r.destIata),
-        routes: [],
-      };
-      map.set(slug, group);
+    let g = map.get(slug);
+    if (!g) {
+      g = { destIata: r.destIata, destCity: r.destCity, slug, image: null, routes: [] };
+      map.set(slug, g);
     }
-    group.routes.push(r);
+    g.routes.push(r);
+    if (!g.image && r.image) g.image = r.image; // 1re image dispo pour la destination
   }
   return [...map.values()];
 }

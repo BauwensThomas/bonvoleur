@@ -6,14 +6,8 @@ import Footer from "@/components/Footer";
 import DealCard from "@/components/DealCard";
 import { getAll } from "@/lib/db";
 import { site } from "@/lib/site";
-import {
-  getSeoRoute,
-  sameOrigin,
-  sameDestination,
-  type SeoRoute,
-} from "@/lib/seo-routes";
-import { ROUTE_CONTENT } from "@/lib/route-content";
-import { destinationImage } from "@/lib/destinations";
+import { type SeoRoute } from "@/lib/seo-routes";
+import { getRoute, getRoutes } from "@/lib/routes";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -27,7 +21,7 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { route } = await params;
-  const r = getSeoRoute(route);
+  const r = await getRoute(route);
   if (!r) return { title: "Route introuvable" };
   const title = `Vols pas chers ${r.originCity} - ${r.destCity}`;
   const description = `Les meilleurs bons plans de vols ${r.originCity} vers ${r.destCity} (${r.originIata} - ${r.destIata}). On surveille les prix et on t'alerte quand c'est le moment de réserver.`;
@@ -114,15 +108,20 @@ export default async function RoutePage({
   params: Promise<Params>;
 }) {
   const { route } = await params;
-  const r = getSeoRoute(route);
+  const r = await getRoute(route);
   if (!r) notFound();
 
   const { past, weekCount } = await routeProof(r);
-  const destImg = destinationImage(r.destIata); // photo de la destination, si dispo
-  const content = ROUTE_CONTENT[r.slug]; // vraies infos (compagnies, durée...), si générées
+  const destImg = r.image; // photo de la destination (base ou auto), si dispo
+  const content = r.content; // vraies infos (compagnies, durée...), si générées
   const faq = faqFor(r);
-  const others = sameOrigin(r).slice(0, 6);
-  const inbound = sameDestination(r).slice(0, 4);
+  const allRoutes = await getRoutes();
+  const others = allRoutes
+    .filter((x) => x.originIata === r.originIata && x.slug !== r.slug)
+    .slice(0, 6);
+  const inbound = allRoutes
+    .filter((x) => x.destIata === r.destIata && x.slug !== r.slug)
+    .slice(0, 4);
 
   const faqJsonLd = {
     "@context": "https://schema.org",

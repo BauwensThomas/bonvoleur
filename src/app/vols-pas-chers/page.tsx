@@ -3,7 +3,9 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { site } from "@/lib/site";
-import { seoRoutes } from "@/lib/seo-routes";
+import { getRoutes, type FullRoute } from "@/lib/routes";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Vols pas chers depuis la Belgique et la France",
@@ -12,10 +14,10 @@ export const metadata: Metadata = {
   alternates: { canonical: `${site.url}/vols-pas-chers` },
 };
 
-export default function VolsPasChersIndex() {
-  // Groupe les routes par ville de départ.
-  const byOrigin = new Map<string, typeof seoRoutes>();
-  for (const r of seoRoutes) {
+export default async function VolsPasChersIndex() {
+  // Groupe les routes par ville de départ (base + auto).
+  const byOrigin = new Map<string, FullRoute[]>();
+  for (const r of await getRoutes()) {
     const list = byOrigin.get(r.originCity) ?? [];
     list.push(r);
     byOrigin.set(r.originCity, list);
@@ -29,9 +31,8 @@ export default function VolsPasChersIndex() {
           Vols pas chers depuis la Belgique et la France
         </h1>
         <p className="mt-3 text-lg text-slate-600">
-          On surveille les prix sur ces routes et on t&apos;alerte dès
-          qu&apos;un bon plan tombe. Choisis ta route, ou inscris-toi pour
-          recevoir les alertes par email.
+          On surveille les prix sur ces routes et on te prévient par email.
+          Choisis ta route, ou inscris-toi pour recevoir les bons plans.
         </p>
         <div className="mt-6">
           <Link

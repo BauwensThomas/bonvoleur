@@ -50,11 +50,21 @@ export interface Deal {
 
 export interface Route {
   id: string;
-  origin_iata: string;
-  destination_iata: string;
   slug: string;
-  avg_price: number | null;
+  origin_iata: string;
+  origin_city: string;
+  destination_iata: string;
+  destination_city: string;
+  intro: string | null;
+  airlines: string[];
+  duration: string | null;
+  best_period: string | null;
+  tips: string[];
+  image_url: string | null;
+  image_credit: string | null;
+  status: string;
   created_at: string;
+  updated_at: string | null;
 }
 
 export interface Airport {
