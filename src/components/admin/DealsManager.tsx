@@ -1,7 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import type { Deal } from "@/lib/types";
+
+const CURRENT_MS = 3 * 24 * 60 * 60 * 1000; // "actuel" = revu par le scanner < 3 jours
+const seenAt = (d: Deal) => d.published_at ?? d.created_at;
+const fmtDate = (iso: string | null) =>
+  iso
+    ? new Date(iso).toLocaleDateString("fr-BE", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "-";
 
 type Draft = Partial<Deal>;
 const empty: Draft = {
@@ -21,6 +32,7 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
   const [emailDeal, setEmailDeal] = useState<Deal | null>(null);
   const [busyEmailId, setBusyEmailId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [open, setOpen] = useState<string | null>(null); // route dépliée
 
   async function reload() {
     const res = await fetch("/api/admin/deals");
@@ -100,6 +112,27 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
     reload();
   }
 
+  // Une ligne par route (deal le plus récent) + historique dépliable.
+  const now = Date.now();
+  const groups = new Map<string, Deal[]>();
+  for (const d of items) {
+    const key = `${d.origin} → ${d.destination}`;
+    const arr = groups.get(key) ?? [];
+    arr.push(d);
+    groups.set(key, arr);
+  }
+  const routes = [...groups.entries()]
+    .map(([key, deals]) => {
+      const sorted = [...deals].sort((a, b) =>
+        seenAt(b).localeCompare(seenAt(a))
+      );
+      const current = deals.filter(
+        (d) => now - new Date(seenAt(d)).getTime() <= CURRENT_MS
+      ).length;
+      return { key, latest: sorted[0], deals: sorted, current, total: deals.length };
+    })
+    .sort((a, b) => seenAt(b.latest).localeCompare(seenAt(a.latest)));
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -117,78 +150,112 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
           <thead className="bg-slate-50 text-left text-slate-500">
             <tr>
               <th className="px-4 py-2 font-medium">Route</th>
-              <th className="px-4 py-2 font-medium">Prix</th>
-              <th className="px-4 py-2 font-medium">Date</th>
-              <th className="px-4 py-2 font-medium">Email</th>
-              <th className="px-4 py-2 font-medium text-right">Actions</th>
+              <th className="px-4 py-2 font-medium">Dernier prix</th>
+              <th className="px-4 py-2 font-medium">Vu le</th>
+              <th className="px-4 py-2 font-medium">Deals actifs</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {items.map((d) => (
-              <tr key={d.id}>
-                <td className="px-4 py-2 font-medium">
-                  {d.origin} → {d.destination}
-                  {d.is_error_fare && (
-                    <span className="ml-2 rounded bg-amber-100 px-1.5 text-xs text-amber-700">
-                      erreur de prix
-                    </span>
-                  )}
-                </td>
-                <td className="px-4 py-2">
-                  {d.price}€{" "}
-                  {d.normal_price && (
-                    <span className="text-slate-700">(-{d.discount_pct}%)</span>
-                  )}
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-slate-600">
-                  {d.published_at || d.created_at
-                    ? new Date(
-                        d.published_at ?? d.created_at
-                      ).toLocaleDateString("fr-BE", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })
-                    : "-"}
-                </td>
-                <td className="px-4 py-2">
-                  {busyEmailId === d.id ? (
-                    <span className="text-xs text-slate-700">génération...</span>
-                  ) : d.email ? (
-                    <button
-                      onClick={() => setEmailDeal(d)}
-                      className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700"
-                    >
-                      Voir l&apos;email
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => genEmail(d)}
-                      className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500 hover:bg-slate-200"
-                    >
-                      Générer
-                    </button>
-                  )}
-                </td>
-                <td className="px-4 py-2 text-right space-x-3">
-                  <button
-                    onClick={() => setDraft(d)}
-                    className="text-brand hover:underline"
+            {routes.map((r) => {
+              const isOpen = open === r.key;
+              return (
+                <Fragment key={r.key}>
+                  <tr
+                    onClick={() => setOpen(isOpen ? null : r.key)}
+                    className="cursor-pointer hover:bg-slate-50"
                   >
-                    Modifier
-                  </button>
-                  <button
-                    onClick={() => del(d)}
-                    className="text-red-600 hover:underline"
-                  >
-                    Supprimer
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {items.length === 0 && (
+                    <td className="px-4 py-2 font-medium">
+                      <span className="mr-1 inline-block w-3 text-slate-400">
+                        {isOpen ? "▾" : "▸"}
+                      </span>
+                      {r.latest.origin} → {r.latest.destination}
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap">
+                      {r.latest.price}€{" "}
+                      {r.latest.normal_price && (
+                        <span className="text-slate-500">
+                          (-{r.latest.discount_pct}%)
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap text-slate-600">
+                      {fmtDate(seenAt(r.latest))}
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap">
+                      <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand-dark">
+                        {r.current} actuel{r.current > 1 ? "s" : ""}
+                      </span>
+                      {r.total > r.current && (
+                        <span className="ml-2 text-xs text-slate-400">
+                          {r.total} au total
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                  {isOpen &&
+                    r.deals.map((d) => (
+                      <tr key={d.id} className="bg-slate-50/60">
+                        <td colSpan={4} className="px-4 py-2 pl-10">
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                            <span className="whitespace-nowrap font-semibold text-slate-900">
+                              {d.price}€
+                              {d.normal_price ? ` (-${d.discount_pct}%)` : ""}
+                            </span>
+                            <span className="text-slate-600">
+                              {d.dates || "dates ?"}
+                              {d.airline ? ` · ${d.airline}` : ""}
+                            </span>
+                            <span className="whitespace-nowrap text-xs text-slate-500">
+                              vu le {fmtDate(seenAt(d))}
+                            </span>
+                            {d.is_error_fare && (
+                              <span className="rounded bg-amber-100 px-1.5 text-xs text-amber-700">
+                                erreur de prix
+                              </span>
+                            )}
+                            <span className="ml-auto flex items-center gap-3 whitespace-nowrap">
+                              {busyEmailId === d.id ? (
+                                <span className="text-xs text-slate-500">
+                                  génération...
+                                </span>
+                              ) : d.email ? (
+                                <button
+                                  onClick={() => setEmailDeal(d)}
+                                  className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700"
+                                >
+                                  Voir l&apos;email
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => genEmail(d)}
+                                  className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500 hover:bg-slate-200"
+                                >
+                                  Générer l&apos;email
+                                </button>
+                              )}
+                              <button
+                                onClick={() => setDraft(d)}
+                                className="text-brand hover:underline"
+                              >
+                                Modifier
+                              </button>
+                              <button
+                                onClick={() => del(d)}
+                                className="text-red-600 hover:underline"
+                              >
+                                Supprimer
+                              </button>
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </Fragment>
+              );
+            })}
+            {routes.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-slate-700">
+                <td colSpan={4} className="px-4 py-6 text-center text-slate-700">
                   Aucun deal.
                 </td>
               </tr>
