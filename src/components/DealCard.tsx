@@ -1,4 +1,5 @@
 import { discountPct } from "@/lib/site";
+import { destinationImage } from "@/lib/destinations";
 
 interface DealCardProps {
   origin: string;
@@ -27,8 +28,16 @@ export default function DealCard({
     !teaser && normal_price && normal_price > 0
       ? discountPct(price, normal_price)
       : null;
+  const img = destinationImage(destination);
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg">
+      {img && (
+        <div
+          className="h-32 bg-slate-100 bg-cover bg-center"
+          style={{ backgroundImage: `url(${img})` }}
+        />
+      )}
+      <div className="p-5">
       <div className="flex items-center justify-between">
         {pct ? (
           <span className="rounded-full bg-accent/15 px-2.5 py-1 text-xs font-semibold text-accent-dark">
@@ -72,6 +81,7 @@ export default function DealCard({
           })}
         </p>
       )}
+      </div>
     </div>
   );
 }

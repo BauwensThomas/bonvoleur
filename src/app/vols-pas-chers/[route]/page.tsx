@@ -13,6 +13,7 @@ import {
   type SeoRoute,
 } from "@/lib/seo-routes";
 import { ROUTE_CONTENT } from "@/lib/route-content";
+import { destinationImage } from "@/lib/destinations";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -117,6 +118,7 @@ export default async function RoutePage({
   if (!r) notFound();
 
   const { past, weekCount } = await routeProof(r);
+  const destImg = destinationImage(r.destIata); // photo de la destination, si dispo
   const content = ROUTE_CONTENT[r.slug]; // vraies infos (compagnies, durée...), si générées
   const faq = faqFor(r);
   const others = sameOrigin(r).slice(0, 6);
@@ -148,23 +150,34 @@ export default async function RoutePage({
           / {r.originCity} - {r.destCity}
         </nav>
 
-        <h1 className="mt-3 text-3xl font-bold sm:text-4xl">
-          Vols pas chers {r.originCity} - {r.destCity}
-        </h1>
-        <p className="mt-3 text-lg text-slate-600">
-          On surveille les prix des vols {r.originCity} ({r.originIata}) vers{" "}
-          {r.destCity} ({r.destIata}) et on t&apos;alerte dès qu&apos;un tarif
-          anormalement bas apparaît. Inscris-toi gratuitement pour ne plus rater
-          un bon plan sur cette route.
-        </p>
-
-        <div className="mt-6">
-          <Link
-            href="/#inscription"
-            className="inline-block rounded-lg bg-brand px-6 py-3 font-semibold text-white hover:bg-brand-dark"
-          >
-            Recevoir les alertes {r.destCity}
-          </Link>
+        {/* Banniere : photo de la destination (degrade de secours si absente) */}
+        <div className="relative mt-3 overflow-hidden rounded-2xl bg-linear-to-br from-brand-dark to-brand">
+          {destImg && (
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${destImg})` }}
+            />
+          )}
+          <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/45 to-black/25" />
+          <div className="relative px-6 py-12 sm:px-10 sm:py-16">
+            <h1 className="text-3xl font-bold text-white drop-shadow sm:text-4xl">
+              Vols pas chers {r.originCity} - {r.destCity}
+            </h1>
+            <p className="mt-3 max-w-2xl text-lg text-white/90 drop-shadow">
+              On surveille les prix des vols {r.originCity} ({r.originIata}) vers{" "}
+              {r.destCity} ({r.destIata}) et on t&apos;alerte dès qu&apos;un tarif
+              anormalement bas apparaît. Inscris-toi gratuitement pour ne plus
+              rater un bon plan sur cette route.
+            </p>
+            <div className="mt-6">
+              <Link
+                href="/#inscription"
+                className="inline-block rounded-lg bg-white px-6 py-3 font-semibold text-brand-dark shadow-lg ring-1 ring-black/5 transition hover:bg-slate-100"
+              >
+                Recevoir les alertes {r.destCity}
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Infos pratiques RÉELLES sur la route (si générées) */}
