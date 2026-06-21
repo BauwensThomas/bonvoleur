@@ -47,7 +47,8 @@ export default async function Home() {
   const { teaserDeals } = await getHomepageDeals();
 
   // Destinations populaires : par ville, avec ses aéroports de départ.
-  const destinations = (await getDestinations()).map((d) => ({
+  const destGroups = await getDestinations();
+  const destinations = destGroups.map((d) => ({
     city: d.destCity,
     slug: d.slug,
     image: d.image,
@@ -57,6 +58,12 @@ export default async function Home() {
       routeSlug: r.slug,
     })),
   }));
+  // Photo de chaque destination (par code IATA) pour les cartes deals.
+  const imgByDestIata = new Map(destGroups.map((d) => [d.destIata, d.image]));
+  const dealImage = (label: string) => {
+    const m = label.match(/\(([A-Z]{3})\)/);
+    return (m && imgByDestIata.get(m[1])) || null;
+  };
 
   return (
     <>
@@ -162,6 +169,7 @@ export default async function Home() {
                   origin={d.origin}
                   destination={d.destination}
                   price={d.price}
+                  image={dealImage(d.destination)}
                   teaser
                 />
               ))}

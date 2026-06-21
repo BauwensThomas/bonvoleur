@@ -133,6 +133,7 @@ const schema = {
     excerpt: { type: "string" },
     meta_title: { type: "string" },
     meta_description: { type: "string" },
+    image_query: { type: "string" },
     content: { type: "string" },
     faq: {
       type: "array",
@@ -153,6 +154,7 @@ const schema = {
     "excerpt",
     "meta_title",
     "meta_description",
+    "image_query",
     "content",
     "faq",
   ],

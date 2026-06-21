@@ -197,7 +197,11 @@ export default async function DestinationPage({
         </div>
 
         {/* Sélecteur d'aéroport + preuve sociale / teaser */}
-        <AirportDeals airports={airports} destCity={dest.destCity} />
+        <AirportDeals
+          airports={airports}
+          destCity={dest.destCity}
+          destImage={image}
+        />
 
         {/* Infos pratiques sur la destination (si disponibles) */}
         {content && (

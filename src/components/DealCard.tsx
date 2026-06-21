@@ -12,6 +12,8 @@ interface DealCardProps {
   // Mode vitrine accueil : route + prix uniquement (aucune info qui aiderait
   // a retrouver l'offre soi-meme : ni dates, ni compagnie, ni date de decouverte).
   teaser?: boolean;
+  // Photo de la destination (base/Unsplash). A defaut, fallback sur /public.
+  image?: string | null;
 }
 
 export default function DealCard({
@@ -23,12 +25,13 @@ export default function DealCard({
   airline,
   postedAt,
   teaser = false,
+  image,
 }: DealCardProps) {
   const pct =
     !teaser && normal_price && normal_price > 0
       ? discountPct(price, normal_price)
       : null;
-  const img = destinationImage(destination);
+  const img = image !== undefined ? image : destinationImage(destination);
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg">
       {img && (

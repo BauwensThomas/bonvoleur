@@ -25,9 +25,11 @@ export interface AirportProof {
 export default function AirportDeals({
   airports,
   destCity,
+  destImage,
 }: {
   airports: AirportProof[];
   destCity: string;
+  destImage?: string | null;
 }) {
   const [active, setActive] = useState(airports[0]?.originIata ?? "");
   const a = airports.find((x) => x.originIata === active) ?? airports[0];
@@ -93,6 +95,7 @@ export default function AirportDeals({
                 dates={d.dates}
                 airline={d.airline}
                 postedAt={d.postedAt}
+                image={destImage}
               />
             ))}
           </div>
