@@ -1,11 +1,8 @@
-// Génère/complète les fiches route DANS LA BASE (table `routes`) :
-//  - contenu réel (Claude + recherche web) : intro, compagnies, durée, période, conseils ;
-//  - photo de la destination via Unsplash (URL stockée + crédit).
-// Reprend là où il s'est arrêté (saute les routes déjà complètes).
-// Lancer : node scripts/generate-routes.mjs
-//
-// Variables (.env.local) : ANTHROPIC_API_KEY (contenu), UNSPLASH_ACCESS_KEY (photo),
-// SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (écriture base).
+// Génère le contenu PAR DESTINATION (ville d'arrivée) : un seul appel Claude
+// par ville (pas par couple origine-destination) + une photo Unsplash, puis
+// applique ce contenu à toutes les routes de cette destination (table `routes`).
+// Le contenu est centré sur la VILLE (pas sur un aéroport de départ précis).
+// Lancer : node scripts/generate-routes.mjs   (relançable ; réutilise les photos déjà présentes)
 
 import { readFile } from "node:fs/promises";
 import Anthropic from "@anthropic-ai/sdk";
@@ -36,22 +33,23 @@ const WATCH = {
 const slugify = (s) =>
   s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
-const routes = Object.entries(WATCH).flatMap(([o, ds]) =>
-  ds.map((d) => ({
-    o, d, oc: ORIGIN[o], dc: DEST[d],
-    slug: `${slugify(ORIGIN[o])}-${slugify(DEST[d])}`,
-  }))
-);
+// Regroupe par destination (ville d'arrivée).
+const dests = {};
+for (const [o, ds] of Object.entries(WATCH)) {
+  for (const d of ds) {
+    if (!dests[d]) dests[d] = { d, dc: DEST[d], origins: [] };
+    dests[d].origins.push({ o, oc: ORIGIN[o], slug: `${slugify(ORIGIN[o])}-${slugify(DEST[d])}` });
+  }
+}
 
-// Routes déjà en base (pour reprise).
-const existing = await fetch(`${SB}/rest/v1/routes?select=slug,intro,image_url`, { headers: sbHeaders })
+// Photos déjà présentes (pour ne pas re-télécharger).
+const existing = await fetch(`${SB}/rest/v1/routes?select=slug,image_url`, { headers: sbHeaders })
   .then((r) => (r.ok ? r.json() : []))
   .catch(() => []);
-const bySlug = new Map(existing.map((r) => [r.slug, r]));
+const imgBySlug = new Map(existing.map((r) => [r.slug, r.image_url]));
 
 const client = env.ANTHROPIC_API_KEY ? new Anthropic({ apiKey: env.ANTHROPIC_API_KEY }) : null;
 const model = env.ANTHROPIC_MODEL || "claude-opus-4-8";
-const photoCache = new Map();
 
 function extractJson(text) {
   const i = text.indexOf("{"), j = text.lastIndexOf("}");
@@ -59,20 +57,20 @@ function extractJson(text) {
   try { return JSON.parse(text.slice(i, j + 1)); } catch { return null; }
 }
 
-async function genContent(oc, o, dc, d) {
+async function genCityContent(city, origins) {
   if (!client) return null;
   const res = await client.messages.create({
     model, max_tokens: 2000,
     tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
     messages: [{
       role: "user",
-      content: `Cherche sur le web des infos RÉELLES et vérifiables sur la liaison aérienne ${oc} (${o}) vers ${dc} (${d}). Donne uniquement des faits exacts (ne devine pas). Réponds STRICTEMENT en JSON, sans texte autour :
+      content: `Cherche sur le web des infos RÉELLES et vérifiables sur les vols vers ${city} depuis la Belgique et la France (aéroports possibles : ${origins.join(", ")}). Le contenu doit être centré sur LA DESTINATION ${city}, PAS sur un seul aéroport de départ. Réponds STRICTEMENT en JSON, sans texte autour :
 {
- "intro": "2 à 3 phrases factuelles sur cette liaison (fréquence, direct ou escale, contexte).",
- "airlines": ["compagnies qui opèrent réellement cette route"],
- "duration": "durée de vol réaliste, ex 'environ 2h en direct'",
- "bestPeriod": "meilleure période pour partir (prix bas et/ou météo)",
- "tips": ["3 à 4 conseils concrets et réels pour cette destination ou cette route"]
+ "intro": "2 à 3 phrases sur ${city} comme destination et l'accès en avion depuis la Belgique et la France (vols directs ou avec escale, compagnies, contexte général). Ne commence pas par 'La liaison X vers ${city}'.",
+ "airlines": ["principales compagnies qui desservent ${city} depuis la Belgique/France"],
+ "duration": "durée de vol typique vers ${city} depuis la Belgique/France (ordre de grandeur)",
+ "bestPeriod": "meilleure période pour visiter ${city} (prix et/ou météo)",
+ "tips": ["3 à 4 conseils concrets pour un voyage à ${city}"]
 }
 IMPÉRATIF : français correct avec TOUS les accents (é, è, ê, à, â, ç, ô, î, ù...). Pas d'émoji, pas de tiret long (em dash). Pas de prix inventés présentés comme garantis.`,
     }],
@@ -82,7 +80,6 @@ IMPÉRATIF : français correct avec TOUS les accents (é, è, ê, à, â, ç, ô
 }
 
 async function unsplashPhoto(city) {
-  if (photoCache.has(city)) return photoCache.get(city);
   if (!env.UNSPLASH_ACCESS_KEY) return null;
   try {
     const res = await fetch(
@@ -92,55 +89,56 @@ async function unsplashPhoto(city) {
     if (!res.ok) return null;
     const p = (await res.json()).results?.[0];
     if (!p) return null;
-    // Guideline Unsplash : déclencher l'event "download".
     if (p.links?.download_location) {
       fetch(p.links.download_location, { headers: { Authorization: `Client-ID ${env.UNSPLASH_ACCESS_KEY}` } }).catch(() => {});
     }
-    const out = {
-      url: p.urls?.regular ?? p.urls?.full ?? null,
-      credit: `Photo ${p.user?.name ?? ""} / Unsplash`.trim(),
-    };
-    photoCache.set(city, out);
-    return out;
+    return { url: p.urls?.regular ?? p.urls?.full ?? null, credit: `Photo ${p.user?.name ?? ""} / Unsplash`.trim() };
   } catch {
     return null;
   }
 }
 
 let done = 0;
-for (const r of routes) {
-  const ex = bySlug.get(r.slug);
-  const needContent = !ex?.intro;
-  const needPhoto = !ex?.image_url;
-  if (!needContent && !needPhoto) { console.log(`skip ${r.slug} (complet)`); continue; }
-  process.stdout.write(`${r.oc} - ${r.dc}... `);
+for (const dest of Object.values(dests)) {
+  process.stdout.write(`${dest.dc}... `);
 
-  const content = needContent ? await genContent(r.oc, r.o, r.dc, r.d) : null;
-  const photo = needPhoto ? await unsplashPhoto(r.dc) : null;
+  const content = await genCityContent(dest.dc, dest.origins.map((o) => o.oc));
 
-  const row = {
-    slug: r.slug,
-    origin_iata: r.o, origin_city: r.oc,
-    destination_iata: r.d, destination_city: r.dc,
-    status: "published",
-    updated_at: new Date().toISOString(),
-  };
-  if (content?.intro) {
-    row.intro = String(content.intro);
-    row.airlines = Array.isArray(content.airlines) ? content.airlines.map(String) : [];
-    row.duration = String(content.duration || "");
-    row.best_period = String(content.bestPeriod || "");
-    row.tips = Array.isArray(content.tips) ? content.tips.map(String) : [];
+  // Photo : réutilise celle déjà en base si une route de cette ville en a une.
+  let photo = null;
+  const known = dest.origins.map((o) => imgBySlug.get(o.slug)).find(Boolean);
+  if (known) photo = { url: known, credit: null };
+  else photo = await unsplashPhoto(dest.dc);
+
+  // Applique le MÊME contenu (centré ville) + photo à toutes les routes de la destination.
+  let ok = 0;
+  for (const o of dest.origins) {
+    const row = {
+      slug: o.slug,
+      origin_iata: o.o, origin_city: o.oc,
+      destination_iata: dest.d, destination_city: dest.dc,
+      status: "published",
+      updated_at: new Date().toISOString(),
+    };
+    if (content?.intro) {
+      row.intro = String(content.intro);
+      row.airlines = Array.isArray(content.airlines) ? content.airlines.map(String) : [];
+      row.duration = String(content.duration || "");
+      row.best_period = String(content.bestPeriod || "");
+      row.tips = Array.isArray(content.tips) ? content.tips.map(String) : [];
+    }
+    if (photo?.url) { row.image_url = photo.url; if (photo.credit) row.image_credit = photo.credit; }
+
+    const res = await fetch(`${SB}/rest/v1/routes?on_conflict=slug`, {
+      method: "POST",
+      headers: { ...sbHeaders, Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify(row),
+    });
+    if (res.ok) ok++;
+    else console.log(`\n  ERREUR ${o.slug} ${res.status}: ${await res.text()}`);
   }
-  if (photo?.url) { row.image_url = photo.url; row.image_credit = photo.credit; }
-
-  const res = await fetch(`${SB}/rest/v1/routes?on_conflict=slug`, {
-    method: "POST",
-    headers: { ...sbHeaders, Prefer: "resolution=merge-duplicates,return=minimal" },
-    body: JSON.stringify(row),
-  });
-  if (res.ok) { console.log(`OK${content?.intro ? " +contenu" : ""}${photo?.url ? " +photo" : ""}`); done++; }
-  else console.log(`ERREUR ${res.status}: ${await res.text()}`);
+  console.log(`OK (${ok}/${dest.origins.length} routes${content?.intro ? " +contenu" : ""}${photo?.url ? " +photo" : ""})`);
+  done++;
 }
 
-console.log(`\nTerminé. ${done} route(s) écrite(s) dans la base.`);
+console.log(`\nTerminé. ${done} destination(s) traitée(s).`);
