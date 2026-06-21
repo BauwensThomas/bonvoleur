@@ -47,6 +47,20 @@ const slugify = (s) =>
   s.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
     .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 70);
 
+// Reecrit tout lien /vols-pas-chers/... vers une fiche destination valide.
+const VALID_DEST_SLUGS = new Set([
+  "lisbonne", "barcelone", "marrakech", "rome", "new-york", "bangkok",
+  "malaga", "porto", "cracovie", "alicante", "athenes", "rio-de-janeiro",
+]);
+const ORIGIN_SLUGS = ["bruxelles", "charleroi", "paris", "lyon"];
+function sanitizeLinks(md) {
+  return md.replace(/\/vols-pas-chers\/([a-z0-9-]+)/g, (_m, slug) => {
+    let s = slug;
+    for (const o of ORIGIN_SLUGS) if (s.startsWith(`${o}-`)) { s = s.slice(o.length + 1); break; }
+    return VALID_DEST_SLUGS.has(s) ? `/vols-pas-chers/${s}` : "/vols-pas-chers";
+  });
+}
+
 function prompt(topic) {
   return `Tu es le rédacteur en chef de ${SITE.name} (${SITE.domain}), un média de deals de vols pas chers pour la Belgique et la France. Tu écris pour être LU et pour RANKER sur Google.
 
@@ -58,7 +72,7 @@ Contraintes impératives :
 - Article TRES LONG et fouillé : viser 1800 à 2500 mots. Développe vraiment chaque section, avec exemples concrets, chiffres d'ordre de grandeur, listes, conseils actionnables.
 - Structure Markdown claire : plusieurs sections "## " et sous-sections "### ", listes à puces, **gras** sur les points clés. PAS de titre H1 dans "content".
 - Exemples de routes réelles depuis BRU (Bruxelles), CRL (Charleroi), CDG (Paris), LYS (Lyon).
-- Inclure au moins 2 liens internes en Markdown : [inscris-toi gratuitement](/#inscription) et une route, ex. [vols pas chers Bruxelles - Barcelone](/vols-pas-chers/bruxelles-barcelone) ou [toutes nos routes](/vols-pas-chers).
+- Inclure au moins 2 liens internes en Markdown : [inscris-toi gratuitement](/#inscription) et une fiche DESTINATION (URL = ville d'arrivee uniquement), ex. [vols pas chers vers Barcelone](/vols-pas-chers/barcelone) ou [toutes nos routes](/vols-pas-chers). JAMAIS d'URL /vols-pas-chers/ville-depart-ville-arrivee.
 - Termine le corps par un appel à s'inscrire à la newsletter.
 - FAQ : 5 à 6 questions/réponses utiles (2 à 4 phrases). PAS dans "content", dans le champ "faq".
 - "meta_title" max 60 caractères ; "meta_description" max 155 caractères ; "excerpt" 1 à 2 phrases ; "slug" court en minuscules avec tirets.
@@ -106,7 +120,7 @@ for (const topic of TOPICS) {
   const { error } = await sb.from("posts").insert({
     id: randomUUID(),
     slug: slugify(a.slug || a.title),
-    title: a.title, excerpt: a.excerpt, content: a.content,
+    title: a.title, excerpt: a.excerpt, content: sanitizeLinks(a.content),
     faq: Array.isArray(a.faq) ? a.faq : [],
     cover_image: await unsplashImage(a.image_query || a.title),
     meta_title: a.meta_title, meta_description: a.meta_description,

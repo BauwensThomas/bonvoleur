@@ -5,7 +5,28 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { getAll, insert, findOne } from "./db";
 import { site } from "./site";
+import { DESTINATIONS } from "./destinations";
 import type { AgentRun, FaqItem } from "./types";
+
+// Sécurité : réécrit tout lien interne /vols-pas-chers/... vers une fiche
+// DESTINATION valide (retire un prefixe d'aeroport de depart, sinon renvoie au
+// hub). Garantit qu'un article généré n'a aucun lien cassé ni redirigé.
+const VALID_DEST_SLUGS = new Set(
+  Object.values(DESTINATIONS).map((d) => d.slug)
+);
+const ORIGIN_SLUGS = ["bruxelles", "charleroi", "paris", "lyon"];
+function sanitizeLinks(md: string): string {
+  return md.replace(/\/vols-pas-chers\/([a-z0-9-]+)/g, (_m, slug: string) => {
+    let s = slug;
+    for (const o of ORIGIN_SLUGS) {
+      if (s.startsWith(`${o}-`)) {
+        s = s.slice(o.length + 1);
+        break;
+      }
+    }
+    return VALID_DEST_SLUGS.has(s) ? `/vols-pas-chers/${s}` : "/vols-pas-chers";
+  });
+}
 
 export interface GeneratedArticle {
   title: string;
@@ -241,7 +262,7 @@ Contraintes impératives :
 - Article TRES LONG et fouillé : viser 1800 à 2500 mots. C'est important pour le SEO : développe vraiment chaque section, donne des exemples concrets, des chiffres d'ordre de grandeur, des listes, des conseils actionnables.
 - Structure Markdown claire : plusieurs sections "## " et sous-sections "### ", des listes à puces, du **gras** sur les points clés. NE PAS mettre de titre H1 dans "content" (le H1 est géré à part).
 - Couvre le sujet en profondeur : contexte, conseils pratiques, exemples de routes réelles depuis BRU (Bruxelles), CRL (Charleroi), CDG (Paris), LYS (Lyon), erreurs à éviter, astuces de réservation, bagages, périodes idéales.
-- Inclure au moins 2 liens internes en Markdown vers des pages du site : la page d'inscription [inscris-toi gratuitement](/#inscription) et une page de route pertinente, par exemple [vols pas chers Bruxelles - Barcelone](/vols-pas-chers/bruxelles-barcelone) ou [voir toutes nos routes](/vols-pas-chers).
+- Inclure au moins 2 liens internes en Markdown vers des pages du site : la page d'inscription [inscris-toi gratuitement](/#inscription) et une fiche DESTINATION pertinente (URL = la ville d'arrivée uniquement), par exemple [vols pas chers vers Barcelone](/vols-pas-chers/barcelone), [vols pas chers vers Lisbonne](/vols-pas-chers/lisbonne) ou [voir toutes nos routes](/vols-pas-chers). N'utilise JAMAIS d'URL du type /vols-pas-chers/ville-depart-ville-arrivee.
 - Termine le corps par un appel clair à s'inscrire à la newsletter.
 - Rubrique FAQ : 5 à 6 questions/réponses utiles et recherchées (réponses de 2 à 4 phrases). NE PAS l'inclure dans "content" : elle va dans le champ "faq".
 - "meta_title" : max 60 caractères, accrocheur, avec le mot-clé. "meta_description" : max 155 caractères.
@@ -293,7 +314,7 @@ export async function runContentPublisher(
       slug,
       title: article.title,
       excerpt: article.excerpt,
-      content: article.content,
+      content: sanitizeLinks(article.content),
       faq: article.faq,
       cover_image: await unsplashImage(article.image_query || article.title),
       meta_title: article.meta_title,
