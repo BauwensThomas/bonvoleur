@@ -7,6 +7,7 @@ const links = [
   { href: "/admin", label: "Tableau de bord" },
   { href: "/admin/deals", label: "Deals" },
   { href: "/admin/scanner", label: "Scanner" },
+  { href: "/admin/photos", label: "Photos" },
   { href: "/admin/partners", label: "Partenaires" },
   { href: "/admin/blog", label: "Blog" },
   { href: "/admin/subscribers", label: "Abonnés" },
