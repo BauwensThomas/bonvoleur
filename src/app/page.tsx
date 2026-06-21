@@ -1,14 +1,13 @@
-import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SignupForm from "@/components/SignupForm";
 import DealCard from "@/components/DealCard";
 import Partners from "@/components/Partners";
 import HeroCinematic from "@/components/HeroCinematic";
+import DestinationsGrid from "@/components/DestinationsGrid";
 import { site } from "@/lib/site";
 import { getHomepageDeals } from "@/lib/homepage";
-import { seoRoutes } from "@/lib/seo-routes";
-import { DESTINATIONS } from "@/lib/destinations";
+import { getDestinations } from "@/lib/routes";
 
 // Rendu dynamique : l'accueil relit les deals à chaque visite (compteur à jour).
 export const dynamic = "force-dynamic";
@@ -47,14 +46,17 @@ export default async function Home() {
   // Vitrine "teaser" : route + prix uniquement (aucune info actionnable).
   const { teaserDeals } = await getHomepageDeals();
 
-  // Destinations populaires : une photo par destination -> page route (maillage SEO).
-  const popularDestinations = Object.entries(DESTINATIONS)
-    .map(([iata, info]) => {
-      const route = seoRoutes.find((r) => r.destIata === iata);
-      return route ? { city: info.city, slug: info.slug, routeSlug: route.slug } : null;
-    })
-    .filter((d): d is { city: string; slug: string; routeSlug: string } => d !== null)
-    .slice(0, 8);
+  // Destinations populaires : par ville, avec ses aéroports de départ.
+  const destinations = (await getDestinations()).slice(0, 8).map((d) => ({
+    city: d.destCity,
+    slug: d.slug,
+    image: d.image,
+    origins: d.routes.map((r) => ({
+      city: r.originCity,
+      iata: r.originIata,
+      routeSlug: r.slug,
+    })),
+  }));
 
   return (
     <>
@@ -172,33 +174,18 @@ export default async function Home() {
           )}
         </section>
 
-        {/* ── Destinations populaires (photos -> pages route, maillage SEO) ── */}
-        {popularDestinations.length > 0 && (
+        {/* ── Destinations populaires (clic -> menu des aéroports de départ) ── */}
+        {destinations.length > 0 && (
           <section className="border-t border-slate-200 bg-white">
             <div className="mx-auto max-w-7xl px-4 py-20">
               <h2 className="text-3xl font-bold tracking-tight">
                 Destinations populaires
               </h2>
               <p className="mt-2 text-slate-600">
-                Inspire-toi et découvre les routes qu&apos;on surveille pour toi.
+                Clique sur une ville et choisis ton aéroport de départ.
               </p>
-              <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                {popularDestinations.map((d) => (
-                  <Link
-                    key={d.routeSlug}
-                    href={`/vols-pas-chers/destination/${d.slug}`}
-                    className="group relative block aspect-4/3 overflow-hidden rounded-2xl bg-slate-200 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
-                  >
-                    <div
-                      className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-                      style={{ backgroundImage: `url(/destinations/${d.slug}.jpg)` }}
-                    />
-                    <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
-                    <span className="absolute bottom-3 left-4 text-lg font-bold text-white drop-shadow">
-                      {d.city}
-                    </span>
-                  </Link>
-                ))}
+              <div className="mt-8">
+                <DestinationsGrid destinations={destinations} />
               </div>
             </div>
           </section>
