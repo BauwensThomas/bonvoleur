@@ -12,9 +12,9 @@ export default async function ScannerAdmin() {
       <div>
         <h1 className="text-2xl font-bold">Scanner</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Le scanner tourne sur <strong>GitHub Actions</strong> (3 fois par jour)
-          et écrit les deals directement dans Supabase. Voici l&apos;historique
-          de ses exécutions.
+          Le scanner tourne sur <strong>GitHub Actions</strong>{" "}
+          (3 fois par jour) et écrit les deals directement dans Supabase. Voici
+          l&apos;historique de ses exécutions.
         </p>
       </div>
 
