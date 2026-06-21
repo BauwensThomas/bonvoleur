@@ -6,7 +6,7 @@ function Stat({ label, value, href }: { label: string; value: number; href: stri
   return (
     <Link
       href={href}
-      className="rounded-xl border border-slate-200 bg-white p-5 hover:border-brand hover:shadow-sm transition"
+      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
     >
       <p className="text-3xl font-bold tabular-nums">{value}</p>
       <p className="mt-1 text-sm text-slate-500">{label}</p>
@@ -45,7 +45,7 @@ export default async function AdminDashboard() {
         />
       </div>
 
-      <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5">
+      <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">Dernières exécutions d&apos;agents</h2>
           <Link href="/admin/agents" className="text-sm text-brand hover:underline">

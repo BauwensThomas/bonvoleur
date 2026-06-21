@@ -174,7 +174,7 @@ export default async function RoutePage({
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               {content.airlines.length > 0 && (
-                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
                     Compagnies
                   </p>
@@ -184,7 +184,7 @@ export default async function RoutePage({
                 </div>
               )}
               {content.duration && (
-                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
                     Durée de vol
                   </p>
@@ -216,7 +216,7 @@ export default async function RoutePage({
 
         {/* Teaser : deals de cette semaine, réservés aux inscrits */}
         {weekCount > 0 && (
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand/5 px-5 py-4">
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand/30 bg-brand/5 px-5 py-4">
             <p className="text-sm text-slate-700">
               <strong>{weekCount}</strong> bon{weekCount > 1 ? "s" : ""} plan
               {weekCount > 1 ? "s" : ""} {r.originCity} - {r.destCity} cette
@@ -262,7 +262,7 @@ export default async function RoutePage({
         {/* FAQ */}
         <section className="mt-10">
           <h2 className="text-2xl font-bold">Questions fréquentes</h2>
-          <div className="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+          <div className="mt-4 divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             {faq.map((f, i) => (
               <details key={i} className="group p-4">
                 <summary className="cursor-pointer font-semibold text-slate-800 marker:content-['']">

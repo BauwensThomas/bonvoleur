@@ -27,7 +27,7 @@ export default async function AgentsAdmin() {
           return (
             <div
               key={a.name}
-              className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5"
+              className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>

@@ -56,7 +56,7 @@ export default function SubscribersManager({
         className="mt-4 w-full max-w-sm rounded-lg border border-slate-300 px-3 py-2 text-sm"
       />
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-500">
             <tr>

@@ -120,7 +120,7 @@ export default async function BlogPost({
         {faq.length > 0 && (
           <section className="mt-10">
             <h2 className="text-2xl font-bold">Questions fréquentes</h2>
-            <div className="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+            <div className="mt-4 divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               {faq.map((f, i) => (
                 <details key={i} className="group p-4">
                   <summary className="cursor-pointer font-semibold text-slate-800 marker:content-['']">
@@ -133,7 +133,7 @@ export default async function BlogPost({
           </section>
         )}
 
-        <div className="mt-10 rounded-xl bg-brand/5 border border-brand/20 p-6 text-center">
+        <div className="mt-10 rounded-2xl bg-brand/5 border border-brand/20 p-6 text-center">
           <p className="font-semibold">Ne rate plus aucun bon plan</p>
           <Link
             href="/#inscription"

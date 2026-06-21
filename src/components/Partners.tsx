@@ -22,8 +22,16 @@ export default async function Partners() {
               href={p.affiliate_url || p.url}
               target="_blank"
               rel="sponsored noopener noreferrer"
-              className="flex w-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg sm:w-72"
+              className="group flex w-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg sm:w-72"
             >
+              {p.logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={p.logo}
+                  alt={p.name}
+                  className="mb-3 h-9 w-auto max-w-40 self-start object-contain opacity-80 grayscale transition duration-300 group-hover:opacity-100 group-hover:grayscale-0"
+                />
+              ) : null}
               <span className="text-xs font-semibold uppercase tracking-wide text-brand-dark">
                 {p.category}
               </span>

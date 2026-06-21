@@ -223,7 +223,7 @@ export default async function Compte({
             les filtres.
           </p>
         ) : view === "list" ? (
-          <div className="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+          <div className="mt-4 divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             {deals.map((d) => {
               const pct =
                 d.normal_price && d.normal_price > 0
@@ -232,7 +232,7 @@ export default async function Compte({
               return (
                 <div
                   key={d.id}
-                  className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4"
+                  className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 transition-colors hover:bg-slate-50"
                 >
                   <div className="min-w-48 flex-1">
                     <p className="font-semibold text-slate-900">
@@ -291,7 +291,7 @@ export default async function Compte({
               return (
                 <div
                   key={d.id}
-                  className="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                  className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
                 >
                   <div className="flex items-center justify-between">
                     {pct ? (

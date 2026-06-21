@@ -45,14 +45,14 @@ export default function ScannerRunsTable({ runs }: { runs: WorkflowRun[] }) {
 
   if (runs.length === 0) {
     return (
-      <div className="mt-5 rounded-xl border border-slate-200 bg-white px-4 py-6 text-center text-slate-500">
+      <div className="mt-5 rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-slate-500 shadow-sm">
         Aucune exécution pour le moment.
       </div>
     );
   }
 
   return (
-    <div className="mt-3 max-h-120 overflow-y-auto rounded-xl border border-slate-200 bg-white">
+    <div className="mt-3 max-h-120 overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
       <table className="w-full text-sm">
         <thead className="sticky top-0 z-10 bg-slate-50 text-left text-slate-500">
           <tr>

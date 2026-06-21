@@ -70,7 +70,7 @@ export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
         {filtered.length} exécution(s)
       </p>
 
-      <div className="mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-500">
             <tr>

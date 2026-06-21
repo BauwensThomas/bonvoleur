@@ -7,6 +7,7 @@ type Draft = Partial<Partner>;
 
 const empty: Draft = {
   name: "",
+  logo: "",
   url: "",
   affiliate_url: "",
   category: "Hébergement",
@@ -95,7 +96,7 @@ export default function PartnersManager({ initial }: { initial: Partner[] }) {
         className="mt-4 w-full max-w-sm rounded-lg border border-slate-300 px-3 py-2 text-sm"
       />
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-500">
             <tr>
@@ -110,7 +111,19 @@ export default function PartnersManager({ initial }: { initial: Partner[] }) {
             {filtered.map((p) => (
               <tr key={p.id}>
                 <td className="px-4 py-2 text-slate-700">{p.position}</td>
-                <td className="px-4 py-2 font-medium">{p.name}</td>
+                <td className="px-4 py-2 font-medium">
+                  <span className="flex items-center gap-2">
+                    {p.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={p.logo}
+                        alt=""
+                        className="h-6 w-auto max-w-16 object-contain"
+                      />
+                    ) : null}
+                    {p.name}
+                  </span>
+                </td>
                 <td className="px-4 py-2 text-slate-600">{p.category}</td>
                 <td className="px-4 py-2">
                   <button
@@ -164,6 +177,25 @@ export default function PartnersManager({ initial }: { initial: Partner[] }) {
                   onChange={(e) => setDraft({ ...draft, name: e.target.value })}
                   className="in"
                 />
+              </Field>
+              <Field label="URL du logo (optionnel)">
+                <input
+                  value={draft.logo ?? ""}
+                  onChange={(e) => setDraft({ ...draft, logo: e.target.value })}
+                  className="in"
+                  placeholder="https://.../logo.svg ou .png"
+                />
+                {draft.logo ? (
+                  <span className="mt-2 flex items-center gap-2 text-xs text-slate-500">
+                    Aperçu :
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={draft.logo}
+                      alt=""
+                      className="h-7 w-auto rounded border border-slate-200 bg-white object-contain p-0.5"
+                    />
+                  </span>
+                ) : null}
               </Field>
               <Field label="Catégorie">
                 <select

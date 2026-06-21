@@ -41,7 +41,7 @@ export default async function BlogIndex() {
               <Link
                 key={p.id}
                 href={`/blog/${p.slug}`}
-                className="rounded-xl border border-slate-200 bg-white p-5 hover:border-brand hover:shadow-sm transition"
+                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
               >
                 <p className="text-xs font-medium text-slate-500">
                   {new Date(
