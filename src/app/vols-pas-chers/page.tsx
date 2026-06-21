@@ -5,7 +5,6 @@ import Footer from "@/components/Footer";
 import DestinationsExplorer from "@/components/DestinationsExplorer";
 import { site } from "@/lib/site";
 import { getDestinations } from "@/lib/routes";
-import { destinationRegion } from "@/lib/destinations";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +20,7 @@ export default async function VolsPasChersIndex() {
     city: d.destCity,
     slug: d.slug,
     image: d.image,
-    region: destinationRegion(d.destIata),
+    region: d.region,
     origins: d.routes.map((r) => ({
       city: r.originCity,
       iata: r.originIata,

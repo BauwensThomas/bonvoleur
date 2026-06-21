@@ -5,13 +5,14 @@
 import { getAll } from "./db";
 import { seoRoutes, slugify, type SeoRoute } from "./seo-routes";
 import { ROUTE_CONTENT, type RouteContent } from "./route-content";
-import { destinationImage } from "./destinations";
+import { destinationImage, destinationRegion } from "./destinations";
 import type { Route } from "./types";
 
 export interface FullRoute extends SeoRoute {
   content: RouteContent | null;
   image: string | null;
   imageCredit: string | null;
+  region: string;
 }
 
 export function destinationSlug(destCity: string): string {
@@ -26,6 +27,7 @@ function hardcodedBase(): Map<string, FullRoute> {
       content: ROUTE_CONTENT[r.slug] ?? null,
       image: destinationImage(r.destIata), // /public/destinations/{slug}.jpg si connu
       imageCredit: null,
+      region: destinationRegion(r.destIata),
     });
   }
   return m;
@@ -49,6 +51,7 @@ function fromDbRow(r: Route): FullRoute {
       : null,
     image: r.image_url ?? null,
     imageCredit: r.image_credit ?? null,
+    region: r.region || destinationRegion(r.destination_iata),
   };
 }
 
@@ -66,6 +69,7 @@ export async function getRoutes(): Promise<FullRoute[]> {
         content: db.content ?? base?.content ?? null,
         image: db.image ?? base?.image ?? null,
         imageCredit: db.imageCredit ?? base?.imageCredit ?? null,
+        region: db.region || base?.region || "Autre",
       });
     }
   } catch {
@@ -85,6 +89,7 @@ export interface DestinationGroup {
   image: string | null;
   imageCredit: string | null;
   content: RouteContent | null;
+  region: string;
   routes: FullRoute[];
 }
 
@@ -105,6 +110,7 @@ export async function getDestinations(): Promise<DestinationGroup[]> {
         image: null,
         imageCredit: null,
         content: null,
+        region: r.region,
         routes: [],
       };
       map.set(slug, g);

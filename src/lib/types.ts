@@ -62,6 +62,7 @@ export interface Route {
   tips: string[];
   image_url: string | null;
   image_credit: string | null;
+  region: string | null;
   status: string;
   created_at: string;
   updated_at: string | null;

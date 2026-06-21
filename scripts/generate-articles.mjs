@@ -103,6 +103,12 @@ const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 const model = env.ANTHROPIC_MODEL || "claude-opus-4-8";
 const sb = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 
+// Complete les slugs valides avec les destinations en base (auto-ajoutees).
+try {
+  const { data: rs } = await sb.from("routes").select("destination_city");
+  for (const r of rs ?? []) if (r.destination_city) VALID_DEST_SLUGS.add(slugify(r.destination_city));
+} catch {}
+
 // Supprime les anciens articles.
 const del = await sb.from("posts").delete().gte("created_at", "1970-01-01");
 console.log(del.error ? `Suppression: ERREUR ${del.error.message}` : "Anciens articles supprimes.");
@@ -124,7 +130,7 @@ for (const topic of TOPICS) {
     faq: Array.isArray(a.faq) ? a.faq : [],
     cover_image: await unsplashImage(a.image_query || a.title),
     meta_title: a.meta_title, meta_description: a.meta_description,
-    status: "published", author: "Thomas & l'équipe Bon Voleur",
+    status: "published", author: "Thomas & l'équipe BonVoleur",
     published_at: now, updated_at: now, created_at: now,
   });
   console.log(error ? `ERREUR ${error.message}` : `OK (${a.content.length} caracteres)`);

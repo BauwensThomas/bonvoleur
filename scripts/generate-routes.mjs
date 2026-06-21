@@ -98,7 +98,8 @@ async function genCityContent(city, origins) {
  "airlines": ["principales compagnies qui desservent ${city} depuis la Belgique/France"],
  "duration": "durée de vol typique vers ${city} depuis la Belgique/France (ordre de grandeur)",
  "bestPeriod": "meilleure période pour visiter ${city} (prix et/ou météo)",
- "tips": ["3 à 4 conseils concrets pour un voyage à ${city}"]
+ "tips": ["3 à 4 conseils concrets pour un voyage à ${city}"],
+ "region": "le continent de ${city} : exactement l'une de ces valeurs -> Europe, Amérique, Afrique, Asie, Océanie"
 }
 IMPÉRATIF : français correct avec TOUS les accents (é, è, ê, à, â, ç, ô, î, ù...). Pas d'émoji, pas de tiret long (em dash). Pas de prix inventés présentés comme garantis.`,
     }],
@@ -157,6 +158,7 @@ for (const dest of Object.values(dests)) {
       row.best_period = String(content.bestPeriod || "");
       row.tips = Array.isArray(content.tips) ? content.tips.map(String) : [];
     }
+    if (content?.region) row.region = String(content.region);
     if (photo?.url) { row.image_url = photo.url; if (photo.credit) row.image_credit = photo.credit; }
 
     const res = await fetch(`${SB}/rest/v1/routes?on_conflict=slug`, {

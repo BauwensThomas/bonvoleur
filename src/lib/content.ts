@@ -6,16 +6,25 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getAll, insert, findOne } from "./db";
 import { site } from "./site";
 import { DESTINATIONS } from "./destinations";
+import { getDestinations } from "./routes";
 import type { AgentRun, FaqItem } from "./types";
 
 // Sécurité : réécrit tout lien interne /vols-pas-chers/... vers une fiche
 // DESTINATION valide (retire un prefixe d'aeroport de depart, sinon renvoie au
 // hub). Garantit qu'un article généré n'a aucun lien cassé ni redirigé.
-const VALID_DEST_SLUGS = new Set(
-  Object.values(DESTINATIONS).map((d) => d.slug)
-);
+// La liste des slugs valides vient de la base (toutes les destinations, y
+// compris celles ajoutees automatiquement) + les destinations codees en dur.
 const ORIGIN_SLUGS = ["bruxelles", "charleroi", "paris", "lyon"];
-function sanitizeLinks(md: string): string {
+async function validDestSlugs(): Promise<Set<string>> {
+  const set = new Set(Object.values(DESTINATIONS).map((d) => d.slug));
+  try {
+    for (const d of await getDestinations()) set.add(d.slug);
+  } catch {
+    /* base indispo : on garde la liste codee en dur */
+  }
+  return set;
+}
+function sanitizeLinks(md: string, valid: Set<string>): string {
   return md.replace(/\/vols-pas-chers\/([a-z0-9-]+)/g, (_m, slug: string) => {
     let s = slug;
     for (const o of ORIGIN_SLUGS) {
@@ -24,7 +33,7 @@ function sanitizeLinks(md: string): string {
         break;
       }
     }
-    return VALID_DEST_SLUGS.has(s) ? `/vols-pas-chers/${s}` : "/vols-pas-chers";
+    return valid.has(s) ? `/vols-pas-chers/${s}` : "/vols-pas-chers";
   });
 }
 
@@ -314,13 +323,13 @@ export async function runContentPublisher(
       slug,
       title: article.title,
       excerpt: article.excerpt,
-      content: sanitizeLinks(article.content),
+      content: sanitizeLinks(article.content, await validDestSlugs()),
       faq: article.faq,
       cover_image: await unsplashImage(article.image_query || article.title),
       meta_title: article.meta_title,
       meta_description: article.meta_description,
       status: "draft", // relecture humaine avant publication
-      author: "Thomas & l'équipe Bon Voleur",
+      author: "Thomas & l'équipe BonVoleur",
       published_at: null,
       updated_at: now,
     });
