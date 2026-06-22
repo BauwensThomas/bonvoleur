@@ -8,6 +8,7 @@
 
 import { readFile } from "node:fs/promises";
 import Anthropic from "@anthropic-ai/sdk";
+import { rehostImage } from "./rehost.mjs";
 
 const FORCE = process.argv.includes("--force");
 
@@ -194,6 +195,8 @@ for (const dest of Object.values(dests)) {
     continue;
   }
   const photo = knownImg ? { url: knownImg, credit: null } : await unsplashPhoto(dest.dc);
+  // Auto-heberge la photo dans Supabase Storage (allegee) -> URL perenne.
+  if (photo?.url) photo.url = await rehostImage(env, photo.url, "destinations", dest.dc);
 
   let ok = 0;
   for (const o of dest.origins) {

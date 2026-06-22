@@ -10,6 +10,7 @@ import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
+import { rehostImage } from "./rehost.mjs";
 
 const env = {};
 for (const l of (await readFile(".env.local", "utf-8")).split(/\r?\n/)) {
@@ -125,12 +126,15 @@ for (const topic of TOPICS) {
   const block = res.content.find((b) => b.type === "text");
   const a = JSON.parse(block.text);
   const now = new Date().toISOString();
+  const slug = slugify(a.slug || a.title);
+  const coverRaw = await unsplashImage(a.image_query || a.title);
+  const cover = await rehostImage(env, coverRaw, "articles", slug);
   const { error } = await sb.from("posts").insert({
     id: randomUUID(),
-    slug: slugify(a.slug || a.title),
+    slug,
     title: a.title, excerpt: a.excerpt, content: sanitizeLinks(a.content),
     faq: Array.isArray(a.faq) ? a.faq : [],
-    cover_image: await unsplashImage(a.image_query || a.title),
+    cover_image: cover,
     meta_title: a.meta_title, meta_description: a.meta_description,
     status: "published", author: "Thomas & l'équipe BonVoleur",
     published_at: now, updated_at: now, created_at: now,

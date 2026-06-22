@@ -7,6 +7,7 @@ import { getAll, insert, findOne } from "./db";
 import { site } from "./site";
 import { DESTINATIONS } from "./destinations";
 import { getDestinations } from "./routes";
+import { rehostImage } from "./rehost";
 import type { AgentRun, FaqItem } from "./types";
 
 // Sécurité : réécrit tout lien interne /vols-pas-chers/... vers une fiche
@@ -380,7 +381,11 @@ export async function runContentPublisher(
       excerpt: article.excerpt,
       content: sanitizeLinks(stripTags(article.content), await validDestSlugs()),
       faq: article.faq,
-      cover_image: await unsplashImage(article.image_query || article.title),
+      cover_image: await rehostImage(
+        await unsplashImage(article.image_query || article.title),
+        "articles",
+        slug
+      ),
       meta_title: article.meta_title,
       meta_description: article.meta_description,
       status: "published", // publication directe (relecture a posteriori si besoin)

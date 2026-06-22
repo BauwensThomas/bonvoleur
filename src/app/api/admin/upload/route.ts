@@ -29,6 +29,8 @@ export async function POST(req: Request) {
   const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
   const path = `defaults/secours-${Date.now()}.${ext}`;
   const sb = createClient(url, key, { auth: { persistSession: false } });
+  // Crée le bucket public "photos" s'il n'existe pas (idempotent).
+  await sb.storage.createBucket("photos", { public: true }).catch(() => {});
   const bytes = new Uint8Array(await file.arrayBuffer());
 
   const { error } = await sb.storage
