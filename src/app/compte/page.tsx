@@ -4,7 +4,14 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { site, airports, discountPct } from "@/lib/site";
 import { getMemberDeals, FREE_DELAY_HOURS } from "@/lib/member-deals";
+import { destinationSlug } from "@/lib/routes";
+import CompteControls from "@/components/CompteControls";
 import type { Tier } from "@/lib/types";
+
+// "Lisbonne (LIS)" -> "lisbonne" (slug de la fiche destination).
+function destSlugOf(label: string): string {
+  return destinationSlug(label.replace(/\s*\([A-Z]{3}\)\s*$/, "").trim());
+}
 
 export const metadata: Metadata = {
   title: "Mon espace",
@@ -35,6 +42,7 @@ export default async function Compte({
     destination?: string;
     maxPrice?: string;
     view?: string;
+    sort?: string;
   }>;
 }) {
   const sp = await searchParams;
@@ -43,6 +51,7 @@ export default async function Compte({
   const destination = sp.destination ?? "";
   const maxPriceNum = sp.maxPrice ? Number(sp.maxPrice) : undefined;
   const view: "grid" | "list" = sp.view === "list" ? "list" : "grid";
+  const sort = sp.sort ?? "recent";
 
   const { deals, total, liveLockedForFree, lastRefresh } = await getMemberDeals(tier, {
     origin: origin || undefined,
@@ -50,16 +59,9 @@ export default async function Compte({
     maxPrice: maxPriceNum,
   });
 
-  // Construit une URL en conservant les filtres et le tier, en changeant la vue.
-  const viewUrl = (v: "grid" | "list") => {
-    const p = new URLSearchParams();
-    if (tier === "premium") p.set("tier", "premium");
-    if (origin) p.set("origin", origin);
-    if (destination) p.set("destination", destination);
-    if (sp.maxPrice) p.set("maxPrice", sp.maxPrice);
-    p.set("view", v);
-    return `/compte?${p.toString()}`;
-  };
+  // Tri demande (le defaut "recent" est deja applique par getMemberDeals).
+  if (sort === "price-asc") deals.sort((a, b) => a.price - b.price);
+  else if (sort === "price-desc") deals.sort((a, b) => b.price - a.price);
 
   return (
     <>
@@ -126,95 +128,14 @@ export default async function Compte({
           </div>
         )}
 
-        {/* Filtres */}
-        <form
-          method="get"
-          className="mt-6 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-4"
-        >
-          <input type="hidden" name="tier" value={tier} />
-          <input type="hidden" name="view" value={view} />
-          <label className="text-sm">
-            <span className="mb-1 block text-slate-600">Depart</span>
-            <select
-              name="origin"
-              defaultValue={origin}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
-            >
-              <option value="">Tous</option>
-              {airports.map((a) => (
-                <option key={a.iata} value={a.iata}>
-                  {a.city} ({a.iata})
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm">
-            <span className="mb-1 block text-slate-600">Destination</span>
-            <input
-              type="text"
-              name="destination"
-              defaultValue={destination}
-              placeholder="Ville ou code"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
-            />
-          </label>
-          <label className="text-sm">
-            <span className="mb-1 block text-slate-600">Prix max (EUR)</span>
-            <input
-              type="number"
-              name="maxPrice"
-              min="0"
-              defaultValue={sp.maxPrice ?? ""}
-              placeholder="ex. 100"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
-            />
-          </label>
-          <div className="flex items-end gap-2">
-            <button
-              type="submit"
-              className="rounded-lg bg-brand px-4 py-2 font-semibold text-white hover:bg-brand-dark"
-            >
-              Filtrer
-            </button>
-            <Link
-              href={`/compte?tier=${tier}`}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:border-slate-400"
-            >
-              Reinitialiser
-            </Link>
-          </div>
-        </form>
+        {/* Filtres + tri + vue (auto, sans bouton ; vue memorisee) */}
+        <CompteControls airports={airports} />
 
-        {/* Barre : nombre de deals + bascule Cartes / Liste */}
         {deals.length > 0 && (
-          <div className="mt-6 flex items-center justify-between">
-            <p className="text-sm text-slate-500">
-              {deals.length} bon{deals.length > 1 ? "s" : ""} plan
-              {deals.length > 1 ? "s" : ""}
-            </p>
-            <div className="inline-flex overflow-hidden rounded-lg border border-slate-300 text-sm">
-              <Link
-                href={viewUrl("grid")}
-                className={
-                  view === "grid"
-                    ? "bg-brand px-3 py-1.5 font-medium text-white"
-                    : "px-3 py-1.5 text-slate-600 hover:bg-slate-50"
-                }
-              >
-                Cartes
-              </Link>
-              <Link
-                href={viewUrl("list")}
-                className={
-                  view === "list"
-                    ? "bg-brand px-3 py-1.5 font-medium text-white"
-                    : "px-3 py-1.5 text-slate-600 hover:bg-slate-50"
-                }
-              >
-                Liste
-              </Link>
-            </div>
-          </div>
+          <p className="mt-6 text-sm text-slate-500">
+            {deals.length} bon{deals.length > 1 ? "s" : ""} plan
+            {deals.length > 1 ? "s" : ""}
+          </p>
         )}
 
         {deals.length === 0 ? (
@@ -269,6 +190,12 @@ export default async function Compte({
                       </span>
                     )}
                   </span>
+                  <Link
+                    href={`/vols-pas-chers/${destSlugOf(d.destination)}`}
+                    className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:border-brand hover:text-brand"
+                  >
+                    Infos
+                  </Link>
                   <a
                     href={d.booking_url}
                     target="_blank"
@@ -349,6 +276,12 @@ export default async function Compte({
                   >
                     Voir l&apos;offre
                   </a>
+                  <Link
+                    href={`/vols-pas-chers/${destSlugOf(d.destination)}`}
+                    className="mt-2 block rounded-lg border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-700 hover:border-brand hover:text-brand"
+                  >
+                    Infos sur la destination
+                  </Link>
                 </div>
               );
             })}
