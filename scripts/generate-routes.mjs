@@ -100,17 +100,17 @@ async function genCityContent(city, origins) {
   for (let attempt = 0; attempt < 4; attempt += 1) {
    try {
     const res = await client.messages.create({
-    model, max_tokens: 2000,
+    model, max_tokens: 2800,
     tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
     messages: [{
       role: "user",
       content: `Cherche sur le web des infos RÉELLES et vérifiables sur les vols vers ${city} depuis la Belgique et la France (aéroports possibles : ${origins.join(", ")}). Le contenu doit être centré sur LA DESTINATION ${city}, PAS sur un seul aéroport de départ. Réponds STRICTEMENT en JSON, sans texte autour :
 {
- "intro": "2 à 3 phrases sur ${city} comme destination et l'accès en avion depuis la Belgique et la France. Ne commence pas par 'La liaison X vers ${city}'.",
- "airlines": ["principales compagnies qui desservent ${city} depuis la Belgique/France"],
- "duration": "durée de vol typique vers ${city} depuis la Belgique/France (ordre de grandeur)",
- "bestPeriod": "meilleure période pour visiter ${city} (prix et/ou météo)",
- "tips": ["3 à 4 conseils concrets pour un voyage à ${city}, dont OBLIGATOIREMENT un sur la MONNAIE : si ${city} est dans la zone euro, indique qu'on paie en euros (aucun change a prevoir) ; sinon donne un ordre de grandeur du taux de change (environ 1 euro = X en monnaie locale, et environ 1 unite de cette monnaie = Y euros), en precisant que c'est approximatif et variable"],
+ "intro": "3 à 4 phrases RICHES et concretes sur ${city} : ce qui en fait une destination (atouts, ambiance), puis l'acces en avion depuis la Belgique et la France (aeroports concernes, vols directs ou avec escale, et si tu la connais la frequence ou le nombre de vols par semaine, la distance ou le decalage horaire). Ne commence pas par 'La liaison'.",
+ "airlines": ["principales compagnies qui desservent ${city} depuis la Belgique/France (4 a 6 si possible)"],
+ "duration": "durée de vol typique vers ${city} depuis la Belgique/France (direct, et avec escale si pertinent)",
+ "bestPeriod": "meilleure période pour visiter ${city} : météo ET prix (mois les moins chers, et combien de temps a l'avance reserver)",
+ "tips": ["4 à 5 conseils concrets et actionnables pour un voyage à ${city} (transfert aeroport vers le centre, bagages low cost, decalage horaire, formalites/visa si besoin, meilleur jour pour reserver...), dont OBLIGATOIREMENT un sur la MONNAIE : si ${city} est dans la zone euro, indique qu'on paie en euros (aucun change à prévoir) ; sinon donne un ordre de grandeur du taux de change (environ 1 euro = X en monnaie locale, et environ 1 unité de cette monnaie = Y euros), en précisant que c'est approximatif et variable"],
  "region": "le continent de ${city} : exactement l'une de ces valeurs -> Europe, Amérique, Afrique, Asie, Océanie"
 }
 IMPÉRATIF : français correct avec TOUS les accents (é, è, ê, à, â, ç, ô, î, ù...). Pas d'émoji, pas de tiret long (em dash). Pas de prix inventés présentés comme garantis. N'inclus AUCUNE balise dans les valeurs (pas de <cite>, pas de HTML) : uniquement du texte brut.`,

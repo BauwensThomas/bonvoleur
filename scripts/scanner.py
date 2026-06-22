@@ -59,6 +59,7 @@ AIRPORT_NAMES = {
     "JFK": "New York", "BKK": "Bangkok", "AGP": "Malaga", "OPO": "Porto",
     "KRK": "Cracovie", "ALC": "Alicante", "ATH": "Athènes", "MAD": "Madrid",
     "VLC": "Valence", "NAP": "Naples", "OPO2": "Porto", "GIG": "Rio de Janeiro",
+    "PMI": "Palma",
     # Long-courrier (veille dediee, source prices_for_dates).
     "EWR": "New York", "YUL": "Montréal", "YYZ": "Toronto", "MIA": "Miami",
     "LAX": "Los Angeles", "CUN": "Cancún", "MEX": "Mexico", "GRU": "Sao Paulo",
