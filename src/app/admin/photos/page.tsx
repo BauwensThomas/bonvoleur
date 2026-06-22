@@ -29,9 +29,14 @@ export default async function PhotosAdmin() {
       </p>
       <div className="mt-4 flex flex-wrap gap-3 text-sm">
         <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-slate-700">
-          {stats.count} image{stats.count > 1 ? "s" : ""} hébergée
-          {stats.count > 1 ? "s" : ""} ·{" "}
-          {(stats.bytes / (1024 * 1024)).toFixed(1)} Mo
+          {stats.destinations} photo{stats.destinations > 1 ? "s" : ""} de
+          destinations
+          <span className="text-slate-400">
+            {" "}
+            · {stats.articles} couverture{stats.articles > 1 ? "s" : ""} d&apos;article
+            {stats.articles > 1 ? "s" : ""} · {(stats.bytes / (1024 * 1024)).toFixed(1)} Mo
+            au total
+          </span>
         </span>
         <span
           className={`rounded-lg px-3 py-1.5 ${
