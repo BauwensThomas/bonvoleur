@@ -2,6 +2,12 @@
 // cartes deals. Une photo par destination dans public/destinations/{slug}.jpg.
 // Si l'image manque, l'affichage retombe sur un dégradé (rien ne casse).
 
+// Image de secours par défaut quand une destination n'a pas (encore) de photo :
+// on ne montre jamais une vignette vide. Modifiable dans /admin/photos (stockée
+// en base) ; cette valeur est le repli si rien n'est défini. Visuel avion.
+export const DEFAULT_DEST_IMAGE =
+  "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1200&q=80";
+
 export type Region = "Europe" | "Afrique" | "Amérique" | "Asie" | "Océanie";
 
 export interface DestinationInfo {

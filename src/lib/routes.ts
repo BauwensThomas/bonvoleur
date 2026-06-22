@@ -6,6 +6,7 @@ import { getAll } from "./db";
 import { seoRoutes, slugify, type SeoRoute } from "./seo-routes";
 import { ROUTE_CONTENT, type RouteContent } from "./route-content";
 import { destinationImage, destinationRegion } from "./destinations";
+import { getDefaultDestImage } from "./settings";
 import type { Route } from "./types";
 
 export interface FullRoute extends SeoRoute {
@@ -96,7 +97,9 @@ export interface DestinationGroup {
 // Regroupe par destination (1 fiche par ville d'arrivée). Contenu et photo
 // pris sur la 1re route disponible vers cette destination (le contenu concerne
 // la ville, pas le couple) -> pas de doublon de fiche.
-export async function getDestinations(): Promise<DestinationGroup[]> {
+export async function getDestinations(
+  applyDefaultImage = true
+): Promise<DestinationGroup[]> {
   const routes = await getRoutes();
   const map = new Map<string, DestinationGroup>();
   for (const r of routes) {
@@ -122,7 +125,14 @@ export async function getDestinations(): Promise<DestinationGroup[]> {
     }
     if (!g.content && r.content) g.content = r.content;
   }
-  return [...map.values()];
+  const list = [...map.values()];
+  // Affichage : on ne laisse jamais une destination sans image (repli configuré
+  // dans /admin/photos). applyDefaultImage=false pour l'admin (voir le vrai état).
+  if (applyDefaultImage) {
+    const fallback = await getDefaultDestImage();
+    for (const g of list) if (!g.image) g.image = fallback;
+  }
+  return list;
 }
 
 export async function getDestination(

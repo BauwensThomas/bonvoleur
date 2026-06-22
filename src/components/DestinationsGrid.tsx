@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DEFAULT_DEST_IMAGE } from "@/lib/destinations";
 
 interface Origin {
   city: string;
@@ -29,7 +30,7 @@ export default function DestinationsGrid({
         >
           <div
             className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-            style={d.image ? { backgroundImage: `url(${d.image})` } : undefined}
+            style={{ backgroundImage: `url(${d.image ?? DEFAULT_DEST_IMAGE})` }}
           />
           <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
           <span className="absolute bottom-3 left-4 text-lg font-bold text-white drop-shadow">

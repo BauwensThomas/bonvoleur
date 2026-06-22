@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import AirportDeals, { type AirportProof } from "@/components/AirportDeals";
 import { getAll } from "@/lib/db";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
+import { DEFAULT_DEST_IMAGE } from "@/lib/destinations";
 import { site } from "@/lib/site";
 import {
   getDestination,
@@ -145,7 +146,7 @@ export default async function DestinationPage({
   }
 
   const content = dest.content;
-  const image = dest.image;
+  const image = dest.image ?? DEFAULT_DEST_IMAGE;
   const originCities = dest.routes.map((r) => r.originCity);
   const faq = faqFor(dest.destCity, originCities);
 

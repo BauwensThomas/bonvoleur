@@ -6,18 +6,39 @@ export interface DestPhoto {
   destIata: string;
   destCity: string;
   image: string | null;
+  hasContent: boolean;
 }
 
 // Gère les photos de destination du site (bannières route, vignettes accueil,
 // cartes deals). Colle une URL d'image (Unsplash ou autre) pour remplacer la
-// photo auto. Vide le champ + enregistre pour revenir au dégradé.
-export default function PhotosManager({ initial }: { initial: DestPhoto[] }) {
+// photo auto. Vide le champ + enregistre pour revenir à l'image de secours.
+export default function PhotosManager({
+  initial,
+  defaultImage,
+}: {
+  initial: DestPhoto[];
+  defaultImage: string;
+}) {
   const [items, setItems] = useState<DestPhoto[]>(initial);
   const [draft, setDraft] = useState<Record<string, string>>(
     Object.fromEntries(initial.map((d) => [d.destIata, d.image ?? ""]))
   );
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [fallback, setFallback] = useState(defaultImage);
+  const [fbBusy, setFbBusy] = useState(false);
+
+  async function saveFallback() {
+    setFbBusy(true);
+    setMsg(null);
+    const res = await fetch("/api/admin/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: "default_dest_image", value: fallback }),
+    });
+    setFbBusy(false);
+    setMsg(res.ok ? "Image de secours mise à jour." : "Erreur sur l'image de secours.");
+  }
 
   async function save(destIata: string) {
     setBusy(destIata);
@@ -48,22 +69,60 @@ export default function PhotosManager({ initial }: { initial: DestPhoto[] }) {
           {msg}
         </p>
       )}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+      {/* Image de secours par défaut (modifiable) */}
+      <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4">
+        <p className="text-sm font-semibold text-slate-700">
+          Image de secours (par défaut)
+        </p>
+        <p className="mt-0.5 text-xs text-slate-500">
+          Affichée quand une destination n&apos;a pas encore de photo. Colle une
+          URL (par ex. une image d&apos;avion).
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <div
+            className="h-12 w-20 shrink-0 rounded-lg bg-cover bg-center"
+            style={{ backgroundImage: `url(${fallback})` }}
+          />
+          <input
+            value={fallback}
+            onChange={(e) => setFallback(e.target.value)}
+            placeholder="https://..."
+            className="min-w-60 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          />
+          <button
+            onClick={saveFallback}
+            disabled={fbBusy}
+            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-60"
+          >
+            {fbBusy ? "..." : "Enregistrer"}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         {items.map((d) => (
           <div
             key={d.destIata}
             className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
           >
             <div
-              className="h-32 bg-linear-to-br from-brand-dark to-brand bg-cover bg-center"
-              style={
-                draft[d.destIata]
-                  ? { backgroundImage: `url(${draft[d.destIata]})` }
-                  : undefined
-              }
-            />
-            <div className="p-4">
-              <p className="font-semibold text-slate-900">
+              className="relative h-28 bg-cover bg-center"
+              style={{ backgroundImage: `url(${draft[d.destIata] || fallback})` }}
+            >
+              {!draft[d.destIata] && (
+                <span className="absolute left-2 top-2 rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
+                  Sans photo
+                </span>
+              )}
+              {!d.hasContent && (
+                <span className="absolute right-2 top-2 rounded bg-red-100 px-1.5 py-0.5 text-[11px] font-medium text-red-700">
+                  Sans texte
+                </span>
+              )}
+            </div>
+            <div className="p-3">
+              <p className="text-sm font-semibold text-slate-900">
                 {d.destCity}{" "}
                 <span className="text-xs font-normal text-slate-500">
                   ({d.destIata})

@@ -1,5 +1,5 @@
 import { discountPct } from "@/lib/site";
-import { destinationImage } from "@/lib/destinations";
+import { destinationImage, DEFAULT_DEST_IMAGE } from "@/lib/destinations";
 
 interface DealCardProps {
   origin: string;
@@ -30,7 +30,9 @@ export default function DealCard({
   teaser = false,
   image,
 }: DealCardProps) {
-  const img = image !== undefined ? image : destinationImage(destination);
+  const img =
+    (image !== undefined ? image : destinationImage(destination)) ??
+    DEFAULT_DEST_IMAGE;
 
   // Mode vitrine accueil : photo 70% / texte 30%.
   if (teaser) {
