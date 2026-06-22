@@ -26,6 +26,10 @@ try {
 // quand la decouverte remonte beaucoup de nouvelles villes d'un coup. Le reste
 // est repris au run suivant (les deals restent en base). 0 = illimite.
 const MAX_NEW = parseInt(env.ROUTES_MAX_NEW_PER_RUN || "8", 10);
+// Enrichissement : regenere le contenu des fiches dont l'intro est plus courte
+// que ce seuil (0 = desactive). Sert a etoffer les fiches trop pauvres sans
+// toucher aux fiches deja riches ; la photo existante est reutilisee.
+const MIN_INTRO = parseInt(env.ROUTES_MIN_INTRO || "0", 10);
 
 const SB = env.SUPABASE_URL;
 const SK = env.SUPABASE_SERVICE_ROLE_KEY;
@@ -160,7 +164,9 @@ async function unsplashPhoto(city) {
 
 let generated = 0, skipped = 0, deferred = 0, contentCalls = 0;
 for (const dest of Object.values(dests)) {
-  const hasContent = dest.origins.some((o) => bySlug.get(o.slug)?.intro);
+  const hasContent = dest.origins.some(
+    (o) => (bySlug.get(o.slug)?.intro?.length ?? 0) >= (MIN_INTRO || 1)
+  );
   const knownImg = dest.origins.map((o) => bySlug.get(o.slug)?.image_url).find(Boolean) || null;
 
   // Déjà connue (contenu + photo) et pas de --force -> on saute (zéro token).
