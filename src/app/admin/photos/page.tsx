@@ -23,19 +23,16 @@ export default async function PhotosAdmin() {
       <h1 className="text-2xl font-bold">Photos</h1>
       <p className="mt-1 text-sm text-slate-500">
         Photo de chaque destination (bannières de route, vignettes « Destinations
-        populaires », cartes deals). Récupérées automatiquement (Unsplash) ;
-        remplaçables ici en collant une URL. Un badge signale les fiches
-        incomplètes.
+        populaires », cartes deals). Récupérées automatiquement puis hébergées
+        chez nous (Supabase) ; remplaçables ici en collant une URL. Le badge
+        rouge signale les fiches incomplètes.
       </p>
       <div className="mt-4 flex flex-wrap gap-3 text-sm">
         <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-slate-700">
           {stats.destinations} photo{stats.destinations > 1 ? "s" : ""} de
           destinations
           <span className="text-slate-400">
-            {" "}
-            · {stats.articles} couverture{stats.articles > 1 ? "s" : ""} d&apos;article
-            {stats.articles > 1 ? "s" : ""} · {(stats.bytes / (1024 * 1024)).toFixed(1)} Mo
-            au total
+            {` · ${(stats.bytes / (1024 * 1024)).toFixed(1)} Mo dans le Storage (toutes images du site)`}
           </span>
         </span>
         <span
