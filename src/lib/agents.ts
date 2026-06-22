@@ -34,8 +34,8 @@ export const agents: AgentDef[] = [
     label: "Content Publisher",
     role: "Écrit un article de blog.",
     description:
-      "Rédige automatiquement un article de blog long et optimisé pour Google (guide, conseils, destinations), avec une FAQ en bas. L'article est enregistré en brouillon : tu le relis avant publication. Sert à attirer du trafic gratuit depuis Google et à donner du contenu à partager.",
-    cadence: "Tous les 2 jours à 19h",
+      "Rédige automatiquement un article de blog long et optimisé pour Google (angle précis, conseils, destinations), avec une FAQ en bas. Il évite de refaire un sujet déjà couvert (il connaît les articles existants et un contrôle de similarité régénère si besoin). L'article est PUBLIÉ directement. Sert à attirer du trafic gratuit depuis Google et à donner du contenu à partager.",
+    cadence: "Tous les 3 jours à 19h",
     appButton: true,
   },
   {
@@ -52,7 +52,7 @@ export const agents: AgentDef[] = [
     label: "SEO Route",
     role: "Crée des pages Google par trajet.",
     description:
-      "Génère une page par trajet, par exemple /vols-pas-chers/bruxelles-barcelone. Le but : quand quelqu'un tape « vol pas cher Bruxelles Barcelone » sur Google, il tombe sur notre site. Chaque page donne le prix moyen, la meilleure période, les compagnies, et un bouton pour s'inscrire. C'est ce qu'on appelle le SEO programmatique : beaucoup de pages ciblées pour capter le trafic Google gratuitement.",
+      "Génère une fiche par destination, par exemple /vols-pas-chers/barcelone, avec un sélecteur d'aéroport de départ (Bruxelles, Charleroi, Paris, Lyon). Le but : quand quelqu'un tape « vol pas cher Barcelone » sur Google, il tombe sur notre site. Chaque fiche donne les fourchettes de prix, la meilleure période, les compagnies, et un bouton pour s'inscrire. C'est ce qu'on appelle le SEO programmatique : beaucoup de pages ciblées pour capter le trafic Google gratuitement.",
     cadence: "Sur demande (via Claude Code)",
     appButton: false,
   },

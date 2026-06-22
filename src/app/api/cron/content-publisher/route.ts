@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { runContentPublisher } from "@/lib/content";
 
-// Endpoint cron : génère un article de blog en brouillon.
-// Planifié toutes les 2 jours à 19h (voir vercel.json).
+// Endpoint cron : génère et publie un article de blog.
+// Planifié tous les 3 jours à 19h (voir vercel.json).
 // Protégé par CRON_SECRET : Vercel Cron envoie l'en-tête Authorization.
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;

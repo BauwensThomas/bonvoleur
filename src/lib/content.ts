@@ -72,7 +72,7 @@ function slugify(s: string): string {
 // Anti-doublon de CONTENU : si un nouvel article partage trop de mots avec un
 // article existant, c'est probablement le même sujet -> on régénère.
 // Seuil de similarité (Jaccard sur les mots significatifs de 6+ lettres).
-const SIMILARITY_THRESHOLD = 0.25;
+const SIMILARITY_THRESHOLD = 0.22;
 
 function wordSet(text: string): Set<string> {
   return new Set(
@@ -136,7 +136,7 @@ async function pickTrendingTopic(recent: string[]): Promise<string | null> {
       messages: [
         {
           role: "user",
-          content: `Tu écris pour ${site.name}, un blog de vols pas chers pour la Belgique et la France. Cherche sur le web les sujets de voyage et de vols les plus recherchés / tendance en ce moment (saison actuelle, destinations populaires, vacances scolaires, événements). Propose UN seul titre d'article de blog, en français, accrocheur et optimisé SEO, concret, lié aux vols pas chers depuis la Belgique ou la France. N'utilise AUCUN de ces sujets déjà traités récemment : ${recent.join(" ; ") || "(aucun)"}. Réponds UNIQUEMENT par le titre, sans guillemets ni explication.`,
+          content: `Tu écris pour ${site.name}, un blog de vols pas chers pour la Belgique et la France. Cherche sur le web les sujets de voyage et de vols les plus recherchés / tendance en ce moment (saison actuelle, destinations populaires, vacances scolaires, événements). Propose UN seul titre d'article de blog, en français, accrocheur et optimisé SEO, concret, lié aux vols pas chers depuis la Belgique ou la France. N'utilise AUCUN de ces sujets déjà traités récemment : ${recent.join(" ; ") || "(aucun)"}. Évite absolument les sujets fourre-tout du type « guide complet », « tout savoir » ou « le guide ultime » qui recoupent plusieurs articles : choisis un angle PRÉCIS et original (une destination donnée, une compagnie, une période ou un événement précis, une astuce concrète). Réponds UNIQUEMENT par le titre, sans guillemets ni explication.`,
         },
       ],
     });
@@ -255,6 +255,12 @@ export async function generateArticle(): Promise<GeneratedArticle> {
   // 2) Faits réels (recherche web) à intégrer dans l'article.
   const facts = await gatherFacts(topic);
 
+  // 3) Articles déjà publiés : on les donne au modèle pour qu'il choisisse un
+  //    angle DIFFÉRENT et ne rabâche pas les mêmes sections.
+  const existing = (await getAll("posts"))
+    .map((p) => `- "${p.title}" : ${p.excerpt ?? ""}`)
+    .join("\n");
+
   const client = new Anthropic();
   const model = process.env.ANTHROPIC_MODEL ?? "claude-opus-4-8";
 
@@ -263,6 +269,7 @@ export async function generateArticle(): Promise<GeneratedArticle> {
 Rédige un article de blog complet, riche et optimisé SEO sur le sujet : "${topic}".
 
 ${facts ? `INFORMATIONS FACTUELLES VÉRIFIÉES (issues d'une recherche web) à intégrer quand c'est pertinent, sans rien inventer en plus :\n${facts}\n` : ""}
+${existing ? `ARTICLES DÉJÀ PUBLIÉS sur le blog. Tu dois écrire un article NETTEMENT DIFFÉRENT et complémentaire : angle distinct, sections et exemples qui ne se recoupent pas avec ceux-ci. Ne réécris pas un "guide complet" générique qui répète ces sujets :\n${existing}\n` : ""}
 Style attendu (identique à nos pages de route) : factuel et concret, avec de vraies compagnies aériennes, des durées de vol réalistes, des meilleures périodes, des fourchettes de prix (jamais de prix garanti), des conseils actionnables.
 
 Contraintes impératives :
@@ -298,8 +305,8 @@ Contraintes impératives :
   return data;
 }
 
-// Exécute l'agent content-publisher : génère un article, l'enregistre en
-// brouillon et journalise l'exécution. Utilisé par le cron et le bouton admin.
+// Exécute l'agent content-publisher : génère un article, le PUBLIE directement
+// et journalise l'exécution. Utilisé par le cron et le bouton admin.
 export async function runContentPublisher(
   trigger: "cron" | "manuel"
 ): Promise<AgentRun> {
@@ -328,9 +335,9 @@ export async function runContentPublisher(
       cover_image: await unsplashImage(article.image_query || article.title),
       meta_title: article.meta_title,
       meta_description: article.meta_description,
-      status: "draft", // relecture humaine avant publication
+      status: "published", // publication directe (relecture a posteriori si besoin)
       author: "Thomas & l'équipe BonVoleur",
-      published_at: null,
+      published_at: now,
       updated_at: now,
     });
 
@@ -338,9 +345,9 @@ export async function runContentPublisher(
       agent_name: "content-publisher",
       started_at: startedAt,
       finished_at: new Date().toISOString(),
-      status: "draft",
+      status: "success",
       trigger,
-      summary: `Article généré en brouillon : "${article.title}".`,
+      summary: `Article généré et publié : "${article.title}".`,
       output_ref: post.id,
       error: null,
     });
