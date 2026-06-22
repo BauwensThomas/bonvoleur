@@ -43,6 +43,8 @@ export default async function Compte({
     maxPrice?: string;
     view?: string;
     sort?: string;
+    from?: string;
+    to?: string;
   }>;
 }) {
   const sp = await searchParams;
@@ -52,11 +54,16 @@ export default async function Compte({
   const maxPriceNum = sp.maxPrice ? Number(sp.maxPrice) : undefined;
   const view: "grid" | "list" = sp.view === "list" ? "list" : "grid";
   const sort = sp.sort ?? "recent";
+  // Période de voyage : réservée au premium.
+  const from = tier === "premium" ? sp.from ?? "" : "";
+  const to = tier === "premium" ? sp.to ?? "" : "";
 
   const { deals, total, liveLockedForFree, lastRefresh } = await getMemberDeals(tier, {
     origin: origin || undefined,
     destination: destination || undefined,
     maxPrice: maxPriceNum,
+    dateFrom: from || undefined,
+    dateTo: to || undefined,
   });
 
   // Tri demande (le defaut "recent" est deja applique par getMemberDeals).

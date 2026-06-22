@@ -22,6 +22,9 @@ export default function CompteControls({
   const maxPrice = sp.get("maxPrice") ?? "";
   const sort = sp.get("sort") ?? "recent";
   const view = sp.get("view") === "list" ? "list" : "grid";
+  const isPremium = tier === "premium";
+  const from = sp.get("from") ?? "";
+  const to = sp.get("to") ?? "";
 
   const [dest, setDest] = useState(sp.get("destination") ?? "");
   const destTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -140,6 +143,45 @@ export default function CompteControls({
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Période de voyage : réservée au premium (filtre sur la date de départ) */}
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 text-sm">
+        <span className="font-medium text-slate-600">Période de voyage :</span>
+        <label className="flex items-center gap-1 text-slate-600">
+          du
+          <input
+            type="date"
+            value={from}
+            disabled={!isPremium}
+            onChange={(e) => update({ from: e.target.value })}
+            className="rounded-lg border border-slate-300 px-2 py-1 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+          />
+        </label>
+        <label className="flex items-center gap-1 text-slate-600">
+          au
+          <input
+            type="date"
+            value={to}
+            disabled={!isPremium}
+            onChange={(e) => update({ to: e.target.value })}
+            className="rounded-lg border border-slate-300 px-2 py-1 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+          />
+        </label>
+        {isPremium ? (
+          (from || to) && (
+            <button
+              onClick={() => update({ from: "", to: "" })}
+              className="text-slate-500 underline hover:text-slate-700"
+            >
+              effacer
+            </button>
+          )
+        ) : (
+          <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand-dark">
+            Réservé au premium
+          </span>
+        )}
       </div>
     </div>
   );

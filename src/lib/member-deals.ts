@@ -20,6 +20,8 @@ export interface MemberFilters {
   origin?: string; // code IATA de départ (ex. "BRU")
   destination?: string; // texte libre (ville ou code)
   maxPrice?: number;
+  dateFrom?: string; // date de départ min (YYYY-MM-DD) - premium
+  dateTo?: string; // date de départ max (YYYY-MM-DD) - premium
 }
 
 export interface MemberDealsResult {
@@ -72,6 +74,16 @@ export async function getMemberDeals(
   }
   if (typeof filters.maxPrice === "number" && !Number.isNaN(filters.maxPrice)) {
     all = all.filter((d) => d.price <= filters.maxPrice!);
+  }
+  // Période de voyage (premium) : on filtre sur la DATE DE DÉPART du deal.
+  if (filters.dateFrom || filters.dateTo) {
+    all = all.filter((d) => {
+      const dep = (d.dates ?? "").match(/\d{4}-\d{2}-\d{2}/)?.[0];
+      if (!dep) return false;
+      if (filters.dateFrom && dep < filters.dateFrom) return false;
+      if (filters.dateTo && dep > filters.dateTo) return false;
+      return true;
+    });
   }
 
   // Premium : une entrée par route, la plus récemment vue.
