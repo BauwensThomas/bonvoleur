@@ -28,16 +28,40 @@ export default function PhotosManager({
   const [fallback, setFallback] = useState(defaultImage);
   const [fbBusy, setFbBusy] = useState(false);
 
-  async function saveFallback() {
-    setFbBusy(true);
-    setMsg(null);
+  async function persistFallback(value: string) {
     const res = await fetch("/api/admin/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: "default_dest_image", value: fallback }),
+      body: JSON.stringify({ key: "default_dest_image", value }),
     });
+    return res.ok;
+  }
+
+  async function saveFallback() {
+    setFbBusy(true);
+    setMsg(null);
+    const ok = await persistFallback(fallback);
     setFbBusy(false);
-    setMsg(res.ok ? "Image de secours mise à jour." : "Erreur sur l'image de secours.");
+    setMsg(ok ? "Image de secours mise à jour." : "Erreur sur l'image de secours.");
+  }
+
+  // Téléverse un fichier depuis l'ordinateur -> Supabase Storage -> enregistre.
+  async function uploadFallback(file: File) {
+    setFbBusy(true);
+    setMsg(null);
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok || !j.url) {
+      setFbBusy(false);
+      setMsg(`Erreur téléversement : ${j.error ?? res.status}`);
+      return;
+    }
+    setFallback(j.url);
+    const ok = await persistFallback(j.url);
+    setFbBusy(false);
+    setMsg(ok ? "Image téléversée et enregistrée." : "Téléversée, mais erreur d'enregistrement.");
   }
 
   async function save(destIata: string) {
@@ -97,6 +121,20 @@ export default function PhotosManager({
           >
             {fbBusy ? "..." : "Enregistrer"}
           </button>
+          <label className="cursor-pointer rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:border-brand hover:text-brand">
+            Téléverser depuis l&apos;ordi
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={fbBusy}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) uploadFallback(f);
+                e.target.value = "";
+              }}
+            />
+          </label>
         </div>
       </div>
 
