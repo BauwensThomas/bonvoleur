@@ -59,10 +59,14 @@ export default async function Home() {
   );
   const totalDest = destGroups.length;
   const destinations = [...destGroups]
+    // "Populaires" = desservies depuis le plus d'aéroports (pertinent pour le
+    // plus de visiteurs). Départage : un deal en cours, puis ordre alphabétique.
     .sort(
       (a, b) =>
+        b.routes.length - a.routes.length ||
         Number(dealDestIatas.has(b.destIata)) -
-        Number(dealDestIatas.has(a.destIata))
+          Number(dealDestIatas.has(a.destIata)) ||
+        a.destCity.localeCompare(b.destCity)
     )
     .slice(0, FEATURED)
     .map((d) => ({
