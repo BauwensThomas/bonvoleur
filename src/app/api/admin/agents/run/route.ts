@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { insert } from "@/lib/db";
 import { findAgent } from "@/lib/agents";
 import { runContentPublisher } from "@/lib/content";
+import { dispatchWorkflow } from "@/lib/github-actions";
 import { requireAdmin } from "@/lib/auth";
 
 // Exécute un agent depuis le back-office.
@@ -18,6 +19,26 @@ export async function POST(req: Request) {
 
   if (agent.name === "content-publisher") {
     const run = await runContentPublisher("manuel");
+    return NextResponse.json(run, { status: 201 });
+  }
+
+  // SEO Route : (re)genere les fiches destinations sur GitHub Actions, utile
+  // apres un scan lance a la main pour mettre a jour /vols-pas-chers.
+  if (agent.name === "seo-route") {
+    const res = await dispatchWorkflow("generate-routes.yml");
+    const now = new Date().toISOString();
+    const run = await insert("agent_runs", {
+      agent_name: "seo-route",
+      started_at: now,
+      finished_at: now,
+      status: res.ok ? "success" : "error",
+      trigger: "manuel",
+      summary: res.ok
+        ? "Generation des fiches destinations lancee sur GitHub Actions."
+        : "Echec du declenchement de la generation des fiches.",
+      output_ref: null,
+      error: res.ok ? null : res.error ?? null,
+    });
     return NextResponse.json(run, { status: 201 });
   }
 

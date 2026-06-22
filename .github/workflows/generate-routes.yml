@@ -1,0 +1,27 @@
+name: Generer les fiches destinations
+
+# Genere/complete les fiches destinations (table routes) a partir des deals
+# presents en base. Declenchable A LA MAIN (bouton "Lancer" sur la page Agents
+# du back-office, ou onglet Actions de GitHub). Le scan automatique
+# (scanner-feed.yml) le fait deja apres chaque scan ; ce workflow sert a forcer
+# la mise a jour de /vols-pas-chers apres un scan lance manuellement.
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: npm install --no-audit --no-fund
+      - name: Fiches des destinations
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+        run: node scripts/generate-routes.mjs

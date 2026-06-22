@@ -52,9 +52,9 @@ export const agents: AgentDef[] = [
     label: "SEO Route",
     role: "Fiches destinations pour Google (automatique).",
     description:
-      "Génère une fiche par destination, par exemple /vols-pas-chers/barcelone, avec un sélecteur d'aéroport de départ (Bruxelles, Charleroi, Paris, Lyon) : fourchettes de prix, meilleure période, compagnies, bouton d'inscription. But : capter le trafic Google (« vol pas cher Barcelone »). C'est désormais AUTOMATIQUE : dès que le scanner trouve une route vers une nouvelle ville, sa fiche (contenu + photo + région) est créée toute seule (script generate-routes.mjs). Aucune action manuelle nécessaire.",
-    cadence: "Automatique (à chaque nouvelle destination)",
-    appButton: false,
+      "Génère une fiche par destination, par exemple /vols-pas-chers/barcelone, avec un sélecteur d'aéroport de départ (Bruxelles, Charleroi, Paris, Lyon) : fourchettes de prix, meilleure période, compagnies, bouton d'inscription. But : capter le trafic Google (« vol pas cher Barcelone »). C'est AUTOMATIQUE après chaque scan planifié (les nouvelles villes ont leur fiche, contenu + photo + région, créée toute seule). Le bouton « Lancer » sert à forcer la génération après un scan lancé à la main, si /vols-pas-chers ne s'est pas encore mis à jour.",
+    cadence: "Auto après chaque scan (+ bouton manuel)",
+    appButton: true,
   },
 ];
 

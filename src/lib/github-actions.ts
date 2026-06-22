@@ -31,6 +31,31 @@ function ghHeaders(token: string): HeadersInit {
   };
 }
 
+// Declenche un workflow (workflow_dispatch) sur la branche par defaut.
+// Requiert un GITHUB_TOKEN avec le scope "workflow" (classic) ou
+// "Actions: read and write" (fine-grained).
+export async function dispatchWorkflow(
+  workflowFile: string,
+  ref = process.env.GITHUB_REF_NAME ?? "master"
+): Promise<{ ok: boolean; error?: string }> {
+  const repo = process.env.GITHUB_REPO ?? null;
+  const token = process.env.GITHUB_TOKEN;
+  if (!repo || !token) {
+    return { ok: false, error: "GITHUB_REPO / GITHUB_TOKEN non configures." };
+  }
+  try {
+    const res = await fetch(
+      `${GH_API}/repos/${repo}/actions/workflows/${workflowFile}/dispatches`,
+      { method: "POST", headers: ghHeaders(token), body: JSON.stringify({ ref }) }
+    );
+    if (res.status === 204) return { ok: true };
+    const body = (await res.text()).slice(0, 200);
+    return { ok: false, error: `GitHub ${res.status} ${body}` };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erreur GitHub" };
+  }
+}
+
 function mapRun(r: unknown): WorkflowRun {
   const w = r as Record<string, unknown>;
   return {
