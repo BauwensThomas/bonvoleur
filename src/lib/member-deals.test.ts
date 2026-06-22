@@ -59,9 +59,9 @@ describe("getMemberDeals — gating par tier", () => {
     expect(deals[0].destination).toBe("Lisbonne (LIS)");
   });
 
-  it("gratuit ne voit que les deals découverts il y a >= 72h", async () => {
+  it("gratuit ne voit que les deals découverts il y a >= FREE_DELAY_HOURS", async () => {
     mockDeals([
-      deal({ destination: "Lisbonne (LIS)", created_at: iso(80 * HOUR) }), // ancien -> visible
+      deal({ destination: "Lisbonne (LIS)", created_at: iso(120 * HOUR) }), // ancien -> visible
       deal({ destination: "Barcelone (BCN)", created_at: iso(10 * HOUR) }), // récent -> caché
     ]);
     const { deals } = await getMemberDeals("free");
@@ -72,18 +72,21 @@ describe("getMemberDeals — gating par tier", () => {
   it("gratuit est plafonné à FREE_MAX_DEALS", async () => {
     const old = (dest: string) =>
       deal({ destination: dest, created_at: iso(200 * HOUR) });
-    mockDeals([old("A"), old("B"), old("C"), old("D"), old("E")]);
+    mockDeals([
+      old("A"), old("B"), old("C"), old("D"),
+      old("E"), old("F"), old("G"), old("H"),
+    ]);
     const { deals } = await getMemberDeals("free");
     expect(deals).toHaveLength(FREE_MAX_DEALS);
   });
 
-  it("le seuil gratuit vaut bien 72h", () => {
-    expect(FREE_DELAY_HOURS).toBe(72);
+  it("le seuil gratuit vaut bien 96h (4 jours)", () => {
+    expect(FREE_DELAY_HOURS).toBe(96);
   });
 
   it("liveLockedForFree = routes premium non visibles par le gratuit", async () => {
     mockDeals([
-      deal({ destination: "Lisbonne (LIS)", created_at: iso(80 * HOUR) }), // gratuit OK
+      deal({ destination: "Lisbonne (LIS)", created_at: iso(120 * HOUR) }), // gratuit OK
       deal({ destination: "Barcelone (BCN)", created_at: iso(10 * HOUR) }), // premium seulement
     ]);
     const { total, liveLockedForFree } = await getMemberDeals("free");

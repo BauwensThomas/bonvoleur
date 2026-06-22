@@ -11,10 +11,10 @@ import { getAll } from "./db";
 import { FRESH_MAX_MS } from "./deal-freshness";
 import type { Deal, Tier } from "./types";
 
-export const FREE_DELAY_HOURS = 72;
+export const FREE_DELAY_HOURS = 96; // 4 jours de retard pour le gratuit
 const FREE_DELAY_MS = FREE_DELAY_HOURS * 3600 * 1000;
 // Le gratuit ne voit qu'un aperçu limité. Le premium voit toutes les routes.
-export const FREE_MAX_DEALS = 3;
+export const FREE_MAX_DEALS = 6;
 
 export interface MemberFilters {
   origin?: string; // code IATA de départ (ex. "BRU")
@@ -62,6 +62,13 @@ export async function getMemberDeals(
   // Fraîcheur : on ne montre PAS aux membres les deals non revus depuis plus de
   // FRESH_MAX_DAYS jours (ils restent en base pour l'historique).
   all = all.filter((d) => now - new Date(seenAt(d)).getTime() <= FRESH_MAX_MS);
+
+  // On ne montre jamais un deal dont la DATE DE DÉPART est déjà passée.
+  const today = new Date(now).toISOString().slice(0, 10);
+  all = all.filter((d) => {
+    const dep = (d.dates ?? "").match(/\d{4}-\d{2}-\d{2}/)?.[0];
+    return !dep || dep >= today;
+  });
 
   // Filtres (s'appliquent aux deux tiers).
   if (filters.origin) {

@@ -4,6 +4,7 @@
 // de réservation) n'est dévoilée -> impossible de retrouver l'offre soi-même,
 // donc on peut montrer des deals récents sans casser l'incitation à s'inscrire.
 import { getAll } from "./db";
+import { FRESH_MAX_MS } from "./deal-freshness";
 
 export interface TeaserDeal {
   origin: string;
@@ -15,9 +16,19 @@ export async function getHomepageDeals(): Promise<{
   teaserDeals: TeaserDeal[] | null;
 }> {
   const all = await getAll("deals");
+  const now = Date.now();
+  const today = new Date(now).toISOString().slice(0, 10);
 
-  // Vitrine : uniquement les vrais bons plans (is_hot).
-  const found = all.filter((d) => d.created_at && d.is_hot !== false);
+  // Vitrine : vrais bons plans (is_hot), encore frais (vus < fenêtre) et dont la
+  // date de départ n'est PAS passée.
+  const found = all.filter((d) => {
+    if (!d.created_at || d.is_hot === false) return false;
+    const seen = d.published_at ?? d.created_at;
+    if (now - new Date(seen).getTime() > FRESH_MAX_MS) return false;
+    const dep = (d.dates ?? "").match(/\d{4}-\d{2}-\d{2}/)?.[0];
+    if (dep && dep < today) return false;
+    return true;
+  });
 
   // Teaser : 3 deals les plus récents, un seul par route (pas de doublon).
   const seenAt = (d: (typeof found)[number]) => d.published_at ?? d.created_at;

@@ -91,7 +91,7 @@ export default async function Compte({
             <p className="mt-1 text-slate-600">
               {tier === "premium"
                 ? "Accès en direct à tous les bons plans, dès qu'ils sont dénichés."
-                : `En gratuit, tu vois quelques bons plans avec ${FREE_DELAY_HOURS}h de retard.`}
+                : `En gratuit, tu vois jusqu'à 6 bons plans avec ${Math.round(FREE_DELAY_HOURS / 24)} jours de retard.`}
             </p>
           </div>
           <span
