@@ -8,9 +8,11 @@ Sources (toutes gratuites) :
   2. API publique Ryanair : decouvre les allers-retours low-cost les moins chers
      depuis nos bases Ryanair (Charleroi surtout, que Travelpayouts ne voit pas).
      Lien de resa = Ryanair direct (prix exact).
-  3. Travelpayouts city-directions : decouverte large (toutes compagnies, court +
-     long-courrier) des AR les moins chers vers toutes les destinations, pour
-     elargir la base. Lien de resa = Aviasales (affiliation).
+  3. Travelpayouts city-directions : decouverte large (toutes compagnies) des AR
+     les moins chers, surtout court/moyen-courrier. Lien de resa = Aviasales.
+  4. Travelpayouts prices_for_dates : veille LONG-COURRIER (transatlantique, Asie,
+     Afrique...) que les autres endpoints ne couvrent pas. Seuils "deal" par route.
+     Lien de resa = Aviasales (affiliation).
 On verifie que le lien repond, puis on pousse le deal a BonVoleur qui ecrit
 l'email (Deal Writer) et l'envoie aux abonnes du bon aeroport (Deal Sender).
 
@@ -57,6 +59,13 @@ AIRPORT_NAMES = {
     "JFK": "New York", "BKK": "Bangkok", "AGP": "Malaga", "OPO": "Porto",
     "KRK": "Cracovie", "ALC": "Alicante", "ATH": "Athènes", "MAD": "Madrid",
     "VLC": "Valence", "NAP": "Naples", "OPO2": "Porto", "GIG": "Rio de Janeiro",
+    # Long-courrier (veille dediee, source prices_for_dates).
+    "EWR": "New York", "YUL": "Montréal", "YYZ": "Toronto", "MIA": "Miami",
+    "LAX": "Los Angeles", "CUN": "Cancún", "MEX": "Mexico", "GRU": "Sao Paulo",
+    "EZE": "Buenos Aires", "LIM": "Lima", "BOG": "Bogota", "PUJ": "Punta Cana",
+    "DPS": "Bali", "DXB": "Dubai", "DOH": "Doha", "DEL": "Delhi", "BKO": "Bamako",
+    "BOM": "Mumbai", "JNB": "Johannesburg", "NBO": "Nairobi", "DKR": "Dakar",
+    "MRU": "Maurice", "RUN": "La Réunion", "ABJ": "Abidjan", "CMN": "Casablanca",
 }
 
 
@@ -136,6 +145,27 @@ def city_name(code: str) -> str:
         except (requests.RequestException, ValueError):
             pass
     return _CITY_NAMES.get(code, "")
+
+
+# --- Source #4 : veille LONG-COURRIER (Travelpayouts prices_for_dates) ---
+# Ni /cheap ni city-directions ne couvrent le transatlantique. prices_for_dates
+# (v3) le fait. On surveille des routes intercontinentales avec un seuil "deal"
+# (prix AR sous lequel ca vaut le coup). Lien de resa = Aviasales (affiliation).
+LONGHAUL_WATCH = {
+    "BRU": {
+        "JFK": 450, "EWR": 450, "YUL": 480, "YYZ": 520, "MIA": 550, "CUN": 650,
+        "DXB": 480, "BKK": 550, "DPS": 780, "JNB": 680, "NBO": 620, "DKR": 480,
+        "GIG": 800, "GRU": 800,
+    },
+    "CDG": {
+        "JFK": 450, "EWR": 450, "YUL": 480, "YYZ": 520, "MIA": 550, "LAX": 680,
+        "CUN": 650, "MEX": 680, "GIG": 800, "GRU": 800, "EZE": 950, "LIM": 850,
+        "BOG": 780, "PUJ": 650, "DXB": 480, "DOH": 520, "BKK": 560, "DPS": 780,
+        "DEL": 560, "BOM": 620, "JNB": 680, "NBO": 620, "DKR": 480, "MRU": 780,
+        "RUN": 680, "ABJ": 620,
+    },
+    "LYS": {"JFK": 520, "YUL": 540, "DXB": 520, "BKK": 620, "CUN": 720, "PUJ": 720},
+}
 
 # --- Cache anti-doublon (ne pas renvoyer le même deal à chaque tour) ---
 SEEN_FILE = os.path.join(os.path.dirname(__file__), ".seen.json")
@@ -314,6 +344,83 @@ def find_deals() -> list[dict]:
             )
     deals.extend(find_ryanair_deals())
     deals.extend(find_discovery_deals())
+    deals.extend(find_longhaul_deals())
+    return deals
+
+
+def find_longhaul_deals() -> list[dict]:
+    """Veille long-courrier via prices_for_dates (le seul endpoint TP qui couvre
+    le transatlantique). Pour chaque route surveillee, cherche le meilleur prix
+    AR sur 2 mois cibles et ne garde que s'il est sous le seuil 'deal'."""
+    token = os.environ.get("TRAVELPAYOUTS_TOKEN", "")
+    if not token:
+        return []
+    marker = os.environ.get("TRAVELPAYOUTS_MARKER", "")
+    base = datetime.date.today().replace(day=1)
+    months = []
+    for k in (2, 4):  # ~2 et ~4 mois a l'avance
+        y, m = base.year, base.month + k
+        while m > 12:
+            m -= 12
+            y += 1
+        months.append(f"{y}-{m:02d}")
+
+    deals: list[dict] = []
+    found = 0
+    for origin, dests in LONGHAUL_WATCH.items():
+        for dest, max_price in dests.items():
+            best = None
+            for mois in months:
+                try:
+                    r = requests.get(
+                        "https://api.travelpayouts.com/aviasales/v3/prices_for_dates",
+                        params={
+                            "origin": origin,
+                            "destination": dest,
+                            "currency": "eur",
+                            "token": token,
+                            "departure_at": mois,
+                            "sorting": "price",
+                            "limit": 1,
+                            "one_way": "false",
+                        },
+                        timeout=15,
+                    )
+                    data = r.json().get("data", [])
+                except (requests.RequestException, ValueError):
+                    continue
+                if data and data[0].get("price"):
+                    p = int(data[0]["price"])
+                    if best is None or p < best[0]:
+                        best = (p, data[0])
+            if not best or best[0] > max_price:
+                continue
+            price, it = best
+            depart = (it.get("departure_at") or "")[:10]
+            ret = (it.get("return_at") or "")[:10]
+            qs = ["currency=eur", "locale=fr"]
+            if marker:
+                qs.append(f"marker={marker}")
+            url = (
+                f"https://www.aviasales.com/search/"
+                f"{origin}{ddmm(depart)}{dest}{ddmm(ret)}1?" + "&".join(qs)
+            )
+            deals.append(
+                {
+                    "origin": label(origin),
+                    "destination": label(dest),
+                    "price": price,
+                    "normal_price": None,
+                    "dates": depart + (f" au {ret}" if ret else ""),
+                    "airline": it.get("airline"),
+                    "booking_url": url,
+                    "is_error_fare": False,
+                    "is_hot": True,
+                    "autosend": False,
+                }
+            )
+            found += 1
+    print(f"Long-courrier : {found} deal(s) sous seuil")
     return deals
 
 
