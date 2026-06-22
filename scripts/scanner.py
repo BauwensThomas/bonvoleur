@@ -86,8 +86,8 @@ RYANAIR_ORIGINS = [
     for o in os.environ.get("RYANAIR_ORIGINS", "CRL,BRU,LYS").split(",")
     if o.strip()
 ]
-RYANAIR_MAX_EUR = int(os.environ.get("RYANAIR_MAX_EUR", "100"))  # plafond AR "bon plan"
-RYANAIR_LIMIT = int(os.environ.get("RYANAIR_LIMIT", "12"))  # nb max de villes / origine
+RYANAIR_MAX_EUR = int(os.environ.get("RYANAIR_MAX_EUR", "150"))  # plafond AR "bon plan"
+RYANAIR_LIMIT = int(os.environ.get("RYANAIR_LIMIT", "16"))  # nb max de villes / origine (16 = max API)
 RYANAIR_TRIP_MIN = int(os.environ.get("RYANAIR_TRIP_MIN", "2"))  # duree sejour min (jours)
 RYANAIR_TRIP_MAX = int(os.environ.get("RYANAIR_TRIP_MAX", "14"))  # duree sejour max
 
@@ -109,8 +109,10 @@ DISCOVERY_ORIGINS = [
     for o in os.environ.get("DISCOVERY_ORIGINS", "BRU,CRL,CDG,LYS").split(",")
     if o.strip()
 ]
-DISCOVERY_MAX_EUR = int(os.environ.get("DISCOVERY_MAX_EUR", "200"))  # plafond AR
-DISCOVERY_LIMIT = int(os.environ.get("DISCOVERY_LIMIT", "8"))  # villes / origine
+# Plafond genereux pour attraper aussi le long-courrier abordable (NYC, etc.).
+# On garde quand meme les MOINS CHERS (city-directions renvoie ~30 dest/aeroport).
+DISCOVERY_MAX_EUR = int(os.environ.get("DISCOVERY_MAX_EUR", "400"))  # plafond AR
+DISCOVERY_LIMIT = int(os.environ.get("DISCOVERY_LIMIT", "30"))  # villes / origine
 DISCOVERY_MAX_TRANSFERS = int(os.environ.get("DISCOVERY_MAX_TRANSFERS", "1"))
 
 _CITY_NAMES: dict[str, str] = {}
@@ -229,9 +231,10 @@ def insert_deal_in_db(deal: dict) -> tuple[bool, str]:
 
 def link_is_accessible(url: str) -> bool:
     """Vérifie que le lien répond encore (anti deal mort)."""
-    # Liens Ryanair : la fiche provient de leur PROPRE API, on fait confiance
-    # (et la page de reservation bloque souvent les requetes non-navigateur).
-    if "ryanair.com" in url:
+    # Liens Ryanair (API) et Aviasales (page de recherche, toujours en ligne) :
+    # le prix vient de l'API source, ces URL sont fiables -> on ne les teste pas
+    # (gain de temps important quand il y a beaucoup de deals).
+    if "ryanair.com" in url or "aviasales.com" in url:
         return True
     try:
         r = requests.head(url, allow_redirects=True, timeout=10, headers=_UA)
