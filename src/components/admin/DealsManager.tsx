@@ -169,10 +169,10 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
       <p className="mt-1 text-sm text-slate-500">
         Une ligne par route = le deal que voit le <strong>premium</strong>{" "}
         (le plus récent). Le compteur rouge indique les jours avant qu&apos;il ne
-        disparaisse du premium ; il repart à {FRESH_MAX_DAYS} jours dès que le
-        scanner le retrouve. Au-delà de {FRESH_MAX_DAYS} jours sans le revoir, il
-        est masqué du premium mais conservé en base. Clique une ligne pour
-        dérouler tout l&apos;historique.
+        disparaisse du premium ; il repart à {`${FRESH_MAX_DAYS} jours`} dès que
+        le scanner le retrouve. Au-delà de {`${FRESH_MAX_DAYS} jours`} sans le
+        revoir, il est masqué du premium mais conservé en base. Clique une ligne
+        pour dérouler tout l&apos;historique.
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -205,6 +205,7 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
             <tr>
               <th className="px-4 py-2 font-medium">Route</th>
               <th className="px-4 py-2 font-medium">Dernier prix</th>
+              <th className="px-4 py-2 font-medium">Dates de voyage</th>
               <th className="px-4 py-2 font-medium">Vu le</th>
               <th className="px-4 py-2 font-medium">Historique</th>
             </tr>
@@ -240,6 +241,9 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
                       )}
                     </td>
                     <td className="px-4 py-2 whitespace-nowrap text-slate-600">
+                      {r.latest.dates || "-"}
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap text-slate-600">
                       {fmtDate(seenAt(r.latest))}
                       {!r.stale && (
                         <span className="ml-2 rounded bg-red-100 px-1.5 text-xs font-semibold text-red-600">
@@ -262,7 +266,7 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
                   {isOpen &&
                     r.deals.map((d) => (
                       <tr key={d.id} className="bg-slate-50/60">
-                        <td colSpan={4} className="px-4 py-2 pl-10">
+                        <td colSpan={5} className="px-4 py-2 pl-10">
                           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                             <span className="whitespace-nowrap font-semibold text-slate-900">
                               {d.price}€
@@ -322,7 +326,7 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
             })}
             {routes.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-slate-700">
+                <td colSpan={5} className="px-4 py-6 text-center text-slate-700">
                   Aucun deal.
                 </td>
               </tr>
