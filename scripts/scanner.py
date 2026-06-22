@@ -2,10 +2,14 @@
 """
 Scanner de deals BonVoleur (à faire tourner sur un PC allumé 24/7).
 
-Source : Travelpayouts (gratuit + affilié). On interroge le billet le moins cher
-de chaque route surveillée, on vérifie que le lien répond, puis on pousse le
-deal à BonVoleur qui écrit l'email (Deal Writer) et l'envoie aux abonnés du bon
-aéroport (Deal Sender).
+Sources (toutes gratuites) :
+  1. Travelpayouts (affilié) : billet le moins cher des routes surveillées
+     (bonne couverture OTA + long-courrier). Lien de resa = Aviasales (commission).
+  2. API publique Ryanair : decouvre les allers-retours low-cost les moins chers
+     depuis nos bases Ryanair (Charleroi surtout, que Travelpayouts ne voit pas).
+     Lien de resa = Ryanair direct (prix exact).
+On verifie que le lien repond, puis on pousse le deal a BonVoleur qui ecrit
+l'email (Deal Writer) et l'envoie aux abonnes du bon aeroport (Deal Sender).
 
 Usage :
   export BONVOLEUR_URL="http://localhost:3000"
@@ -66,6 +70,30 @@ TRAVELPAYOUTS_WATCH = {
     "CRL": {"AGP": 80, "OPO": 90, "FCO": 90, "KRK": 80, "ALC": 80},
     "CDG": {"JFK": 400, "LIS": 130, "BCN": 90, "ATH": 140, "BKK": 500, "GIG": 600},
     "LYS": {"BCN": 90, "LIS": 140, "FCO": 90},
+}
+
+# --- Source #2 : API publique Ryanair (gratuite, sans cle) ---
+# Travelpayouts couvre mal les compagnies low-cost (Ryanair, Wizz) qui bloquent
+# les OTA : c'est pourquoi Charleroi (100% low-cost) restait vide. On interroge
+# directement l'API de Ryanair pour DECOUVRIR les allers-retours les moins chers
+# depuis nos aeroports Ryanair, sous un plafond. Lien de resa = Ryanair direct
+# (prix exact). Les nouvelles villes creent leur fiche automatiquement.
+RYANAIR_ORIGINS = [
+    o.strip().upper()
+    for o in os.environ.get("RYANAIR_ORIGINS", "CRL,BRU,LYS").split(",")
+    if o.strip()
+]
+RYANAIR_MAX_EUR = int(os.environ.get("RYANAIR_MAX_EUR", "100"))  # plafond AR "bon plan"
+RYANAIR_LIMIT = int(os.environ.get("RYANAIR_LIMIT", "12"))  # nb max de villes / origine
+RYANAIR_TRIP_MIN = int(os.environ.get("RYANAIR_TRIP_MIN", "2"))  # duree sejour min (jours)
+RYANAIR_TRIP_MAX = int(os.environ.get("RYANAIR_TRIP_MAX", "14"))  # duree sejour max
+
+# Ryanair bloque les User-Agent par defaut : on se presente comme un navigateur.
+_UA = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    )
 }
 
 # --- Cache anti-doublon (ne pas renvoyer le même deal à chaque tour) ---
@@ -162,10 +190,14 @@ def insert_deal_in_db(deal: dict) -> tuple[bool, str]:
 
 def link_is_accessible(url: str) -> bool:
     """Vérifie que le lien répond encore (anti deal mort)."""
+    # Liens Ryanair : la fiche provient de leur PROPRE API, on fait confiance
+    # (et la page de reservation bloque souvent les requetes non-navigateur).
+    if "ryanair.com" in url:
+        return True
     try:
-        r = requests.head(url, allow_redirects=True, timeout=10)
+        r = requests.head(url, allow_redirects=True, timeout=10, headers=_UA)
         if r.status_code >= 400:
-            r = requests.get(url, timeout=10)
+            r = requests.get(url, timeout=10, headers=_UA)
         return r.status_code < 400
     except requests.RequestException:
         return False
@@ -238,6 +270,90 @@ def find_deals() -> list[dict]:
                     "autosend": False,
                 }
             )
+    deals.extend(find_ryanair_deals())
+    return deals
+
+
+def _ryanair_url(origin: str, dest: str, date_out: str, date_in: str) -> str:
+    """Lien profond vers la reservation Ryanair (route + dates pre-remplies)."""
+    return (
+        "https://www.ryanair.com/fr/fr/trip/flights/select"
+        "?adults=1&teens=0&children=0&infants=0&isConnectedFlight=false"
+        f"&isReturn=true&discount=0&dateOut={date_out}&dateIn={date_in}"
+        f"&originIata={origin}&destinationIata={dest}"
+    )
+
+
+def find_ryanair_deals() -> list[dict]:
+    """Allers-retours les moins chers depuis nos aeroports Ryanair (API publique,
+    gratuite). Decouvre de nouvelles villes : on garde, par origine, les
+    RYANAIR_LIMIT routes les moins cheres sous RYANAIR_MAX_EUR."""
+    today = datetime.date.today()
+    out_from = (today + datetime.timedelta(days=1)).isoformat()
+    out_to = (today + datetime.timedelta(days=180)).isoformat()
+    in_from = (today + datetime.timedelta(days=3)).isoformat()
+    in_to = (today + datetime.timedelta(days=200)).isoformat()
+    deals: list[dict] = []
+    for origin in RYANAIR_ORIGINS:
+        try:
+            r = requests.get(
+                "https://services-api.ryanair.com/farfnd/v4/roundTripFares",
+                params={
+                    "departureAirportIataCode": origin,
+                    "outboundDepartureDateFrom": out_from,
+                    "outboundDepartureDateTo": out_to,
+                    "inboundDepartureDateFrom": in_from,
+                    "inboundDepartureDateTo": in_to,
+                    "durationFrom": RYANAIR_TRIP_MIN,
+                    "durationTo": RYANAIR_TRIP_MAX,
+                    "adultPaxCount": 1,
+                    "market": "fr-fr",
+                    "limit": 100,
+                },
+                headers=_UA,
+                timeout=20,
+            )
+            fares = r.json().get("fares", [])
+        except (requests.RequestException, ValueError) as e:
+            print(f"Ryanair {origin} erreur:", e)
+            continue
+
+        best: dict[str, dict] = {}  # 1 entree par destination (la moins chere)
+        for f in fares:
+            ob, ib = f.get("outbound") or {}, f.get("inbound") or {}
+            ap = ob.get("arrivalAirport") or {}
+            dest = ap.get("iataCode")
+            op = (ob.get("price") or {}).get("value")
+            ip = (ib.get("price") or {}).get("value")
+            if not dest or op is None or ip is None:
+                continue
+            total = round(op + ip, 2)
+            if total > RYANAIR_MAX_EUR:
+                continue
+            if dest in best and best[dest]["_total"] <= total:
+                continue
+            # Nom de ville : notre table si connue (coherence), sinon Ryanair.
+            city = AIRPORT_NAMES.get(dest) or (ap.get("city") or {}).get("name") or ap.get("name") or dest
+            date_out = (ob.get("departureDate") or "")[:10]
+            date_in = (ib.get("departureDate") or "")[:10]
+            best[dest] = {
+                "_total": total,
+                "origin": label(origin),
+                "destination": f"{city} ({dest})",
+                "price": int(round(total)),
+                "normal_price": None,
+                "dates": date_out + (f" au {date_in}" if date_in else ""),
+                "airline": "Ryanair",
+                "booking_url": _ryanair_url(origin, dest, date_out, date_in),
+                "is_error_fare": False,
+                "is_hot": True,
+                "autosend": False,
+            }
+        ranked = sorted(best.values(), key=lambda d: d["_total"])[:RYANAIR_LIMIT]
+        for d in ranked:
+            d.pop("_total", None)
+            deals.append(d)
+        print(f"Ryanair {origin} : {len(ranked)} route(s) sous {RYANAIR_MAX_EUR} EUR")
     return deals
 
 
