@@ -129,7 +129,7 @@ async function pickTrendingTopic(recent: string[]): Promise<string | null> {
   try {
     const client = new Anthropic();
     const model = process.env.ANTHROPIC_MODEL ?? "claude-opus-4-8";
-    const res = await client.messages.create({
+    const res = await withRetry(() => client.messages.create({
       model,
       max_tokens: 1200,
       tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
@@ -139,7 +139,7 @@ async function pickTrendingTopic(recent: string[]): Promise<string | null> {
           content: `Tu écris pour ${site.name}, un blog de vols pas chers pour la Belgique et la France. Cherche sur le web les sujets de voyage et de vols les plus recherchés / tendance en ce moment (saison actuelle, destinations populaires, vacances scolaires, événements). Propose UN seul titre d'article de blog, en français, accrocheur et optimisé SEO, concret, lié aux vols pas chers depuis la Belgique ou la France. N'utilise AUCUN de ces sujets déjà traités récemment : ${recent.join(" ; ") || "(aucun)"}. Évite absolument les sujets fourre-tout du type « guide complet », « tout savoir » ou « le guide ultime » qui recoupent plusieurs articles : choisis un angle PRÉCIS et original (une destination donnée, une compagnie, une période ou un événement précis, une astuce concrète). Réponds UNIQUEMENT par le titre, sans guillemets ni explication.`,
         },
       ],
-    });
+    }), "sujet tendance");
     const text = res.content
       .map((b) => (b.type === "text" ? b.text : ""))
       .join(" ")
@@ -191,6 +191,37 @@ const schema = {
   ],
 } as const;
 
+// Réessaie un appel sur erreur transitoire (529 surcharge, 429, 5xx) avec un
+// backoff exponentiel. Évite qu'un créneau cron rate à cause d'un pic de charge.
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  label: string,
+  attempts = 4
+): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i += 1) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      const status = (err as { status?: number })?.status;
+      const msg = err instanceof Error ? err.message : "";
+      const transient =
+        status === 529 ||
+        status === 429 ||
+        (typeof status === "number" && status >= 500) ||
+        /overload/i.test(msg);
+      if (!transient || i === attempts - 1) throw err;
+      const waitMs = 2000 * 2 ** i; // 2s, 4s, 8s
+      console.warn(
+        `[content] ${label} : erreur transitoire (${status ?? msg}), nouvel essai dans ${waitMs / 1000}s`
+      );
+      await new Promise((r) => setTimeout(r, waitMs));
+    }
+  }
+  throw lastErr;
+}
+
 // Collecte des faits RÉELS via la recherche web, pour ancrer l'article (mêmes
 // types d'infos que les pages route : compagnies, durées, périodes, fourchettes).
 async function gatherFacts(topic: string): Promise<string> {
@@ -198,7 +229,7 @@ async function gatherFacts(topic: string): Promise<string> {
   try {
     const client = new Anthropic();
     const model = process.env.ANTHROPIC_MODEL ?? "claude-opus-4-8";
-    const res = await client.messages.create({
+    const res = await withRetry(() => client.messages.create({
       model,
       max_tokens: 1500,
       tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
@@ -208,7 +239,7 @@ async function gatherFacts(topic: string): Promise<string> {
           content: `Recherche sur le web des informations FACTUELLES et vérifiables utiles pour un article sur : "${topic}" (contexte : vols pas chers depuis la Belgique et la France, aéroports BRU, CRL, CDG, LYS). Donne une liste de faits concrets et exacts : compagnies aériennes réelles, durées de vol, meilleures périodes, fourchettes de prix réalistes, règles de bagages cabine, etc. N'invente rien. Français, sans émoji, sans tiret long.`,
         },
       ],
-    });
+    }), "faits web");
     return res.content
       .map((b) => (b.type === "text" ? b.text : ""))
       .join("\n")
@@ -287,13 +318,17 @@ Contraintes impératives :
 - "image_query" : 2 à 4 mots EN ANGLAIS décrivant une photo d'illustration qui colle à l'article (ex. "Lisbon tram", "airplane window view", "Barcelona skyline"). Vise une image qui représente vraiment le sujet de l'article.
 - N'invente pas de prix présentés comme garantis : reste sur des fourchettes ou des ordres de grandeur ("aux alentours de", "à partir d'environ").`;
 
-  const response = await client.messages.create({
-    model,
-    max_tokens: 16000,
-    thinking: { type: "disabled" },
-    output_config: { format: { type: "json_schema", schema } },
-    messages: [{ role: "user", content: prompt }],
-  });
+  const response = await withRetry(
+    () =>
+      client.messages.create({
+        model,
+        max_tokens: 16000,
+        thinking: { type: "disabled" },
+        output_config: { format: { type: "json_schema", schema } },
+        messages: [{ role: "user", content: prompt }],
+      }),
+    "generation article"
+  );
 
   const textBlock = response.content.find((b) => b.type === "text");
   if (!textBlock || textBlock.type !== "text") {
