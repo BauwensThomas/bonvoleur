@@ -22,6 +22,11 @@ try {
   /* pas de .env.local (CI) : on garde process.env */
 }
 
+// Plafond de fiches GENEREES (appel Claude) par run : protege le quota Anthropic
+// quand la decouverte remonte beaucoup de nouvelles villes d'un coup. Le reste
+// est repris au run suivant (les deals restent en base). 0 = illimite.
+const MAX_NEW = parseInt(env.ROUTES_MAX_NEW_PER_RUN || "8", 10);
+
 const SB = env.SUPABASE_URL;
 const SK = env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SB || !SK) throw new Error("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY manquants.");
@@ -127,7 +132,7 @@ async function unsplashPhoto(city) {
   }
 }
 
-let generated = 0, skipped = 0;
+let generated = 0, skipped = 0, deferred = 0, contentCalls = 0;
 for (const dest of Object.values(dests)) {
   const hasContent = dest.origins.some((o) => bySlug.get(o.slug)?.intro);
   const knownImg = dest.origins.map((o) => bySlug.get(o.slug)?.image_url).find(Boolean) || null;
@@ -138,8 +143,16 @@ for (const dest of Object.values(dests)) {
     continue;
   }
 
+  // Plafond de generation par run atteint : on reporte au prochain run.
+  const needsContent = FORCE || !hasContent;
+  if (needsContent && MAX_NEW > 0 && contentCalls >= MAX_NEW) {
+    deferred++;
+    continue;
+  }
+
   process.stdout.write(`${dest.dc}... `);
-  const content = FORCE || !hasContent ? await genCityContent(dest.dc, dest.origins.map((o) => o.oc)) : null;
+  const content = needsContent ? await genCityContent(dest.dc, dest.origins.map((o) => o.oc)) : null;
+  if (needsContent) contentCalls++;
   const photo = knownImg ? { url: knownImg, credit: null } : await unsplashPhoto(dest.dc);
 
   let ok = 0;
@@ -173,4 +186,7 @@ for (const dest of Object.values(dests)) {
   generated++;
 }
 
-console.log(`\nTerminé. ${generated} destination(s) générée(s), ${skipped} déjà à jour (sautées).`);
+console.log(
+  `\nTerminé. ${generated} destination(s) générée(s), ${skipped} déjà à jour, ` +
+    `${deferred} reportée(s) au prochain run (plafond ${MAX_NEW}/run).`
+);

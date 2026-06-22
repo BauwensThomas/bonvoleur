@@ -8,6 +8,9 @@ Sources (toutes gratuites) :
   2. API publique Ryanair : decouvre les allers-retours low-cost les moins chers
      depuis nos bases Ryanair (Charleroi surtout, que Travelpayouts ne voit pas).
      Lien de resa = Ryanair direct (prix exact).
+  3. Travelpayouts city-directions : decouverte large (toutes compagnies, court +
+     long-courrier) des AR les moins chers vers toutes les destinations, pour
+     elargir la base. Lien de resa = Aviasales (affiliation).
 On verifie que le lien repond, puis on pousse le deal a BonVoleur qui ecrit
 l'email (Deal Writer) et l'envoie aux abonnes du bon aeroport (Deal Sender).
 
@@ -95,6 +98,42 @@ _UA = {
         "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     )
 }
+
+# --- Source #3 : decouverte Travelpayouts (city-directions) ---
+# Les vols les moins chers depuis chaque aeroport vers TOUTES les destinations
+# (toutes compagnies, court + long-courrier) : elargit la base au-dela des routes
+# surveillees. Lien de resa = Aviasales (affiliation). Les noms de villes viennent
+# de la base Travelpayouts (cities.json FR), pour creer des fiches propres.
+DISCOVERY_ORIGINS = [
+    o.strip().upper()
+    for o in os.environ.get("DISCOVERY_ORIGINS", "BRU,CRL,CDG,LYS").split(",")
+    if o.strip()
+]
+DISCOVERY_MAX_EUR = int(os.environ.get("DISCOVERY_MAX_EUR", "200"))  # plafond AR
+DISCOVERY_LIMIT = int(os.environ.get("DISCOVERY_LIMIT", "8"))  # villes / origine
+DISCOVERY_MAX_TRANSFERS = int(os.environ.get("DISCOVERY_MAX_TRANSFERS", "1"))
+
+_CITY_NAMES: dict[str, str] = {}
+
+
+def city_name(code: str) -> str:
+    """Nom FR d'une ville (base Travelpayouts), AIRPORT_NAMES prioritaire.
+    Renvoie '' si inconnu (on saute alors le deal pour eviter un label '(XXX)')."""
+    if code in AIRPORT_NAMES:
+        return AIRPORT_NAMES[code]
+    if not _CITY_NAMES:
+        try:
+            r = requests.get(
+                "https://api.travelpayouts.com/data/fr/cities.json",
+                headers=_UA,
+                timeout=30,
+            )
+            for c in r.json():
+                if c.get("code") and c.get("name"):
+                    _CITY_NAMES[c["code"]] = c["name"]
+        except (requests.RequestException, ValueError):
+            pass
+    return _CITY_NAMES.get(code, "")
 
 # --- Cache anti-doublon (ne pas renvoyer le même deal à chaque tour) ---
 SEEN_FILE = os.path.join(os.path.dirname(__file__), ".seen.json")
@@ -271,6 +310,71 @@ def find_deals() -> list[dict]:
                 }
             )
     deals.extend(find_ryanair_deals())
+    deals.extend(find_discovery_deals())
+    return deals
+
+
+def find_discovery_deals() -> list[dict]:
+    """Decouverte large via Travelpayouts city-directions : les AR les moins chers
+    depuis chaque aeroport vers toutes les destinations (toutes compagnies). On
+    garde, par origine, les DISCOVERY_LIMIT moins chers sous le plafond."""
+    token = os.environ.get("TRAVELPAYOUTS_TOKEN", "")
+    if not token:
+        return []
+    marker = os.environ.get("TRAVELPAYOUTS_MARKER", "")
+    deals: list[dict] = []
+    for origin in DISCOVERY_ORIGINS:
+        try:
+            r = requests.get(
+                "https://api.travelpayouts.com/v1/city-directions",
+                params={"origin": origin, "currency": "eur", "token": token},
+                timeout=20,
+            )
+            data = r.json().get("data", {})
+        except (requests.RequestException, ValueError) as e:
+            print(f"Discovery {origin} erreur:", e)
+            continue
+
+        items = []
+        for dest, it in data.items():
+            price = it.get("price")
+            if price is None or int(price) > DISCOVERY_MAX_EUR:
+                continue
+            if (it.get("transfers") or 0) > DISCOVERY_MAX_TRANSFERS:
+                continue
+            items.append((dest, it, int(price)))
+        items.sort(key=lambda x: x[2])
+
+        kept = 0
+        for dest, it, price in items[:DISCOVERY_LIMIT]:
+            city = city_name(dest)
+            if not city:
+                continue  # ville inconnue : on saute (pas de label '(XXX)')
+            depart = (it.get("departure_at") or "")[:10]
+            ret = (it.get("return_at") or "")[:10]
+            qs = ["currency=eur", "locale=fr"]
+            if marker:
+                qs.append(f"marker={marker}")
+            url = (
+                f"https://www.aviasales.com/search/"
+                f"{origin}{ddmm(depart)}{dest}{ddmm(ret)}1?" + "&".join(qs)
+            )
+            deals.append(
+                {
+                    "origin": label(origin),
+                    "destination": f"{city} ({dest})",
+                    "price": price,
+                    "normal_price": None,
+                    "dates": depart + (f" au {ret}" if ret else ""),
+                    "airline": it.get("airline"),
+                    "booking_url": url,
+                    "is_error_fare": False,
+                    "is_hot": True,
+                    "autosend": False,
+                }
+            )
+            kept += 1
+        print(f"Discovery {origin} : {kept} ville(s) sous {DISCOVERY_MAX_EUR} EUR")
     return deals
 
 
@@ -308,7 +412,7 @@ def find_ryanair_deals() -> list[dict]:
                     "durationTo": RYANAIR_TRIP_MAX,
                     "adultPaxCount": 1,
                     "market": "fr-fr",
-                    "limit": 100,
+                    "limit": 16,  # max accepte par l'API Ryanair (au-dela: InvalidLimit)
                 },
                 headers=_UA,
                 timeout=20,
