@@ -50,6 +50,10 @@ const parseLabel = (l) => {
   const m = String(l).match(/^(.*?)\s*\(([A-Z]{3})\)\s*$/);
   return m ? { city: m[1].trim(), iata: m[2] } : null;
 };
+// Retire les balises (notamment <cite ...> des citations de recherche web) en
+// gardant le texte ; nettoie les espaces doubles laisses par la suppression.
+const stripTags = (s) =>
+  String(s ?? "").replace(/<\/?[^>]+>/g, "").replace(/ {2,}/g, " ").trim();
 
 // Destinations à considérer : ville d'arrivée -> { dc, origins:[{o,oc,slug}] }.
 const dests = {};
@@ -109,7 +113,7 @@ async function genCityContent(city, origins) {
  "tips": ["3 à 4 conseils concrets pour un voyage à ${city}"],
  "region": "le continent de ${city} : exactement l'une de ces valeurs -> Europe, Amérique, Afrique, Asie, Océanie"
 }
-IMPÉRATIF : français correct avec TOUS les accents (é, è, ê, à, â, ç, ô, î, ù...). Pas d'émoji, pas de tiret long (em dash). Pas de prix inventés présentés comme garantis.`,
+IMPÉRATIF : français correct avec TOUS les accents (é, è, ê, à, â, ç, ô, î, ù...). Pas d'émoji, pas de tiret long (em dash). Pas de prix inventés présentés comme garantis. N'inclus AUCUNE balise dans les valeurs (pas de <cite>, pas de HTML) : uniquement du texte brut.`,
     }],
     });
     const text = res.content.map((b) => (b.type === "text" ? b.text : "")).join("\n");
@@ -188,13 +192,13 @@ for (const dest of Object.values(dests)) {
       updated_at: new Date().toISOString(),
     };
     if (content?.intro) {
-      row.intro = String(content.intro);
-      row.airlines = Array.isArray(content.airlines) ? content.airlines.map(String) : [];
-      row.duration = String(content.duration || "");
-      row.best_period = String(content.bestPeriod || "");
-      row.tips = Array.isArray(content.tips) ? content.tips.map(String) : [];
+      row.intro = stripTags(content.intro);
+      row.airlines = Array.isArray(content.airlines) ? content.airlines.map(stripTags) : [];
+      row.duration = stripTags(content.duration);
+      row.best_period = stripTags(content.bestPeriod);
+      row.tips = Array.isArray(content.tips) ? content.tips.map(stripTags) : [];
     }
-    if (content?.region) row.region = String(content.region);
+    if (content?.region) row.region = stripTags(content.region);
     if (photo?.url) { row.image_url = photo.url; if (photo.credit) row.image_credit = photo.credit; }
 
     const res = await fetch(`${SB}/rest/v1/routes?on_conflict=slug`, {

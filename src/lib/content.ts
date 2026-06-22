@@ -24,6 +24,12 @@ async function validDestSlugs(): Promise<Set<string>> {
   }
   return set;
 }
+// Retire les balises (notamment <cite ...> ajoutées par la recherche web), en
+// gardant le texte. Évite que des balises fuient dans le contenu publié.
+function stripTags(s: string): string {
+  return s.replace(/<\/?[^>]+>/g, "").replace(/ {2,}/g, " ");
+}
+
 function sanitizeLinks(md: string, valid: Set<string>): string {
   return md.replace(/\/vols-pas-chers\/([a-z0-9-]+)/g, (_m, slug: string) => {
     let s = slug;
@@ -242,10 +248,12 @@ async function gatherFacts(topic: string): Promise<string> {
         },
       ],
     }), "faits web");
-    return res.content
-      .map((b) => (b.type === "text" ? b.text : ""))
-      .join("\n")
-      .trim();
+    return stripTags(
+      res.content
+        .map((b) => (b.type === "text" ? b.text : ""))
+        .join("\n")
+        .trim()
+    );
   } catch {
     return "";
   }
@@ -369,7 +377,7 @@ export async function runContentPublisher(
       slug,
       title: article.title,
       excerpt: article.excerpt,
-      content: sanitizeLinks(article.content, await validDestSlugs()),
+      content: sanitizeLinks(stripTags(article.content), await validDestSlugs()),
       faq: article.faq,
       cover_image: await unsplashImage(article.image_query || article.title),
       meta_title: article.meta_title,
