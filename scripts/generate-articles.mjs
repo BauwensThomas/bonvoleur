@@ -77,7 +77,8 @@ Contraintes impératives :
 - FAQ : 5 à 6 questions/réponses utiles (2 à 4 phrases). PAS dans "content", dans le champ "faq".
 - "meta_title" max 60 caractères ; "meta_description" max 155 caractères ; "excerpt" 1 à 2 phrases ; "slug" court en minuscules avec tirets.
 - "image_query" : 2 à 4 mots EN ANGLAIS pour une photo d'illustration qui colle au sujet (ex. "Lisbon tram", "airplane window view").
-- N'invente pas de prix garantis : fourchettes ou ordres de grandeur ("aux alentours de").`;
+- N'invente pas de prix garantis : fourchettes ou ordres de grandeur ("aux alentours de").
+- Si le pays de la destination utilise une monnaie autre que l'euro, donne un ordre de grandeur du taux de change : environ combien vaut 1 € dans cette monnaie, ET l'inverse (environ combien vaut 1 unité en euros). Precise que c'est approximatif et variable.`;
 }
 
 async function unsplashImage(query) {

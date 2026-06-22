@@ -110,7 +110,7 @@ async function genCityContent(city, origins) {
  "airlines": ["principales compagnies qui desservent ${city} depuis la Belgique/France"],
  "duration": "durée de vol typique vers ${city} depuis la Belgique/France (ordre de grandeur)",
  "bestPeriod": "meilleure période pour visiter ${city} (prix et/ou météo)",
- "tips": ["3 à 4 conseils concrets pour un voyage à ${city}"],
+ "tips": ["3 à 4 conseils concrets pour un voyage à ${city}, dont OBLIGATOIREMENT un sur la MONNAIE : si ${city} est dans la zone euro, indique qu'on paie en euros (aucun change a prevoir) ; sinon donne un ordre de grandeur du taux de change (environ 1 euro = X en monnaie locale, et environ 1 unite de cette monnaie = Y euros), en precisant que c'est approximatif et variable"],
  "region": "le continent de ${city} : exactement l'une de ces valeurs -> Europe, Amérique, Afrique, Asie, Océanie"
 }
 IMPÉRATIF : français correct avec TOUS les accents (é, è, ê, à, â, ç, ô, î, ù...). Pas d'émoji, pas de tiret long (em dash). Pas de prix inventés présentés comme garantis. N'inclus AUCUNE balise dans les valeurs (pas de <cite>, pas de HTML) : uniquement du texte brut.`,
@@ -133,22 +133,29 @@ IMPÉRATIF : français correct avec TOUS les accents (é, è, ê, à, â, ç, ô
 }
 
 async function unsplashPhoto(city) {
-  if (!env.UNSPLASH_ACCESS_KEY) return null;
-  try {
-    const res = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(city)}&orientation=landscape&per_page=1&content_filter=high`,
-      { headers: { Authorization: `Client-ID ${env.UNSPLASH_ACCESS_KEY}` } }
-    );
-    if (!res.ok) return null;
-    const p = (await res.json()).results?.[0];
-    if (!p) return null;
-    if (p.links?.download_location) {
-      fetch(p.links.download_location, { headers: { Authorization: `Client-ID ${env.UNSPLASH_ACCESS_KEY}` } }).catch(() => {});
+  const key = env.UNSPLASH_ACCESS_KEY;
+  if (!key) return null;
+  // Plusieurs requetes de repli pour les villes mal couvertes ; on abandonne
+  // immediatement sur 429 (limite horaire Unsplash atteinte, offre gratuite 50/h).
+  for (const q of [city, `${city} city`, `${city} cityscape`]) {
+    try {
+      const res = await fetch(
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&orientation=landscape&per_page=1&content_filter=high`,
+        { headers: { Authorization: `Client-ID ${key}` } }
+      );
+      if (res.status === 429) return null; // limite horaire : inutile d'insister
+      if (!res.ok) continue;
+      const p = (await res.json()).results?.[0];
+      if (!p) continue;
+      if (p.links?.download_location) {
+        fetch(p.links.download_location, { headers: { Authorization: `Client-ID ${key}` } }).catch(() => {});
+      }
+      return { url: p.urls?.regular ?? p.urls?.full ?? null, credit: `Photo ${p.user?.name ?? ""} / Unsplash`.trim() };
+    } catch {
+      continue;
     }
-    return { url: p.urls?.regular ?? p.urls?.full ?? null, credit: `Photo ${p.user?.name ?? ""} / Unsplash`.trim() };
-  } catch {
-    return null;
   }
+  return null;
 }
 
 let generated = 0, skipped = 0, deferred = 0, contentCalls = 0;

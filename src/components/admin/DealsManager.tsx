@@ -33,6 +33,8 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
   const [busyEmailId, setBusyEmailId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [open, setOpen] = useState<string | null>(null); // route dépliée
+  const [query, setQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"recent" | "price" | "route">("recent");
 
   async function reload() {
     const res = await fetch("/api/admin/deals");
@@ -139,7 +141,19 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
       );
       return { key, latest, deals: sorted, total: deals.length, stale, daysLeft };
     })
-    .sort((a, b) => seenAt(b.latest).localeCompare(seenAt(a.latest)));
+    .filter((r) => {
+      const q = query.trim().toLowerCase();
+      return !q || r.key.toLowerCase().includes(q);
+    })
+    .sort((a, b) => {
+      if (sortBy === "price") return a.latest.price - b.latest.price;
+      if (sortBy === "route")
+        return (
+          a.latest.origin.localeCompare(b.latest.origin) ||
+          a.latest.destination.localeCompare(b.latest.destination)
+        );
+      return seenAt(b.latest).localeCompare(seenAt(a.latest)); // plus récent
+    });
 
   return (
     <div>
@@ -153,13 +167,37 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
         </button>
       </div>
       <p className="mt-1 text-sm text-slate-500">
-        Une ligne par route = le deal que voit le <strong>premium</strong> (le
-        plus récent). Le compteur rouge indique les jours avant qu&apos;il ne
+        Une ligne par route = le deal que voit le <strong>premium</strong>{" "}
+        (le plus récent). Le compteur rouge indique les jours avant qu&apos;il ne
         disparaisse du premium ; il repart à {FRESH_MAX_DAYS} jours dès que le
         scanner le retrouve. Au-delà de {FRESH_MAX_DAYS} jours sans le revoir, il
-        est masqué du premium mais conservé en base. Clique une ligne pour voir
-        tout l&apos;historique.
+        est masqué du premium mais conservé en base. Clique une ligne pour
+        dérouler tout l&apos;historique.
       </p>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Rechercher une route (ville, aéroport)..."
+          className="min-w-60 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+        />
+        <label className="flex items-center gap-2 text-sm text-slate-600">
+          Trier&nbsp;:
+          <select
+            value={sortBy}
+            onChange={(e) =>
+              setSortBy(e.target.value as "recent" | "price" | "route")
+            }
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          >
+            <option value="recent">Plus récent</option>
+            <option value="price">Prix croissant</option>
+            <option value="route">Aéroport / route</option>
+          </select>
+        </label>
+      </div>
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="w-full text-sm">

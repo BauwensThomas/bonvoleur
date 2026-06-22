@@ -157,10 +157,8 @@ export default async function DestinationPage({
     })
   );
 
-  // Maillage interne : autres destinations.
-  const others = (await getDestinations())
-    .filter((x) => x.slug !== dest.slug)
-    .slice(0, 12);
+  // Maillage interne : toutes les autres destinations.
+  const others = (await getDestinations()).filter((x) => x.slug !== dest.slug);
 
   const faqJsonLd = {
     "@context": "https://schema.org",

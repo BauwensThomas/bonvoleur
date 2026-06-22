@@ -328,7 +328,8 @@ Contraintes impératives :
 - "excerpt" : 1 à 2 phrases d'accroche.
 - "slug" : court, minuscules, mots séparés par des tirets.
 - "image_query" : 2 à 4 mots EN ANGLAIS décrivant une photo d'illustration qui colle à l'article (ex. "Lisbon tram", "airplane window view", "Barcelona skyline"). Vise une image qui représente vraiment le sujet de l'article.
-- N'invente pas de prix présentés comme garantis : reste sur des fourchettes ou des ordres de grandeur ("aux alentours de", "à partir d'environ").`;
+- N'invente pas de prix présentés comme garantis : reste sur des fourchettes ou des ordres de grandeur ("aux alentours de", "à partir d'environ").
+- Si le pays de la destination utilise une monnaie autre que l'euro, donne un ordre de grandeur du taux de change : environ combien vaut 1 € dans cette monnaie, ET environ combien vaut 1 unité de cette monnaie en euros. Précise que c'est approximatif et variable (ex. "environ 1 € = X, soit 1 X = Y €, à titre indicatif").`;
 
   const response = await withRetry(
     () =>
