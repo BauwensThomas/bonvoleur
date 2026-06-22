@@ -14,7 +14,11 @@ const links = [
   { href: "/admin/agents", label: "Agents" },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({
+  incompleteCount = 0,
+}: {
+  incompleteCount?: number;
+}) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -39,13 +43,23 @@ export default function Sidebar() {
             <Link
               key={l.href}
               href={l.href}
-              className={`block rounded-lg px-3 py-2 text-sm font-medium transition ${
+              className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition ${
                 active
                   ? "bg-brand text-white"
                   : "text-slate-700 hover:bg-slate-100"
               }`}
             >
-              {l.label}
+              <span>{l.label}</span>
+              {l.href === "/admin/photos" && incompleteCount > 0 && (
+                <span
+                  className={`ml-2 rounded-full px-1.5 py-0.5 text-xs font-semibold ${
+                    active ? "bg-white text-brand" : "bg-red-100 text-red-700"
+                  }`}
+                  title="Fiches sans photo ou sans texte"
+                >
+                  {incompleteCount}
+                </span>
+              )}
             </Link>
           );
         })}

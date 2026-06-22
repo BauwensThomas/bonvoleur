@@ -27,6 +27,16 @@ export default function PhotosManager({
   const [msg, setMsg] = useState<string | null>(null);
   const [fallback, setFallback] = useState(defaultImage);
   const [fbBusy, setFbBusy] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const shown = items.filter((d) => {
+    const q = query.trim().toLowerCase();
+    return (
+      !q ||
+      d.destCity.toLowerCase().includes(q) ||
+      d.destIata.toLowerCase().includes(q)
+    );
+  });
 
   async function persistFallback(value: string) {
     const res = await fetch("/api/admin/settings", {
@@ -138,8 +148,16 @@ export default function PhotosManager({
         </div>
       </div>
 
+      <input
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Rechercher une ville (ou code aéroport)..."
+        className="mb-4 w-full max-w-md rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      />
+
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-        {items.map((d) => (
+        {shown.map((d) => (
           <div
             key={d.destIata}
             className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"

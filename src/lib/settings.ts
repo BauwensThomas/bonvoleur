@@ -34,3 +34,24 @@ export async function setSetting(key: string, value: string): Promise<void> {
 export async function getDefaultDestImage(): Promise<string> {
   return (await getSetting("default_dest_image")) || DEFAULT_DEST_IMAGE;
 }
+
+// Espace utilisé dans le bucket Storage "photos" (nombre de fichiers + octets).
+export async function getStorageStats(): Promise<{ count: number; bytes: number }> {
+  try {
+    const client = sb();
+    let count = 0;
+    let bytes = 0;
+    for (const folder of ["destinations", "articles", "defaults"]) {
+      const { data } = await client.storage
+        .from("photos")
+        .list(folder, { limit: 1000 });
+      for (const f of data ?? []) {
+        count += 1;
+        bytes += (f.metadata as { size?: number } | null)?.size ?? 0;
+      }
+    }
+    return { count, bytes };
+  } catch {
+    return { count: 0, bytes: 0 };
+  }
+}

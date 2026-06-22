@@ -1,6 +1,6 @@
 import PhotosManager from "@/components/admin/PhotosManager";
 import { getDestinations } from "@/lib/routes";
-import { getDefaultDestImage } from "@/lib/settings";
+import { getDefaultDestImage, getStorageStats } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,8 @@ export default async function PhotosAdmin() {
     }))
     .sort((a, b) => a.destCity.localeCompare(b.destCity));
   const defaultImage = await getDefaultDestImage();
+  const stats = await getStorageStats();
+  const incomplete = destinations.filter((d) => !d.image || !d.hasContent).length;
 
   return (
     <div>
@@ -25,6 +27,25 @@ export default async function PhotosAdmin() {
         remplaçables ici en collant une URL. Un badge signale les fiches
         incomplètes.
       </p>
+      <div className="mt-4 flex flex-wrap gap-3 text-sm">
+        <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-slate-700">
+          {stats.count} image{stats.count > 1 ? "s" : ""} hébergée
+          {stats.count > 1 ? "s" : ""} ·{" "}
+          {(stats.bytes / (1024 * 1024)).toFixed(1)} Mo
+        </span>
+        <span
+          className={`rounded-lg px-3 py-1.5 ${
+            incomplete > 0
+              ? "bg-red-100 text-red-700"
+              : "bg-emerald-100 text-emerald-700"
+          }`}
+        >
+          {incomplete > 0
+            ? `${incomplete} fiche(s) incomplète(s)`
+            : "Toutes les fiches sont complètes"}
+        </span>
+      </div>
+
       <div className="mt-6">
         <PhotosManager initial={destinations} defaultImage={defaultImage} />
       </div>
