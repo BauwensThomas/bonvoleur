@@ -93,7 +93,9 @@ function extractJson(text) {
 
 async function genCityContent(city, origins) {
   if (!client) return null;
-  const res = await client.messages.create({
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+   try {
+    const res = await client.messages.create({
     model, max_tokens: 2000,
     tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
     messages: [{
@@ -109,9 +111,21 @@ async function genCityContent(city, origins) {
 }
 IMPÉRATIF : français correct avec TOUS les accents (é, è, ê, à, â, ç, ô, î, ù...). Pas d'émoji, pas de tiret long (em dash). Pas de prix inventés présentés comme garantis.`,
     }],
-  });
-  const text = res.content.map((b) => (b.type === "text" ? b.text : "")).join("\n");
-  return extractJson(text);
+    });
+    const text = res.content.map((b) => (b.type === "text" ? b.text : "")).join("\n");
+    return extractJson(text);
+   } catch (e) {
+    const status = e?.status;
+    const transient =
+      status === 529 || status === 429 || (typeof status === "number" && status >= 500);
+    if (!transient || attempt === 3) {
+      console.log(`(erreur ${status ?? e?.message ?? e})`);
+      return null;
+    }
+    await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt));
+   }
+  }
+  return null;
 }
 
 async function unsplashPhoto(city) {
@@ -154,6 +168,14 @@ for (const dest of Object.values(dests)) {
   process.stdout.write(`${dest.dc}... `);
   const content = needsContent ? await genCityContent(dest.dc, dest.origins.map((o) => o.oc)) : null;
   if (needsContent) contentCalls++;
+
+  // Pas de contenu (echec API ou JSON invalide) pour une NOUVELLE fiche : on ne
+  // publie PAS de fiche vide, on reporte au prochain run.
+  if (needsContent && !content?.intro) {
+    console.log("contenu indisponible, reporte au prochain run");
+    deferred++;
+    continue;
+  }
   const photo = knownImg ? { url: knownImg, credit: null } : await unsplashPhoto(dest.dc);
 
   let ok = 0;
