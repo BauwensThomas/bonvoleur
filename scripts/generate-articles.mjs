@@ -100,7 +100,8 @@ async function unsplashImage(query) {
 }
 
 const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-const model = env.ANTHROPIC_MODEL || "claude-opus-4-8";
+// Sonnet 4.6 : bon rapport qualite/cout pour des articles longs (~1,7x moins cher qu'Opus).
+const model = env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
 const sb = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 
 // Complete les slugs valides avec les destinations en base (auto-ajoutees).

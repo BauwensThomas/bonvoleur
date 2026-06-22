@@ -128,7 +128,8 @@ async function pickTrendingTopic(recent: string[]): Promise<string | null> {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   try {
     const client = new Anthropic();
-    const model = process.env.ANTHROPIC_MODEL ?? "claude-opus-4-8";
+    // Appel court (recherche d'un titre) : Haiku, 5x moins cher.
+    const model = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5";
     const res = await withRetry(() => client.messages.create({
       model,
       max_tokens: 1200,
@@ -228,7 +229,8 @@ async function gatherFacts(topic: string): Promise<string> {
   if (!process.env.ANTHROPIC_API_KEY) return "";
   try {
     const client = new Anthropic();
-    const model = process.env.ANTHROPIC_MODEL ?? "claude-opus-4-8";
+    // Collecte de faits (recherche web) : Haiku, 5x moins cher.
+    const model = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5";
     const res = await withRetry(() => client.messages.create({
       model,
       max_tokens: 1500,
@@ -293,7 +295,9 @@ export async function generateArticle(): Promise<GeneratedArticle> {
     .join("\n");
 
   const client = new Anthropic();
-  const model = process.env.ANTHROPIC_MODEL ?? "claude-opus-4-8";
+  // Article long optimise SEO : Sonnet 4.6 (bon rapport qualite/cout, ~1,7x
+  // moins cher qu'Opus). Surchargeable via ANTHROPIC_MODEL.
+  const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
 
   const prompt = `Tu es le rédacteur en chef de ${site.name} (${site.domain}), un média de deals de vols pas chers pour la Belgique et la France. Tu écris pour être LU et pour RANKER sur Google.
 

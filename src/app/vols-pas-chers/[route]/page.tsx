@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AirportDeals, { type AirportProof } from "@/components/AirportDeals";
 import { getAll } from "@/lib/db";
+import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { site } from "@/lib/site";
 import {
   getDestination,
@@ -61,9 +62,26 @@ async function proofFor(
         d.destination.toUpperCase().includes(`(${destIata})`)
     );
     const now = Date.now();
+    const seenAt = (d: (typeof all)[number]) => d.published_at ?? d.created_at;
+    // Deal "en cours" = il existe un deal encore frais sur la route (ce que voit
+    // le premium : un seul par route). Donc 0 ou 1, jamais plus.
+    const weekCount = all.some(
+      (d) => now - new Date(seenAt(d)).getTime() <= FRESH_MAX_MS
+    )
+      ? 1
+      : 0;
+    // Historique (preuve) : deals decouverts il y a plus d'une semaine,
+    // dedoublonnes par prix+dates pour ne pas afficher deux fois la meme offre.
+    const seen = new Set<string>();
     const past = all
       .filter((d) => now - new Date(d.created_at).getTime() >= WEEK_MS)
       .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .filter((d) => {
+        const k = `${d.price}|${d.dates}`;
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      })
       .slice(0, 6)
       .map((d) => ({
         origin: d.origin,
@@ -74,9 +92,6 @@ async function proofFor(
         airline: d.airline,
         postedAt: d.published_at ?? d.created_at,
       }));
-    const weekCount = all.filter(
-      (d) => now - new Date(d.created_at).getTime() < WEEK_MS
-    ).length;
     return { past, weekCount };
   } catch {
     return { past: [], weekCount: 0 };

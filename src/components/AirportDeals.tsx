@@ -31,17 +31,28 @@ export default function AirportDeals({
   destCity: string;
   destImage?: string | null;
 }) {
-  // Aéroports avec des deals (preuve ou teaser) en premier ; on ouvre sur un
-  // onglet rempli (jamais une vue vide d'entrée).
+  // On n'affiche QUE les aéroports qui ont un bon plan (en cours ou historique).
+  // Les aéroports sans rien sont masqués (pas de vue vide / "pas encore de bon plan").
   const hasDeals = (x: AirportProof) => x.past.length > 0 || x.weekCount > 0;
-  const ordered = [...airports].sort(
-    (x, y) => Number(hasDeals(y)) - Number(hasDeals(x))
-  );
-  const [active, setActive] = useState(
-    (ordered.find(hasDeals) ?? ordered[0])?.originIata ?? ""
-  );
+  const ordered = airports.filter(hasDeals);
+  const [active, setActive] = useState(ordered[0]?.originIata ?? "");
   const a = ordered.find((x) => x.originIata === active) ?? ordered[0];
-  if (!a) return null;
+
+  // Aucun aéroport n'a de bon plan pour cette destination : un seul message.
+  if (!a) {
+    return (
+      <section className="mt-10">
+        <h2 className="text-2xl font-bold">Bons plans vers {destCity}</h2>
+        <p className="mt-3 rounded-2xl border border-brand/30 bg-brand/5 p-6 text-slate-700">
+          On surveille les vols vers {destCity} depuis la Belgique et la France.{" "}
+          <Link href="/#inscription" className="font-semibold text-brand hover:underline">
+            Inscris-toi gratuitement
+          </Link>{" "}
+          pour être prévenu dès qu&apos;un bon plan tombe.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section className="mt-10">
@@ -73,9 +84,8 @@ export default function AirportDeals({
       {a.weekCount > 0 && (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand/30 bg-brand/5 px-5 py-4">
           <p className="text-sm text-slate-700">
-            <strong>{a.weekCount}</strong> bon{a.weekCount > 1 ? "s" : ""} plan
-            {a.weekCount > 1 ? "s" : ""} {a.originCity} - {destCity} cette
-            semaine, réservé{a.weekCount > 1 ? "s" : ""} aux inscrits.
+            <strong>Un bon plan</strong> {a.originCity} - {destCity} en ce
+            moment, réservé aux inscrits.
           </p>
           <Link
             href="/#inscription"

@@ -82,7 +82,8 @@ const existing = await fetch(`${SB}/rest/v1/routes?select=slug,intro,image_url`,
 const bySlug = new Map(existing.map((r) => [r.slug, r]));
 
 const client = env.ANTHROPIC_API_KEY ? new Anthropic({ apiKey: env.ANTHROPIC_API_KEY }) : null;
-const model = env.ANTHROPIC_MODEL || "claude-opus-4-8";
+// Haiku 4.5 : 5x moins cher qu'Opus, suffisant pour des fiches factuelles courtes.
+const model = env.ANTHROPIC_MODEL || "claude-haiku-4-5";
 
 function extractJson(text) {
   const i = text.indexOf("{"), j = text.lastIndexOf("}");
