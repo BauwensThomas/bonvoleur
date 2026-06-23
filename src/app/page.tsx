@@ -187,8 +187,10 @@ export default async function Home() {
         {/* ── Deals ── */}
         <section id="deals" className="mx-auto max-w-7xl px-4 py-20">
           <div>
-            <h2 className="text-2xl font-bold">Un aperçu de nos bons plans</h2>
-            <p className="mt-1 text-slate-600">
+            <h2 className="text-center text-3xl font-bold tracking-tight">
+              Un aperçu de nos bons plans
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-center text-slate-600">
               Inscris-toi gratuitement et reçois nos meilleurs bons plans par
               email, avec tous les détails pour réserver.
             </p>
