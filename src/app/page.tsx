@@ -218,10 +218,10 @@ export default async function Home() {
         {destinations.length > 0 && (
           <section className="border-t border-slate-200 bg-white">
             <div className="mx-auto max-w-7xl px-4 py-20">
-              <h2 className="text-3xl font-bold tracking-tight">
+              <h2 className="text-center text-3xl font-bold tracking-tight">
                 Destinations populaires
               </h2>
-              <p className="mt-2 text-slate-600">
+              <p className="mx-auto mt-3 max-w-2xl text-center text-slate-600">
                 Clique sur une ville et choisis ton aéroport de départ.
               </p>
               <div className="mt-8">
@@ -244,8 +244,10 @@ export default async function Home() {
         {/* ── Derniers articles du blog ── */}
         {articles.length > 0 && (
           <section className="mx-auto max-w-7xl px-4 py-20">
-            <h2 className="text-3xl font-bold tracking-tight">Le blog</h2>
-            <p className="mt-2 text-slate-600">
+            <h2 className="text-center text-3xl font-bold tracking-tight">
+              Le blog
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-center text-slate-600">
               Nos derniers conseils pour voyager moins cher.
             </p>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

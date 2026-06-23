@@ -56,12 +56,16 @@ async function proofFor(
   destIata: string
 ): Promise<{ past: AirportProof["past"]; weekCount: number }> {
   try {
-    const all = (await getAll("deals")).filter(
-      (d) =>
-        d.is_hot !== false &&
-        d.origin.toUpperCase().includes(`(${originIata})`) &&
-        d.destination.toUpperCase().includes(`(${destIata})`)
-    );
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const all = (await getAll("deals")).filter((d) => {
+      if (d.is_hot === false) return false;
+      if (!d.origin.toUpperCase().includes(`(${originIata})`)) return false;
+      if (!d.destination.toUpperCase().includes(`(${destIata})`)) return false;
+      // Date de départ passée -> on ne montre plus le deal (archivé).
+      const dep = (d.dates ?? "").match(/\d{4}-\d{2}-\d{2}/)?.[0];
+      if (dep && dep < todayStr) return false;
+      return true;
+    });
     const now = Date.now();
     const seenAt = (d: (typeof all)[number]) => d.published_at ?? d.created_at;
     // Deal "en cours" = il existe un deal encore frais sur la route (ce que voit

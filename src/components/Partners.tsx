@@ -12,7 +12,7 @@ export default async function Partners() {
   return (
     <section className="border-t border-slate-200 bg-white">
       <div className="mx-auto max-w-7xl px-4 py-16">
-        <h2 className="text-center text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <h2 className="text-center text-3xl font-bold tracking-tight">
           Nos partenaires voyage
         </h2>
         <div className="mt-8 flex flex-wrap justify-center gap-4">
