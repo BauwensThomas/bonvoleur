@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 const ADMIN_COOKIE = "bv_admin";
 const GATE_COOKIE = "bv_gate";
@@ -12,15 +13,19 @@ function gatePassword(): string {
   return process.env.SITE_GATE_PASSWORD ?? "";
 }
 
-export function proxy(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // 1) Verrou pre-lancement : tant que SITE_GATE_PASSWORD est defini, tout le
-  //    site exige le mot de passe (sauf la page/API de deverrouillage).
+  //    site exige le mot de passe (sauf la page/API de deverrouillage et les
+  //    routes d'auth, pour ne pas casser le retour de connexion OAuth).
   //    Pour ouvrir le site : retirer la variable d'environnement.
   const gatePass = gatePassword();
   if (gatePass) {
-    const isGatePath = pathname === "/acces" || pathname === "/api/acces";
+    const isGatePath =
+      pathname === "/acces" ||
+      pathname === "/api/acces" ||
+      pathname.startsWith("/auth/");
     const hasGate = req.cookies.get(GATE_COOKIE)?.value === gatePass;
     if (!isGatePath && !hasGate) {
       if (pathname.startsWith("/api/")) {
@@ -50,7 +55,37 @@ export function proxy(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  // 3) Rafraichit la session abonne (Supabase Auth) et propage les cookies,
+  //    pour que l'utilisateur reste connecte sans rouvrir ses emails.
+  return await refreshMemberSession(req);
+}
+
+// Rafraichissement de session Supabase cote middleware (recommande par
+// @supabase/ssr). Si l'auth n'est pas configuree, on laisse passer.
+async function refreshMemberSession(req: NextRequest): Promise<NextResponse> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  let res = NextResponse.next({ request: req });
+  if (!url || !anon) return res;
+
+  const supabase = createServerClient(url, anon, {
+    cookies: {
+      getAll() {
+        return req.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
+        res = NextResponse.next({ request: req });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          res.cookies.set(name, value, options)
+        );
+      },
+    },
+  });
+
+  // getUser() revalide le jeton et declenche le refresh si besoin.
+  await supabase.auth.getUser();
+  return res;
 }
 
 export const config = {

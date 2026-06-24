@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import LoginForm from "@/components/LoginForm";
 import { site, airports, discountPct } from "@/lib/site";
 import { getMemberDeals, FREE_DELAY_HOURS } from "@/lib/member-deals";
+import { getMember } from "@/lib/member-auth";
 import { destinationSlug } from "@/lib/routes";
 import CompteControls from "@/components/CompteControls";
-import type { Tier } from "@/lib/types";
 
 // "Lisbonne (LIS)" -> "lisbonne" (slug de la fiche destination).
 function destSlugOf(label: string): string {
@@ -19,8 +20,8 @@ export const metadata: Metadata = {
 };
 
 // Espace membre : dashboard des bons plans en direct.
-// Auth reelle (Supabase Auth) prevue en Phase 1. En local, on simule le tier
-// via ?tier= pour tester le gating gratuit/premium.
+// Auth REELLE (Supabase Auth) : la session est validee cote serveur et le tier
+// (gratuit/premium) vient de la base. Aucun moyen de forcer le premium via l'URL.
 export const dynamic = "force-dynamic";
 
 // Date + heure de détection du deal (suivi de fraîcheur).
@@ -37,7 +38,6 @@ export default async function Compte({
   searchParams,
 }: {
   searchParams: Promise<{
-    tier?: string;
     origin?: string;
     destination?: string;
     maxPrice?: string;
@@ -45,10 +45,32 @@ export default async function Compte({
     sort?: string;
     from?: string;
     to?: string;
+    auth_error?: string;
   }>;
 }) {
   const sp = await searchParams;
-  const tier: Tier = sp.tier === "premium" ? "premium" : "free";
+
+  // Sécurité : on exige une vraie session. Sinon -> formulaire de connexion,
+  // aucune donnée de deal n'est exposée.
+  const member = await getMember();
+  if (!member) {
+    return (
+      <>
+        <Header />
+        <main className="mx-auto w-full max-w-7xl px-4 py-12">
+          {sp.auth_error && (
+            <p className="mx-auto max-w-md rounded-lg bg-red-50 px-4 py-3 text-center text-sm text-red-700">
+              La connexion a échoué ou le lien a expiré. Réessaie.
+            </p>
+          )}
+          <LoginForm />
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  const tier = member.tier;
   const origin = sp.origin ?? "";
   const destination = sp.destination ?? "";
   const maxPriceNum = sp.maxPrice ? Number(sp.maxPrice) : undefined;
@@ -74,15 +96,19 @@ export default async function Compte({
     <>
       <Header />
       <main className="mx-auto w-full max-w-7xl px-4 py-12">
-        {/* Bandeau dev : auth simulee */}
-        <div className="mb-6 rounded-lg bg-yellow-100 px-4 py-2 text-sm text-yellow-900">
-          Mode demo : la connexion reelle (Supabase Auth) arrive en Phase 1. Ici
-          on simule le tier pour tester l&apos;affichage.
-          <span className="ml-2">
-            <TierLink current={tier} value="free" />
-            {" / "}
-            <TierLink current={tier} value="premium" />
+        {/* Compte connecté : email + déconnexion */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600">
+          <span>
+            Connecté en tant que <strong>{member.email}</strong>
           </span>
+          <form action="/auth/logout" method="post">
+            <button
+              type="submit"
+              className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:border-brand hover:text-brand"
+            >
+              Se déconnecter
+            </button>
+          </form>
         </div>
 
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -302,17 +328,5 @@ export default async function Compte({
       </main>
       <Footer />
     </>
-  );
-}
-
-function TierLink({ current, value }: { current: Tier; value: Tier }) {
-  const active = current === value;
-  return (
-    <Link
-      href={`/compte?tier=${value}`}
-      className={`underline ${active ? "font-bold" : ""}`}
-    >
-      {value}
-    </Link>
   );
 }
