@@ -30,7 +30,7 @@ export default async function Finaliser({
   return (
     <>
       <Header />
-      <main className="mx-auto w-full max-w-md px-4 py-16">
+      <main className="mx-auto w-full max-w-xl px-4 py-16">
         <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
           <h1 className="text-2xl font-bold">Plus qu&apos;une étape</h1>
           <p className="mt-2 text-sm text-slate-600">

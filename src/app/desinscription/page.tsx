@@ -33,7 +33,7 @@ export default async function Desinscription({
   const { email, token, done, invalid } = await searchParams;
   let status: Status = "form";
 
-  if (done === "1") {
+  if (done === "soft" || done === "delete") {
     status = "done";
   } else if (invalid === "1") {
     status = "invalid";
@@ -64,46 +64,86 @@ export default async function Desinscription({
     <>
       <Header />
       <main className="mx-auto w-full max-w-xl px-4 py-16 text-center">
-        {status === "done" && (
+        {status === "done" && done === "delete" && (
           <>
             <h1 className="text-2xl font-bold">Ton compte a été supprimé</h1>
             <p className="mt-3 text-slate-600">
               Toutes tes données ont été effacées et, si tu avais un abonnement
               premium, il a été résilié. Tu ne recevras plus aucun email et tu ne
-              seras plus débité.
+              seras plus débité. Tu peux te réinscrire à tout moment sur{" "}
+              {site.domain}.
             </p>
+          </>
+        )}
+        {status === "done" && done === "soft" && (
+          <>
+            <h1 className="text-2xl font-bold">Tu ne recevras plus d&apos;emails</h1>
             <p className="mt-3 text-slate-600">
-              Tu peux te réinscrire à tout moment sur {site.domain}.
+              C&apos;est noté : on ne t&apos;envoie plus d&apos;alertes ni de
+              newsletter. Ton compte reste actif (et ton accès premium si tu en as
+              un). Tu peux réactiver les emails dans tes préférences à tout moment.
             </p>
           </>
         )}
 
         {status === "confirm" && (
           <>
-            <h1 className="text-2xl font-bold">Supprimer ton compte ?</h1>
+            <h1 className="text-2xl font-bold">Se désinscrire</h1>
             <p className="mt-3 text-slate-600">
-              Cette action est <strong>définitive</strong>. Elle supprime ton
-              compte et toutes tes données. Si tu as un abonnement{" "}
-              <strong>premium</strong>, il est <strong>résilié immédiatement</strong>
-              {" "}(sans remboursement de la période en cours).
+              Que veux-tu faire ?
             </p>
-            <form
-              action="/api/unsubscribe"
-              method="post"
-              className="mt-6 flex flex-col items-center gap-3"
-            >
-              <input type="hidden" name="email" value={email} />
-              <input type="hidden" name="token" value={token} />
-              <button
-                type="submit"
-                className="rounded-lg bg-red-600 px-5 py-2.5 font-semibold text-white hover:bg-red-700"
-              >
-                Supprimer définitivement mon compte
-              </button>
-              <a href="/" className="text-sm text-slate-500 underline">
-                Annuler
-              </a>
-            </form>
+
+            <div className="mt-6 space-y-4 text-left">
+              {/* Option sûre : arrêter les emails, garder le compte. */}
+              <div className="rounded-xl border border-slate-200 p-4">
+                <p className="font-semibold text-slate-900">
+                  Ne plus recevoir d&apos;emails
+                </p>
+                <p className="mt-1 text-sm text-slate-600">
+                  On arrête les alertes et la newsletter. Ton compte et ton accès
+                  premium éventuel sont <strong>conservés</strong>.
+                </p>
+                <form action="/api/unsubscribe" method="post" className="mt-3">
+                  <input type="hidden" name="email" value={email} />
+                  <input type="hidden" name="token" value={token} />
+                  <input type="hidden" name="mode" value="soft" />
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-brand px-5 py-2.5 font-semibold text-white hover:bg-brand-dark"
+                  >
+                    Ne plus recevoir d&apos;emails
+                  </button>
+                </form>
+              </div>
+
+              {/* Option destructive : supprimer tout le compte. */}
+              <div className="rounded-xl border border-red-200 bg-red-50/50 p-4">
+                <p className="font-semibold text-slate-900">
+                  Supprimer définitivement mon compte
+                </p>
+                <p className="mt-1 text-sm text-slate-600">
+                  Action <strong>irréversible</strong> : efface ton compte et tes
+                  données. Un abonnement premium est{" "}
+                  <strong>résilié immédiatement</strong> (sans remboursement de la
+                  période en cours).
+                </p>
+                <form action="/api/unsubscribe" method="post" className="mt-3">
+                  <input type="hidden" name="email" value={email} />
+                  <input type="hidden" name="token" value={token} />
+                  <input type="hidden" name="mode" value="delete" />
+                  <button
+                    type="submit"
+                    className="rounded-lg border border-red-600 px-5 py-2.5 font-semibold text-red-700 hover:bg-red-600 hover:text-white"
+                  >
+                    Supprimer tout mon compte
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <a href="/" className="mt-5 inline-block text-sm text-slate-500 underline">
+              Annuler
+            </a>
           </>
         )}
 
