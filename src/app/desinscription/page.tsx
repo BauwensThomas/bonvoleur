@@ -102,7 +102,9 @@ export default async function Desinscription({
             </form>
             <p className="mt-6 text-sm text-slate-600">
               Pour <strong>supprimer définitivement ton compte</strong> (et
-              résilier le premium), connecte-toi puis va dans{" "}
+              résilier le premium),
+              <br />
+              connecte-toi puis va dans{" "}
               <a href="/compte/preferences" className="underline">
                 Mes préférences
               </a>
