@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "backup": "node scripts/backup-db.mjs"
+    "backup": "node scripts/backup-db.mjs",
+    "backup:full": "node scripts/backup-full.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",
