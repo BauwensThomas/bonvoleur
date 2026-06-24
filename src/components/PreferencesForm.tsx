@@ -154,10 +154,7 @@ export default function PreferencesForm({
             onChange={(e) => setNewsletter(e.target.checked)}
             className="mt-0.5 h-4 w-4"
           />
-          <span>
-            Recevoir la newsletter hebdo du <strong>vendredi</strong> avec nos 3
-            derniers articles de blog.
-          </span>
+          <span>Recevoir la newsletter</span>
         </label>
       </div>
 
