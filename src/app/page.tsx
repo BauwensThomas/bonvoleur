@@ -43,7 +43,13 @@ const features = [
   },
 ];
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ besoin_inscription?: string }>;
+}) {
+  const needsSignup = (await searchParams).besoin_inscription === "1";
+
   // Vitrine "teaser" : route + prix uniquement (aucune info actionnable).
   const { teaserDeals } = await getHomepageDeals();
 
@@ -146,6 +152,12 @@ export default async function Home() {
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
+              {needsSignup && (
+                <p className="mb-4 rounded-lg bg-brand/10 px-4 py-3 text-sm text-brand-dark">
+                  Tu n&apos;as pas encore de compte BonVoleur. Inscris-toi ici
+                  (gratuit) pour accéder à ton espace bons plans.
+                </p>
+              )}
               <h3 className="text-xl font-bold">Inscris-toi gratuitement</h3>
               <p className="mt-1 text-sm text-slate-600">
                 Choisis tes aéroports de départ et reçois par email les bons

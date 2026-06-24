@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LoginForm from "@/components/LoginForm";
 import { site, airports, discountPct } from "@/lib/site";
 import { getMemberDeals, FREE_DELAY_HOURS } from "@/lib/member-deals";
-import { getMember } from "@/lib/member-auth";
+import { getMemberState } from "@/lib/member-auth";
 import { destinationSlug } from "@/lib/routes";
 import CompteControls from "@/components/CompteControls";
 
@@ -52,8 +53,8 @@ export default async function Compte({
 
   // Sécurité : on exige une vraie session. Sinon -> formulaire de connexion,
   // aucune donnée de deal n'est exposée.
-  const member = await getMember();
-  if (!member) {
+  const member = await getMemberState();
+  if (member.status === "anonymous") {
     return (
       <>
         <Header />
@@ -68,6 +69,11 @@ export default async function Compte({
         <Footer />
       </>
     );
+  }
+  // Connecté mais pas (encore) abonné : on ne crée pas de compte à la volée,
+  // on renvoie vers l'inscription (avec son aéroport, consentement, etc.).
+  if (member.status === "no-account") {
+    redirect("/?besoin_inscription=1#inscription");
   }
 
   const tier = member.tier;
