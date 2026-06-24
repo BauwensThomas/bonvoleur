@@ -30,6 +30,13 @@ export async function priceIdFor(plan: Plan): Promise<string> {
   return id;
 }
 
+// Supprime le client Stripe : Stripe ANNULE immédiatement tous ses abonnements
+// (les factures restent conservées par Stripe pour la compta). Utilisé quand un
+// abonné est supprimé en admin -> plus aucun débit possible.
+export async function deleteStripeCustomer(customerId: string): Promise<void> {
+  await stripe().customers.del(customerId);
+}
+
 // Programme l'arrêt de tous les abonnements actifs d'un client à la fin de la
 // période déjà payée (pas de remboursement, pas de nouvelle facturation).
 // Utilisé quand l'abonné se désinscrit : il ne doit plus jamais être débité.

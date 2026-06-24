@@ -63,6 +63,7 @@ export default function SubscribersManager({
               <th className="px-4 py-2 font-medium">Email</th>
               <th className="px-4 py-2 font-medium">Aéroports</th>
               <th className="px-4 py-2 font-medium">Tier</th>
+              <th className="px-4 py-2 font-medium">Abonnement</th>
               <th className="px-4 py-2 font-medium">Inscrit le</th>
               <th className="px-4 py-2 font-medium text-right">Actions</th>
             </tr>
@@ -89,6 +90,25 @@ export default function SubscribersManager({
                   >
                     {s.tier === "premium" ? "Premium" : "Gratuit"}
                   </span>
+                </td>
+                <td className="px-4 py-2 text-slate-600">
+                  {s.tier === "premium" && s.premium_until ? (
+                    <span
+                      className={
+                        s.premium_cancel_at_period_end ? "text-amber-700" : ""
+                      }
+                    >
+                      {s.premium_cancel_at_period_end
+                        ? "résilié, fin le "
+                        : "renouv. auto le "}
+                      {new Date(s.premium_until).toLocaleDateString("fr-BE")}
+                      {s.premium_interval
+                        ? ` (${s.premium_interval === "year" ? "annuel" : "mensuel"})`
+                        : ""}
+                    </span>
+                  ) : (
+                    "-"
+                  )}
                 </td>
                 <td className="px-4 py-2 text-slate-500">
                   {new Date(s.created_at).toLocaleDateString("fr-BE")}
@@ -118,7 +138,7 @@ export default function SubscribersManager({
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-slate-700">
+                <td colSpan={6} className="px-4 py-6 text-center text-slate-700">
                   Aucun abonné.
                 </td>
               </tr>
