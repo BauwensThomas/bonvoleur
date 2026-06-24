@@ -37,8 +37,9 @@ const api = `https://api.supabase.com/v1/projects/${ref}/config/auth`;
 const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 
 // Réglages de durcissement.
+// NB : password_hibp_enabled (mots de passe fuités) est réservé au plan Pro ET
+// inutile ici (auth passwordless : magic link + Google). On ne le pousse pas.
 const patch = {
-  password_hibp_enabled: true, // protection mots de passe fuités (HaveIBeenPwned)
   mailer_otp_exp: 3600, // expiration des liens/codes email : 1h max
   mfa_totp_enroll_enabled: true, // proposer la MFA par appli (TOTP)
   mfa_totp_verify_enabled: true,
