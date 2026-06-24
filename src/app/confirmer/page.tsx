@@ -3,7 +3,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { findOne, update } from "@/lib/db";
-import { site } from "@/lib/site";
+import RedirectAfter from "@/components/RedirectAfter";
 import { sendEmail } from "@/lib/email";
 import { welcomeEmail } from "@/lib/email-templates";
 import { unsubscribeUrl } from "@/lib/unsubscribe";
@@ -56,8 +56,12 @@ export default async function Confirmer({
             <h1 className="text-2xl font-bold">Inscription confirmée</h1>
             <p className="mt-3 text-slate-600">
               C&apos;est tout bon. Tu vas maintenant recevoir nos bons plans de
-              vols. À très vite sur {site.domain}.
+              vols.
             </p>
+            <p className="mt-3 text-sm text-slate-500">
+              Redirection vers la connexion...
+            </p>
+            <RedirectAfter to="/compte" seconds={4} />
           </>
         )}
         {status === "already" && (
@@ -66,6 +70,10 @@ export default async function Confirmer({
             <p className="mt-3 text-slate-600">
               Ton inscription était déjà active. Rien à faire de plus.
             </p>
+            <p className="mt-3 text-sm text-slate-500">
+              Redirection vers la connexion...
+            </p>
+            <RedirectAfter to="/compte" seconds={4} />
           </>
         )}
         {status === "invalid" && (
