@@ -8,6 +8,7 @@ type Status = "idle" | "loading" | "success" | "error";
 export default function SignupForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
+  const [showLogin, setShowLogin] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -39,9 +40,10 @@ export default function SignupForm() {
         return;
       }
       setStatus("success");
+      setShowLogin(Boolean(json.alreadySubscribed));
       setMessage(
         json.alreadySubscribed
-          ? "Tu es déjà inscrit avec cet email. Rien à faire !"
+          ? "Tu es déjà inscrit avec cet email. Tu peux te connecter."
           : "Presque fini ! Ouvre l'email qu'on vient de t'envoyer et clique sur le lien pour confirmer ton inscription."
       );
       form.reset();
@@ -54,8 +56,18 @@ export default function SignupForm() {
   if (status === "success") {
     return (
       <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-6 text-center">
-        <p className="font-semibold text-emerald-800">Bienvenue à bord</p>
+        <p className="font-semibold text-emerald-800">
+          {showLogin ? "Content de te revoir" : "Bienvenue à bord"}
+        </p>
         <p className="mt-1 text-sm text-emerald-700">{message}</p>
+        {showLogin && (
+          <a
+            href="/compte"
+            className="mt-4 inline-block rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark"
+          >
+            Connexion
+          </a>
+        )}
       </div>
     );
   }
@@ -118,12 +130,10 @@ export default function SignupForm() {
           className="mt-1 h-4 w-4 rounded border-slate-300"
         />
         <span>
-          J&apos;accepte de recevoir les alertes deals et la newsletter hebdo du
-          vendredi par email, et la{" "}
+          J&apos;accepte de recevoir les alertes deals, la newsletter, et la{" "}
           <a href="/confidentialite" className="underline">
             politique de confidentialité
           </a>
-          . (Tu pourras gérer la newsletter dans tes préférences.)
         </span>
       </label>
 
