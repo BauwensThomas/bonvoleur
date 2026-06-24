@@ -35,6 +35,15 @@ function detectedAt(iso: string): string {
   });
 }
 
+// Date seule (ex. validité premium).
+function dateOnly(iso: string): string {
+  return new Date(iso).toLocaleDateString("fr-BE", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 export default async function Compte({
   searchParams,
 }: {
@@ -214,25 +223,32 @@ export default async function Compte({
           </div>
         )}
 
-        {/* Premium : info reelle de derniere actualisation + gestion abonnement. */}
+        {/* Premium : validité / renouvellement + gestion abonnement. */}
         {tier === "premium" && (
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-brand/30 bg-brand/5 px-4 py-3 text-sm text-slate-700">
-            <span>Bons plans actualisés plusieurs fois par jour.</span>
-            <div className="flex flex-wrap items-center gap-3">
-              {lastRefresh && (
-                <span className="font-medium text-brand-dark">
-                  Dernière actualisation : {detectedAt(lastRefresh)}
-                </span>
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand/5 px-4 py-3 text-sm text-slate-700">
+            <div>
+              <p>Bons plans actualisés plusieurs fois par jour.</p>
+              {member.subscriber.premium_until && (
+                <p className="mt-0.5 font-medium text-brand-dark">
+                  {member.subscriber.premium_cancel_at_period_end
+                    ? `Premium jusqu'au ${dateOnly(member.subscriber.premium_until)} (résilié, ne se renouvellera pas).`
+                    : `Premium actif · renouvellement automatique ${member.subscriber.premium_interval === "year" ? "annuel" : "mensuel"} le ${dateOnly(member.subscriber.premium_until)}.`}
+                </p>
               )}
-              <form action="/api/billing/portal" method="post">
-                <button
-                  type="submit"
-                  className="rounded-lg border border-brand/40 px-3 py-1.5 font-medium text-brand-dark transition hover:bg-brand/10"
-                >
-                  Gérer mon abonnement
-                </button>
-              </form>
+              {lastRefresh && (
+                <p className="mt-0.5 text-slate-500">
+                  Dernière actualisation : {detectedAt(lastRefresh)}
+                </p>
+              )}
             </div>
+            <form action="/api/billing/portal" method="post">
+              <button
+                type="submit"
+                className="shrink-0 rounded-lg border border-brand/40 px-3 py-1.5 font-medium text-brand-dark transition hover:bg-brand/10"
+              >
+                Gérer mon abonnement
+              </button>
+            </form>
           </div>
         )}
 

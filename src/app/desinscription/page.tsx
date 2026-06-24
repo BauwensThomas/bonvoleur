@@ -6,6 +6,7 @@ import { site } from "@/lib/site";
 import { sendEmail } from "@/lib/email";
 import { unsubscribeEmail, unsubscribeLinkEmail } from "@/lib/email-templates";
 import { unsubscribeUrl } from "@/lib/unsubscribe";
+import { cancelSubscriptionsAtPeriodEnd } from "@/lib/stripe";
 
 export const metadata: Metadata = {
   title: "Désinscription",
@@ -38,6 +39,15 @@ export default async function Desinscription({
           await update("subscribers", sub.id, {
             unsubscribed_at: new Date().toISOString(),
           });
+          // Sécurité : on coupe aussi tout abonnement Stripe (à la fin de la
+          // période payée) -> plus jamais débité après désinscription.
+          if (sub.stripe_customer_id) {
+            try {
+              await cancelSubscriptionsAtPeriodEnd(sub.stripe_customer_id);
+            } catch (err) {
+              console.error("[desinscription] annulation Stripe échouée:", err);
+            }
+          }
           try {
             await sendEmail(unsubscribeEmail(normalized));
           } catch (err) {

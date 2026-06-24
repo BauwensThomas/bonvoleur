@@ -29,3 +29,27 @@ export async function priceIdFor(plan: Plan): Promise<string> {
   if (!id) throw new Error(`Tarif Stripe introuvable pour la clé « ${lookup} ».`);
   return id;
 }
+
+// Programme l'arrêt de tous les abonnements actifs d'un client à la fin de la
+// période déjà payée (pas de remboursement, pas de nouvelle facturation).
+// Utilisé quand l'abonné se désinscrit : il ne doit plus jamais être débité.
+export async function cancelSubscriptionsAtPeriodEnd(
+  customerId: string
+): Promise<number> {
+  const subs = await stripe().subscriptions.list({
+    customer: customerId,
+    status: "all",
+    limit: 100,
+  });
+  let n = 0;
+  for (const s of subs.data) {
+    const stoppable = ["active", "trialing", "past_due", "unpaid"].includes(
+      s.status
+    );
+    if (stoppable && !s.cancel_at_period_end) {
+      await stripe().subscriptions.update(s.id, { cancel_at_period_end: true });
+      n++;
+    }
+  }
+  return n;
+}

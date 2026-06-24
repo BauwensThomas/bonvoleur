@@ -53,14 +53,39 @@ export async function POST(req: Request) {
     case "customer.subscription.created":
     case "customer.subscription.updated": {
       const sub = event.data.object as Stripe.Subscription;
-      // active / trialing / past_due (grâce) -> premium ; sinon -> free.
-      const premium = ["active", "trialing", "past_due"].includes(sub.status);
-      await setTierByCustomer(customerId(sub.customer), premium ? "premium" : "free");
+      const cust = customerId(sub.customer);
+      const row = cust
+        ? await findOne("subscribers", (s) => s.stripe_customer_id === cust)
+        : null;
+      if (row) {
+        // active / trialing / past_due (grâce) -> premium ; sinon -> free.
+        const premium = ["active", "trialing", "past_due"].includes(sub.status);
+        const periodEnd = sub.items.data[0]?.current_period_end ?? null;
+        await update("subscribers", row.id, {
+          tier: premium ? "premium" : "free",
+          premium_until: periodEnd
+            ? new Date(periodEnd * 1000).toISOString()
+            : null,
+          premium_cancel_at_period_end: sub.cancel_at_period_end ?? false,
+          premium_interval: sub.items.data[0]?.price?.recurring?.interval ?? null,
+        });
+      }
       break;
     }
     case "customer.subscription.deleted": {
       const sub = event.data.object as Stripe.Subscription;
-      await setTierByCustomer(customerId(sub.customer), "free");
+      const cust = customerId(sub.customer);
+      const row = cust
+        ? await findOne("subscribers", (s) => s.stripe_customer_id === cust)
+        : null;
+      if (row) {
+        await update("subscribers", row.id, {
+          tier: "free",
+          premium_until: null,
+          premium_cancel_at_period_end: null,
+          premium_interval: null,
+        });
+      }
       break;
     }
   }

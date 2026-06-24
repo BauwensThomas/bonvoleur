@@ -19,6 +19,9 @@ export interface Subscriber {
   email_frequency?: EmailFrequency; // préférence d'email (defaut selon le tier)
   newsletter?: boolean; // newsletter blog hebdo (vendredi). Défaut: activée.
   stripe_customer_id?: string | null; // lien vers le client Stripe (premium)
+  premium_until?: string | null; // fin de la période payée en cours (ISO)
+  premium_cancel_at_period_end?: boolean | null; // résilié -> ne se renouvelle pas
+  premium_interval?: string | null; // "month" | "year" (cadence de facturation)
   unsubscribe_token: string; // jeton secret pour la désinscription en 1 clic
   consent_at: string | null;
   unsubscribed_at: string | null;
