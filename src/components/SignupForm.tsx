@@ -73,7 +73,7 @@ export default function SignupForm() {
             type="email"
             required
             autoComplete="email"
-            placeholder="prenom@email.com"
+            placeholder="ton@email.com"
             className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-brand focus:ring-2 focus:ring-brand/30 outline-none"
           />
         </div>

@@ -6,6 +6,7 @@ import type { Subscriber, Tier } from "@/lib/types";
 export type MemberState =
   | { status: "anonymous" }
   | { status: "no-account"; email: string }
+  | { status: "unconfirmed"; email: string }
   | { status: "member"; email: string; tier: Tier; subscriber: Subscriber };
 
 // État de connexion de l'abonné, de façon SÛRE :
@@ -28,7 +29,10 @@ export async function getMemberState(): Promise<MemberState> {
     "subscribers",
     (s) => s.email.toLowerCase() === email
   );
-  if (!sub) return { status: "no-account", email };
+  // Pas d'abonné, ou désinscrit -> doit (re)passer par l'inscription.
+  if (!sub || sub.unsubscribed_at) return { status: "no-account", email };
+  // Inscrit mais double opt-in non validé -> doit confirmer par email d'abord.
+  if (!sub.consent_at) return { status: "unconfirmed", email };
 
   const tier: Tier = sub.tier === "premium" ? "premium" : "free";
   return { status: "member", email, tier, subscriber: sub };

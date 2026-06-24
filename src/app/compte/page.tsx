@@ -75,6 +75,35 @@ export default async function Compte({
   if (member.status === "no-account") {
     redirect("/?besoin_inscription=1#inscription");
   }
+  // Inscrit mais inscription non confirmée (double opt-in) : pas d'accès tant
+  // que le lien de confirmation n'a pas été cliqué.
+  if (member.status === "unconfirmed") {
+    return (
+      <>
+        <Header />
+        <main className="mx-auto w-full max-w-7xl px-4 py-12">
+          <div className="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <h1 className="text-2xl font-bold">Confirme ton inscription</h1>
+            <p className="mt-3 text-slate-600">
+              Ton inscription n&apos;est pas encore confirmée. Ouvre l&apos;email
+              de confirmation qu&apos;on t&apos;a envoyé à{" "}
+              <strong>{member.email}</strong> et clique sur le lien. (Pense à
+              vérifier les spams.)
+            </p>
+            <form action="/auth/logout" method="post" className="mt-6">
+              <button
+                type="submit"
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-brand hover:text-brand"
+              >
+                Se déconnecter
+              </button>
+            </form>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   const tier = member.tier;
   const origin = sp.origin ?? "";
