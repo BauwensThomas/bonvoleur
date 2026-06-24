@@ -228,7 +228,7 @@ export default async function Compte({
         )}
 
         {/* Filtres + tri + vue (auto, sans bouton ; vue memorisee) */}
-        <CompteControls airports={airports} />
+        <CompteControls airports={airports} tier={tier} />
 
         {deals.length > 0 && (
           <p className="mt-6 text-sm text-slate-500">

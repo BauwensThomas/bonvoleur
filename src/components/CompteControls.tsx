@@ -10,14 +10,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 //   visites.
 export default function CompteControls({
   airports,
+  tier,
 }: {
   airports: readonly { iata: string; city: string }[];
+  tier: "free" | "premium";
 }) {
   const router = useRouter();
   const sp = useSearchParams();
   const qs = sp.toString();
 
-  const tier = sp.get("tier") === "premium" ? "premium" : "free";
   const origin = sp.get("origin") ?? "";
   const maxPrice = sp.get("maxPrice") ?? "";
   const sort = sp.get("sort") ?? "recent";
@@ -114,7 +115,7 @@ export default function CompteControls({
           <button
             onClick={() => {
               setDest("");
-              router.push(`/compte?tier=${tier}&view=${view}`);
+              router.push(`/compte?view=${view}`);
             }}
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:border-slate-400"
           >
