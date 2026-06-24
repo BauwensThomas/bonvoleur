@@ -159,14 +159,22 @@ export default async function Compte({
           <span>
             Connecté en tant que <strong>{member.email}</strong>
           </span>
-          <form action="/auth/logout" method="post">
-            <button
-              type="submit"
+          <div className="flex items-center gap-2">
+            <Link
+              href="/compte/preferences"
               className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:border-brand hover:text-brand"
             >
-              Se déconnecter
-            </button>
-          </form>
+              Mes préférences
+            </Link>
+            <form action="/auth/logout" method="post">
+              <button
+                type="submit"
+                className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:border-brand hover:text-brand"
+              >
+                Se déconnecter
+              </button>
+            </form>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-end justify-between gap-3">
