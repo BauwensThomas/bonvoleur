@@ -2,6 +2,15 @@
 
 import { site } from "./site";
 import type { EmailMessage } from "./email";
+import type { Post } from "./types";
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 // Petits logos (SVG inline) pour les liens reseaux. Partages avec les emails
 // deals (deal-send.ts). Le libelle texte reste a cote comme repli si le client
@@ -141,5 +150,60 @@ Tu changes d'avis ? Réinscris-toi sur ${site.url}.`;
     html,
     text,
     replyTo: site.email,
+  };
+}
+
+// Newsletter blog hebdomadaire (vendredi) : les 3 derniers articles publiés.
+type NewsletterPost = Pick<Post, "slug" | "title" | "excerpt" | "cover_image">;
+
+export function blogNewsletterEmail(
+  to: string,
+  posts: NewsletterPost[],
+  unsubscribeUrl: string
+): EmailMessage {
+  const cards = posts
+    .map((p) => {
+      const url = `${site.url}/blog/${p.slug}`;
+      const cover = p.cover_image
+        ? `<a href="${url}"><img src="${p.cover_image}" alt="" width="100%" style="display:block;border-radius:10px 10px 0 0;max-height:180px;object-fit:cover;"/></a>`
+        : "";
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
+        <tr><td>${cover}</td></tr>
+        <tr><td style="padding:14px 16px;">
+          <a href="${url}" style="font-size:17px;font-weight:700;color:#0f172a;text-decoration:none;">${escapeHtml(p.title)}</a>
+          <p style="margin:6px 0 10px;font-size:14px;color:#475569;">${escapeHtml(p.excerpt)}</p>
+          <a href="${url}" style="font-size:14px;font-weight:600;color:#0369a1;text-decoration:none;">Lire l'article</a>
+        </td></tr>
+      </table>`;
+    })
+    .join("");
+
+  const html = `<!doctype html>
+<html lang="fr">
+  <body style="font-family: Arial, sans-serif; color: #0f172a; background: #f1f5f9; margin: 0; padding: 24px;">
+    <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 14px; padding: 24px;">
+      <h1 style="font-size: 20px; margin: 0 0 4px;">Le blog ${site.name} de la semaine</h1>
+      <p style="margin: 0 0 18px; font-size: 14px; color: #475569;">Nos derniers conseils pour voyager moins cher.</p>
+      ${cards}
+      <p style="margin: 18px 0 6px; font-size: 14px;">Retrouve-nous sur les réseaux :</p>
+      ${socialLine()}
+      <p style="margin: 14px 0 0; font-size: 12px; color: #94a3b8;">Tu reçois la newsletter du vendredi. Tu peux la désactiver dans tes préférences, ou te <a href="${unsubscribeUrl}" style="color: #64748b;">désinscrire</a>.</p>
+    </div>
+  </body>
+</html>`;
+
+  const text = `Le blog ${site.name} de la semaine
+
+${posts.map((p) => `${p.title}\n${site.url}/blog/${p.slug}`).join("\n\n")}
+
+Te désinscrire : ${unsubscribeUrl}`;
+
+  return {
+    to,
+    subject: `Le blog ${site.name} : nos derniers articles`,
+    html,
+    text,
+    replyTo: site.email,
+    listUnsubscribe: unsubscribeUrl,
   };
 }

@@ -49,6 +49,7 @@ export default async function Preferences() {
             tier={member.tier}
             initialAirports={member.subscriber.home_airports ?? []}
             initialFrequency={initialFrequency}
+            initialNewsletter={member.subscriber.newsletter !== false}
           />
         </div>
       </main>

@@ -10,16 +10,19 @@ export default function PreferencesForm({
   tier,
   initialAirports,
   initialFrequency,
+  initialNewsletter,
 }: {
   tier: Tier;
   initialAirports: string[];
   initialFrequency: EmailFrequency;
+  initialNewsletter: boolean;
 }) {
   const isPremium = tier === "premium";
   const [selected, setSelected] = useState<string[]>(
     initialAirports.map((a) => a.toUpperCase())
   );
   const [frequency, setFrequency] = useState<EmailFrequency>(initialFrequency);
+  const [newsletter, setNewsletter] = useState<boolean>(initialNewsletter);
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
 
@@ -50,6 +53,7 @@ export default function PreferencesForm({
         body: JSON.stringify({
           home_airports: selected,
           email_frequency: frequency,
+          newsletter,
         }),
       });
       const json = await res.json();
@@ -139,6 +143,22 @@ export default function PreferencesForm({
             En pause (aucun email)
           </label>
         </div>
+      </div>
+
+      <div>
+        <h2 className="font-semibold">Newsletter du blog</h2>
+        <label className="mt-3 flex items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={newsletter}
+            onChange={(e) => setNewsletter(e.target.checked)}
+            className="mt-0.5 h-4 w-4"
+          />
+          <span>
+            Recevoir la newsletter hebdo du <strong>vendredi</strong> avec nos 3
+            derniers articles de blog.
+          </span>
+        </label>
       </div>
 
       <p className="rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-600">

@@ -6,6 +6,7 @@ import { update } from "@/lib/db";
 const schema = z.object({
   home_airports: z.array(z.string().max(8)).max(30),
   email_frequency: z.enum(["daily", "weekly", "none"]),
+  newsletter: z.boolean(),
 });
 
 // Met à jour les préférences de l'abonné connecté (aéroport(s) + fréquence).
@@ -49,6 +50,7 @@ export async function POST(req: Request) {
   await update("subscribers", state.subscriber.id, {
     home_airports: airports,
     email_frequency: frequency,
+    newsletter: parsed.data.newsletter,
   });
 
   return NextResponse.json({ ok: true });
