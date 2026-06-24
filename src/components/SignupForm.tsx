@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { airports } from "@/lib/site";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -74,6 +75,13 @@ export default function SignupForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      <GoogleSignInButton next="/compte" label="S'inscrire avec Google" />
+      <div className="flex items-center gap-3 text-xs text-slate-400">
+        <span className="h-px flex-1 bg-slate-200" />
+        ou par email
+        <span className="h-px flex-1 bg-slate-200" />
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label htmlFor="email" className="block text-sm font-medium mb-1">

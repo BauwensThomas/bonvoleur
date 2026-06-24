@@ -84,10 +84,10 @@ export default async function Compte({
       </>
     );
   }
-  // Connecté mais pas (encore) abonné : on ne crée pas de compte à la volée,
-  // on renvoie vers l'inscription (avec son aéroport, consentement, etc.).
+  // Connecté (Google / magic link) mais pas encore abonné : on finalise
+  // l'inscription (aéroport + consentement) plutôt que de boucler vers l'accueil.
   if (member.status === "no-account") {
-    redirect("/?besoin_inscription=1#inscription");
+    redirect("/compte/finaliser");
   }
   // Inscrit mais inscription non confirmée (double opt-in) : pas d'accès tant
   // que le lien de confirmation n'a pas été cliqué.
