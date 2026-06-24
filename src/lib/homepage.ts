@@ -55,7 +55,9 @@ export async function getHomepageDeals(): Promise<{
         }))
       : null;
 
-  const destinationCount = new Set(found.map((d) => d.destination)).size;
+  // liveCount = ce que voit le premium : 1 deal par route (dédupliqué), comme
+  // dans getMemberDeals. `unique` est déjà dédupliqué par route ci-dessus.
+  const destinationCount = new Set(unique.map((d) => d.destination)).size;
 
-  return { teaserDeals, liveCount: found.length, destinationCount };
+  return { teaserDeals, liveCount: unique.length, destinationCount };
 }
