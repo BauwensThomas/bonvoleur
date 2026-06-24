@@ -14,6 +14,7 @@ export type Region =
   | "Amérique du Sud"
   | "Caraïbes"
   | "Afrique"
+  | "Océan Indien"
   | "Moyen-Orient"
   | "Asie"
   | "Océanie";
@@ -22,6 +23,7 @@ export type Region =
 export const REGION_ORDER: Region[] = [
   "Europe",
   "Afrique",
+  "Océan Indien",
   "Moyen-Orient",
   "Asie",
   "Amérique du Nord",
@@ -40,10 +42,13 @@ export const REGION_BY_IATA: Record<string, Region> = {
   MRS: "Europe", BOD: "Europe", TLS: "Europe", NTE: "Europe", LIL: "Europe",
   SXB: "Europe", LIS: "Europe", OPO: "Europe", BCN: "Europe", AGP: "Europe",
   ALC: "Europe", MAD: "Europe", VLC: "Europe", PMI: "Europe", FCO: "Europe",
-  NAP: "Europe", ATH: "Europe", KRK: "Europe",
-  // Afrique (Maghreb, Afrique de l'Ouest/Est/Sud, océan Indien)
+  ROM: "Europe", NAP: "Europe", ATH: "Europe", KRK: "Europe",
+  // Afrique (Maghreb, Afrique de l'Ouest / Est / Sud)
   RAK: "Afrique", CMN: "Afrique", BKO: "Afrique", DKR: "Afrique", ABJ: "Afrique",
-  NBO: "Afrique", JNB: "Afrique", MRU: "Afrique", RUN: "Afrique",
+  NBO: "Afrique", JNB: "Afrique",
+  // Océan Indien (îles au large de l'Afrique)
+  MRU: "Océan Indien", RUN: "Océan Indien", SEZ: "Océan Indien",
+  MLE: "Océan Indien", TNR: "Océan Indien",
   // Moyen-Orient (Golfe + Levant)
   DXB: "Moyen-Orient", DOH: "Moyen-Orient", AMM: "Moyen-Orient",
   // Asie
