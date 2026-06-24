@@ -41,8 +41,15 @@ export default function Confidentialite() {
               <li>Date de consentement et statut (gratuit / premium).</li>
               <li>Historique des envois (pour ne pas te renvoyer le même deal).</li>
               <li>
-                Pour les abonnés premium : les données de paiement sont gérées
-                par Stripe. {site.name}{" "}ne stocke jamais ton numéro de carte.
+                Connexion : tu te connectes par <strong>« Continuer avec Google »</strong>
+                {" "}ou par lien magique envoyé à ton email (sans mot de passe). On
+                conserve un identifiant de session pour te garder connecté.
+              </li>
+              <li>
+                Pour les abonnés premium : un identifiant client Stripe, la date de
+                fin de période et le statut de renouvellement. Les données de
+                paiement (carte) sont gérées par Stripe ; {site.name}{" "}ne voit ni
+                ne stocke jamais ton numéro de carte.
               </li>
             </ul>
           </section>
@@ -69,7 +76,8 @@ export default function Confidentialite() {
             <p className="mt-2">
               Tes données ne sont jamais vendues. Elles sont traitées par des
               prestataires techniques : Vercel (hébergement), Supabase (base de
-              données), Resend ou Brevo (envoi des emails), Stripe (paiement
+              données et authentification), Google (connexion « Continuer avec
+              Google »), Resend ou Brevo (envoi des emails), Stripe (paiement
               premium), Travelpayouts / Aviasales (liens d&apos;affiliation),
               ainsi que des outils de mesure d&apos;audience. Certains sont situés
               hors UE (États-Unis) avec les garanties appropriées (clauses
@@ -89,10 +97,14 @@ export default function Confidentialite() {
           <section>
             <h2 className="text-xl font-semibold">Cookies</h2>
             <p className="mt-2">
-              Le site n&apos;utilise pas de cookie de suivi sans ton accord. À la
-              mise en ligne, un bandeau de consentement gérera les cookies de
-              mesure d&apos;audience et de publicité (par ex. Google AdSense), qui
-              ne se déclenchent qu&apos;après acceptation.
+              On utilise uniquement des <strong>cookies essentiels</strong> sans
+              consentement : ceux qui te gardent <strong>connecté</strong> à ton
+              espace (session), et ceux posés par <strong>Stripe</strong> sur sa
+              page de paiement (sécurité anti-fraude). Aucun cookie de suivi
+              publicitaire n&apos;est posé sans ton accord. À la mise en ligne, un
+              bandeau de consentement gérera les éventuels cookies de mesure
+              d&apos;audience et de publicité (par ex. Google AdSense), qui ne se
+              déclenchent qu&apos;après acceptation.
             </p>
           </section>
 

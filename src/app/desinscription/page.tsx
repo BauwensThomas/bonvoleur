@@ -88,6 +88,11 @@ export default async function Desinscription({
               Tu ne recevras plus nos alertes deals. Tu peux te réinscrire à
               tout moment sur {site.domain}.
             </p>
+            <p className="mt-3 text-sm text-slate-500">
+              Si tu avais un abonnement premium, il a été résilié : tu ne seras
+              plus débité. Tu gardes l&apos;accès premium jusqu&apos;à la fin de la
+              période déjà payée.
+            </p>
           </>
         )}
 

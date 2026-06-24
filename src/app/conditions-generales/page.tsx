@@ -85,14 +85,10 @@ export default function ConditionsGenerales() {
             </h2>
             <p className="mt-2">
               L&apos;abonnement premium est proposé au prix de{" "}
-              <mark className="bg-yellow-200 px-1 font-semibold">
-                4,99 € par mois ou 39 € par an (TTC)
-              </mark>{" "}
-              <span className="bg-yellow-200 px-1 text-sm text-red-700">
-                [À CONFIRMER / MODIFIER avant la mise en ligne du paiement]
-              </span>
-              . Le paiement est traité de façon sécurisée par notre prestataire
-              Stripe. {site.name}{" "}ne stocke jamais tes données de carte bancaire.
+              <strong>4,99 € par mois ou 39 € par an (TTC)</strong>. Le paiement
+              est traité de façon sécurisée par notre prestataire <strong>Stripe</strong>.
+              {" "}{site.name}{" "}ne voit ni ne stocke jamais tes données de carte
+              bancaire.
             </p>
             <p className="mt-2">
               L&apos;abonnement est reconduit automatiquement à chaque échéance,
@@ -128,6 +124,12 @@ export default function ConditionsGenerales() {
               gardes l&apos;accès premium jusqu&apos;à cette date, et aucun
               remboursement de la période en cours n&apos;est effectué (sauf
               exercice du droit de rétractation ci-dessus).
+            </p>
+            <p className="mt-2">
+              Par sécurité, te désinscrire (lien « se désinscrire » des emails ou
+              page dédiée) <strong>annule aussi automatiquement</strong> ton
+              abonnement premium à la fin de la période en cours : tu ne seras
+              plus jamais débité après une désinscription.
             </p>
           </section>
 

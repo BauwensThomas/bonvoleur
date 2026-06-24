@@ -44,6 +44,19 @@ export default function MentionsLegales() {
           </section>
 
           <section>
+            <h2 className="text-xl font-semibold">Paiement en ligne</h2>
+            <p className="mt-2">
+              Les abonnements premium sont encaissés par Stripe Payments Europe,
+              Ltd. (Irlande). {site.name}{" "}ne voit ni ne conserve aucune donnée de
+              carte bancaire. Détails dans les{" "}
+              <a className="underline" href="/conditions-generales">
+                conditions générales
+              </a>
+              .
+            </p>
+          </section>
+
+          <section>
             <h2 className="text-xl font-semibold">Objet du service</h2>
             <p className="mt-2">
               {site.name}{" "}est un service d&apos;alertes de bons plans de vols au
