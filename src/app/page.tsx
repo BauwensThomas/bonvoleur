@@ -57,7 +57,7 @@ export default async function Home({
   const needsSignup = (await searchParams).besoin_inscription === "1";
 
   // Vitrine "teaser" : route + prix uniquement (aucune info actionnable).
-  const { teaserDeals } = await getHomepageDeals();
+  const { teaserDeals, liveCount, destinationCount } = await getHomepageDeals();
 
   // Destinations populaires : par ville, avec ses aéroports de départ.
   const destGroups = await getDestinations();
@@ -116,6 +116,33 @@ export default async function Home({
       <main>
         {/* ── Hero cinématique 3D ── */}
         <HeroCinematic />
+
+        {/* ── Preuve sociale : nombre de bons plans en ce moment ── */}
+        {liveCount > 0 && (
+          <section className="border-y border-slate-200 bg-brand/5">
+            <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 px-4 py-6 text-center sm:flex-row sm:justify-center sm:gap-6">
+              <p className="text-lg text-slate-700">
+                <strong className="text-2xl font-extrabold text-brand-dark">
+                  {liveCount}
+                </strong>{" "}
+                bons plans de vols en ce moment
+                {destinationCount > 0 && (
+                  <>
+                    {" "}
+                    vers <strong>{destinationCount}</strong> destinations
+                  </>
+                )}
+                , depuis la Belgique et la France.
+              </p>
+              <a
+                href="#inscription"
+                className="shrink-0 rounded-lg bg-brand px-5 py-2.5 font-semibold text-white transition hover:bg-brand-dark"
+              >
+                Reçois-les gratuitement
+              </a>
+            </div>
+          </section>
+        )}
 
         {/* ── Inscription ── */}
         <section

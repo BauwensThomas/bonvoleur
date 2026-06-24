@@ -14,6 +14,8 @@ export interface TeaserDeal {
 
 export async function getHomepageDeals(): Promise<{
   teaserDeals: TeaserDeal[] | null;
+  liveCount: number; // bons plans frais en ce moment (preuve sociale)
+  destinationCount: number; // destinations distinctes parmi ces deals
 }> {
   const all = await getAll("deals");
   const now = Date.now();
@@ -53,5 +55,7 @@ export async function getHomepageDeals(): Promise<{
         }))
       : null;
 
-  return { teaserDeals };
+  const destinationCount = new Set(found.map((d) => d.destination)).size;
+
+  return { teaserDeals, liveCount: found.length, destinationCount };
 }
