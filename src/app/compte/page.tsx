@@ -259,7 +259,7 @@ export default async function Compte({
                   type="submit"
                   className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
                 >
-                  Premium 4,99 €/mois
+                  Premium 4,99 € / mois
                 </button>
               </form>
               <form action="/api/billing/checkout" method="post">
@@ -268,7 +268,7 @@ export default async function Compte({
                   type="submit"
                   className="rounded-lg border border-brand px-4 py-2 text-sm font-semibold text-brand-dark transition hover:bg-brand/10"
                 >
-                  ou 39 €/an (2 mois offerts)
+                  39 € / an (2 mois offerts)
                 </button>
               </form>
             </div>
