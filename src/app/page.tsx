@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SignupForm from "@/components/SignupForm";
@@ -7,8 +8,13 @@ import HeroCinematic from "@/components/HeroCinematic";
 import DestinationsGrid from "@/components/DestinationsGrid";
 import { site } from "@/lib/site";
 import { getHomepageDeals } from "@/lib/homepage";
-import { getDestinations } from "@/lib/routes";
+import { getDestinations, destinationSlug } from "@/lib/routes";
 import { getAll } from "@/lib/db";
+
+// "Lisbonne (LIS)" -> "lisbonne" (slug de la fiche /vols-pas-chers).
+function destSlugOf(label: string): string {
+  return destinationSlug(label.replace(/\s*\([A-Z]{3}\)\s*$/, "").trim());
+}
 
 // Rendu dynamique : l'accueil relit les deals à chaque visite (compteur à jour).
 export const dynamic = "force-dynamic";
@@ -210,14 +216,19 @@ export default async function Home({
           {teaserDeals ? (
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {teaserDeals.map((d, i) => (
-                <DealCard
+                <Link
                   key={`${d.origin}-${d.destination}-${i}`}
-                  origin={d.origin}
-                  destination={d.destination}
-                  price={d.price}
-                  image={dealImage(d.destination)}
-                  teaser
-                />
+                  href={`/vols-pas-chers/${destSlugOf(d.destination)}`}
+                  className="block"
+                >
+                  <DealCard
+                    origin={d.origin}
+                    destination={d.destination}
+                    price={d.price}
+                    image={dealImage(d.destination)}
+                    teaser
+                  />
+                </Link>
               ))}
             </div>
           ) : (
