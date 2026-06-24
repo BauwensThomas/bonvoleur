@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PreferencesForm from "@/components/PreferencesForm";
+import DeleteAccountButton from "@/components/DeleteAccountButton";
 import { getMemberState } from "@/lib/member-auth";
 import type { EmailFrequency } from "@/lib/types";
 
@@ -51,6 +52,19 @@ export default async function Preferences() {
             initialFrequency={initialFrequency}
             initialNewsletter={member.subscriber.newsletter !== false}
           />
+        </div>
+
+        {/* Zone de danger : suppression définitive du compte. */}
+        <div className="mt-8 rounded-2xl border border-red-200 bg-red-50/40 p-6">
+          <h2 className="font-semibold text-slate-900">Supprimer mon compte</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Efface définitivement ton compte et tes données. Un abonnement premium
+            est résilié immédiatement (sans remboursement de la période en cours).
+            Action irréversible.
+          </p>
+          <div className="mt-3">
+            <DeleteAccountButton />
+          </div>
         </div>
       </main>
       <Footer />
