@@ -99,8 +99,8 @@ export default function Confidentialite() {
             <p className="mt-2">
               On utilise uniquement des <strong>cookies essentiels</strong> sans
               consentement : ceux qui te gardent <strong>connecté</strong> à ton
-              espace (session), et ceux posés par <strong>Stripe</strong> sur sa
-              page de paiement (sécurité anti-fraude). Aucun cookie de suivi
+              espace (session), et ceux posés par <strong>Stripe</strong>{" "}
+              sur sa page de paiement (sécurité anti-fraude). Aucun cookie de suivi
               publicitaire n&apos;est posé sans ton accord. À la mise en ligne, un
               bandeau de consentement gérera les éventuels cookies de mesure
               d&apos;audience et de publicité (par ex. Google AdSense), qui ne se

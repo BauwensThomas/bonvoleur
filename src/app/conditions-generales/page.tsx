@@ -126,10 +126,12 @@ export default function ConditionsGenerales() {
               exercice du droit de rétractation ci-dessus).
             </p>
             <p className="mt-2">
-              Par sécurité, te désinscrire (lien « se désinscrire » des emails ou
-              page dédiée) <strong>annule aussi automatiquement</strong> ton
-              abonnement premium à la fin de la période en cours : tu ne seras
-              plus jamais débité après une désinscription.
+              À distinguer de la <strong>suppression de compte</strong> (lien
+              « se désinscrire » des emails ou page dédiée) : après confirmation,
+              elle <strong>efface définitivement</strong> ton compte et tes
+              données, et <strong>résilie immédiatement</strong> l&apos;abonnement
+              premium (sans remboursement de la période en cours). Tu ne seras
+              plus jamais débité.
             </p>
           </section>
 
