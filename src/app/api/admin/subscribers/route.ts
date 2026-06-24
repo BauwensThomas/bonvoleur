@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAll, getById, remove } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { deleteStripeCustomer } from "@/lib/stripe";
+import { deleteAuthUserByEmail } from "@/lib/supabase/admin";
 
 export async function GET() {
   const unauth = await requireAdmin();
@@ -25,6 +26,14 @@ export async function DELETE(req: Request) {
       await deleteStripeCustomer(sub.stripe_customer_id);
     } catch (err) {
       console.error("[admin subscribers] suppression Stripe échouée:", err);
+    }
+  }
+  // Erasure complète : on supprime aussi le compte d'authentification (auth.users).
+  if (sub?.email) {
+    try {
+      await deleteAuthUserByEmail(sub.email);
+    } catch (err) {
+      console.error("[admin subscribers] suppression compte auth échouée:", err);
     }
   }
 
