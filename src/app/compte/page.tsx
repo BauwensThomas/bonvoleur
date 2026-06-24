@@ -47,6 +47,7 @@ export default async function Compte({
     from?: string;
     to?: string;
     auth_error?: string;
+    resend?: string;
   }>;
 }) {
   const sp = await searchParams;
@@ -90,7 +91,29 @@ export default async function Compte({
               <strong>{member.email}</strong> et clique sur le lien. (Pense à
               vérifier les spams.)
             </p>
-            <form action="/auth/logout" method="post" className="mt-6">
+            {sp.resend === "ok" && (
+              <p className="mt-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                Email de confirmation renvoyé. Vérifie ta boîte mail.
+              </p>
+            )}
+            {sp.resend === "rate" && (
+              <p className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                Patiente quelques minutes avant de renvoyer un nouvel email.
+              </p>
+            )}
+            <form
+              action="/api/auth/resend-confirmation"
+              method="post"
+              className="mt-6"
+            >
+              <button
+                type="submit"
+                className="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark"
+              >
+                Renvoyer l&apos;email de confirmation
+              </button>
+            </form>
+            <form action="/auth/logout" method="post" className="mt-3">
               <button
                 type="submit"
                 className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-brand hover:text-brand"
