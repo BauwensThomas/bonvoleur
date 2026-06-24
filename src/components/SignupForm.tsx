@@ -118,11 +118,12 @@ export default function SignupForm() {
           className="mt-1 h-4 w-4 rounded border-slate-300"
         />
         <span>
-          J&apos;accepte de recevoir les alertes deals par email et la{" "}
+          J&apos;accepte de recevoir les alertes deals et la newsletter hebdo du
+          vendredi par email, et la{" "}
           <a href="/confidentialite" className="underline">
             politique de confidentialité
           </a>
-          .
+          . (Tu pourras gérer la newsletter dans tes préférences.)
         </span>
       </label>
 
