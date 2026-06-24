@@ -57,7 +57,7 @@ export default async function Home({
   const needsSignup = (await searchParams).besoin_inscription === "1";
 
   // Vitrine "teaser" : route + prix uniquement (aucune info actionnable).
-  const { teaserDeals, liveCount, destinationCount } = await getHomepageDeals();
+  const { teaserDeals, liveCount } = await getHomepageDeals();
 
   // Destinations populaires : par ville, avec ses aéroports de départ.
   const destGroups = await getDestinations();
@@ -125,14 +125,7 @@ export default async function Home({
                 <strong className="text-2xl font-extrabold text-brand-dark">
                   {liveCount}
                 </strong>{" "}
-                bons plans de vols en ce moment
-                {destinationCount > 0 && (
-                  <>
-                    {" "}
-                    vers <strong>{destinationCount}</strong> destinations
-                  </>
-                )}
-                , depuis la Belgique et la France.
+                bons plans de vols en ce moment, depuis la Belgique et la France.
               </p>
               <a
                 href="#inscription"
