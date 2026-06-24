@@ -8,6 +8,7 @@ import { site, airports, discountPct } from "@/lib/site";
 import { getMemberDeals, FREE_DELAY_HOURS } from "@/lib/member-deals";
 import { getMemberState } from "@/lib/member-auth";
 import { destinationSlug } from "@/lib/routes";
+import { destinationRegion, REGION_ORDER } from "@/lib/destinations";
 import CompteControls from "@/components/CompteControls";
 
 // "Lisbonne (LIS)" -> "lisbonne" (slug de la fiche destination).
@@ -164,6 +165,13 @@ export default async function Compte({
   if (sort === "price-asc") deals.sort((a, b) => a.price - b.price);
   else if (sort === "price-desc") deals.sort((a, b) => b.price - a.price);
 
+  // Régions réellement présentes parmi les deals visibles (sans filtre région),
+  // pour ne proposer que des filtres utiles - comme le hub /vols-pas-chers.
+  const pool = await getMemberDeals(tier, {});
+  const availableRegions = REGION_ORDER.filter((r) =>
+    pool.deals.some((d) => destinationRegion(d.destination) === r)
+  );
+
   return (
     <>
       <Header />
@@ -292,7 +300,11 @@ export default async function Compte({
         )}
 
         {/* Filtres + tri + vue (auto, sans bouton ; vue memorisee) */}
-        <CompteControls airports={airports} tier={tier} />
+        <CompteControls
+          airports={airports}
+          tier={tier}
+          availableRegions={availableRegions}
+        />
 
         {deals.length > 0 && (
           <p className="mt-6 text-sm text-slate-500">

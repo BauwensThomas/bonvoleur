@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { REGION_ORDER } from "@/lib/destinations";
 
 // Filtres + tri + bascule de vue de l'espace membre.
 // - Filtre/tri AUTOMATIQUE (pas besoin de cliquer) : la destination est
@@ -12,9 +11,11 @@ import { REGION_ORDER } from "@/lib/destinations";
 export default function CompteControls({
   airports,
   tier,
+  availableRegions,
 }: {
   airports: readonly { iata: string; city: string }[];
   tier: "free" | "premium";
+  availableRegions: string[];
 }) {
   const router = useRouter();
   const sp = useSearchParams();
@@ -88,7 +89,7 @@ export default function CompteControls({
             className="w-full rounded-lg border border-slate-300 px-3 py-2"
           >
             <option value="">Toutes</option>
-            {REGION_ORDER.map((r) => (
+            {availableRegions.map((r) => (
               <option key={r} value={r}>
                 {r}
               </option>
