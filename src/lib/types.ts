@@ -18,6 +18,7 @@ export interface Subscriber {
   home_airports: string[]; // aéroports de départ choisis (codes IATA)
   email_frequency?: EmailFrequency; // préférence d'email (defaut selon le tier)
   newsletter?: boolean; // newsletter blog hebdo (vendredi). Défaut: activée.
+  stripe_customer_id?: string | null; // lien vers le client Stripe (premium)
   unsubscribe_token: string; // jeton secret pour la désinscription en 1 clic
   consent_at: string | null;
   unsubscribed_at: string | null;

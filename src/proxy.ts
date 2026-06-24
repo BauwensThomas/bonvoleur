@@ -25,7 +25,8 @@ export async function proxy(req: NextRequest) {
     const isGatePath =
       pathname === "/acces" ||
       pathname === "/api/acces" ||
-      pathname.startsWith("/auth/");
+      pathname.startsWith("/auth/") ||
+      pathname === "/api/billing/webhook"; // appelé par Stripe (hors session)
     const hasGate = req.cookies.get(GATE_COOKIE)?.value === gatePass;
     if (!isGatePath && !hasGate) {
       if (pathname.startsWith("/api/")) {

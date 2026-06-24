@@ -49,6 +49,8 @@ export default async function Compte({
     to?: string;
     auth_error?: string;
     resend?: string;
+    upgraded?: string;
+    billing_error?: string;
   }>;
 }) {
   const sp = await searchParams;
@@ -200,33 +202,76 @@ export default async function Compte({
           </span>
         </div>
 
-        {/* Premium : info reelle de derniere actualisation (les heures de scan
-            ne sont pas garanties a la minute, on n'affiche donc pas de promesse). */}
-        {tier === "premium" && (
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-brand/30 bg-brand/5 px-4 py-3 text-sm text-slate-700">
-            <span>Bons plans actualisés plusieurs fois par jour.</span>
-            {lastRefresh && (
-              <span className="font-medium text-brand-dark">
-                Dernière actualisation : {detectedAt(lastRefresh)}
-              </span>
-            )}
+        {sp.upgraded === "1" && (
+          <div className="mt-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            Bienvenue en premium ! Ton accès est actif. (S&apos;il ne s&apos;affiche
+            pas encore, recharge la page dans quelques secondes.)
+          </div>
+        )}
+        {sp.billing_error === "1" && (
+          <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+            Le paiement n&apos;a pas pu démarrer. Réessaie.
           </div>
         )}
 
-        {/* Incitation premium pour les gratuits */}
-        {tier === "free" && liveLockedForFree > 0 && (
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand/5 px-5 py-4">
+        {/* Premium : info reelle de derniere actualisation + gestion abonnement. */}
+        {tier === "premium" && (
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-brand/30 bg-brand/5 px-4 py-3 text-sm text-slate-700">
+            <span>Bons plans actualisés plusieurs fois par jour.</span>
+            <div className="flex flex-wrap items-center gap-3">
+              {lastRefresh && (
+                <span className="font-medium text-brand-dark">
+                  Dernière actualisation : {detectedAt(lastRefresh)}
+                </span>
+              )}
+              <form action="/api/billing/portal" method="post">
+                <button
+                  type="submit"
+                  className="rounded-lg border border-brand/40 px-3 py-1.5 font-medium text-brand-dark transition hover:bg-brand/10"
+                >
+                  Gérer mon abonnement
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Incitation premium pour les gratuits : paiement Stripe (mensuel/annuel) */}
+        {tier === "free" && (
+          <div className="mt-5 rounded-xl border border-brand/30 bg-brand/5 px-5 py-4">
             <p className="text-sm text-slate-700">
-              <strong>{total}</strong> bon{total > 1 ? "s" : ""} plan
-              {total > 1 ? "s" : ""} actuellement disponible
-              {total > 1 ? "s" : ""} en premium.
+              Passe premium : <strong>tous</strong> les bons plans en direct (sans
+              les {Math.round(FREE_DELAY_HOURS / 24)} jours de retard), le filtre
+              par période de voyage et un email par jour.
+              {liveLockedForFree > 0 && (
+                <>
+                  {" "}
+                  Actuellement <strong>{total}</strong> bon
+                  {total > 1 ? "s" : ""} plan{total > 1 ? "s" : ""} réservé
+                  {total > 1 ? "s" : ""} au premium.
+                </>
+              )}
             </p>
-            <Link
-              href="/#inscription"
-              className="shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
-            >
-              Passer premium
-            </Link>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <form action="/api/billing/checkout" method="post">
+                <input type="hidden" name="plan" value="monthly" />
+                <button
+                  type="submit"
+                  className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
+                >
+                  Premium 4,99 €/mois
+                </button>
+              </form>
+              <form action="/api/billing/checkout" method="post">
+                <input type="hidden" name="plan" value="yearly" />
+                <button
+                  type="submit"
+                  className="rounded-lg border border-brand px-4 py-2 text-sm font-semibold text-brand-dark transition hover:bg-brand/10"
+                >
+                  ou 39 €/an (2 mois offerts)
+                </button>
+              </form>
+            </div>
           </div>
         )}
 
