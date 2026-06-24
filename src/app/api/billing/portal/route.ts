@@ -15,6 +15,10 @@ export async function POST(req: Request) {
   const session = await stripe().billingPortal.sessions.create({
     customer: state.subscriber.stripe_customer_id,
     return_url: `${origin}/compte`,
+    // Config qui autorise le changement de formule (mensuel <-> annuel) + annulation.
+    ...(process.env.STRIPE_PORTAL_CONFIG_ID
+      ? { configuration: process.env.STRIPE_PORTAL_CONFIG_ID }
+      : {}),
   });
   return NextResponse.redirect(session.url, { status: 303 });
 }
