@@ -8,7 +8,7 @@
 // et SUPABASE_DB_URL (chaîne de connexion Postgres, cf. Supabase ->
 // Project Settings -> Database -> Connection string -> "Session pooler"/URI).
 
-import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { readFile, mkdir, writeFile, readdir, rm } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { dirname } from "node:path";
 
@@ -171,6 +171,37 @@ if (SB && KEY) {
   }
 } else {
   console.warn("SUPABASE_URL / SERVICE_ROLE absents : Storage ignoré.");
+}
+
+// --- 3) Rotation : ne garder que les 10 sauvegardes les plus récentes ---
+// On purge seulement si la sauvegarde courante a réussi (sinon on ne touche pas
+// aux anciennes, qui restent le filet de sécurité).
+const KEEP = 10;
+if (ok) {
+  try {
+    const entries = await readdir("backups");
+    const stampOf = (name) => {
+      const s = name.replace(/^(tables-|db-|storage-|backup-)/, "");
+      if (s === name) return null; // pas un fichier de sauvegarde
+      return s.replace(/\.(json|sql)$/, "");
+    };
+    const stamps = [...new Set(entries.map(stampOf).filter(Boolean))]
+      .sort()
+      .reverse(); // horodatage ISO -> tri chronologique
+    const toDelete = new Set(stamps.slice(KEEP));
+    let removed = 0;
+    for (const name of entries) {
+      if (name === "backup.log") continue; // on garde le journal
+      const s = stampOf(name);
+      if (s && toDelete.has(s)) {
+        await rm(`backups/${name}`, { recursive: true, force: true });
+        removed++;
+      }
+    }
+    if (removed) console.log(`Rotation : ${removed} fichier(s) ancien(s) supprimé(s) (on garde les ${KEEP} dernières sauvegardes).`);
+  } catch (err) {
+    console.error("Rotation:", err.message);
+  }
 }
 
 console.log(ok ? "\nSauvegarde complète terminée." : "\nSauvegarde terminée AVEC avertissements (voir ci-dessus).");
