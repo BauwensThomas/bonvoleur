@@ -88,7 +88,9 @@ export async function POST(req: Request) {
     email: normalized,
     tier: "free",
     home_airports: airports,
-    email_frequency: "weekly",
+    // Pas de fréquence figée : la cadence suit le tier (gratuit -> hebdo,
+    // premium -> quotidien) tant que l'abonné ne choisit pas lui-même.
+    email_frequency: undefined,
     unsubscribe_token: token,
     consent_at: null, // double opt-in : confirmé seulement après clic sur le lien
     unsubscribed_at: null,
