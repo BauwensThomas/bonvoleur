@@ -27,6 +27,45 @@ const stamp = new Date().toISOString().replace(/[:.]/g, "-");
 await mkdir("backups", { recursive: true });
 let ok = true;
 
+// --- 0) Données des tables en JSON (TOUJOURS, via l'API REST) ---
+// Filet de sécurité indépendant de pg_dump : même sans SUPABASE_DB_URL, on
+// sauvegarde toutes les lignes de toutes les tables.
+const TABLES = [
+  "subscribers", "deals", "routes", "airports", "referrals",
+  "sends", "posts", "admins", "partners", "agent_runs", "site_settings",
+];
+if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
+  const h = {
+    apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+    Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+  };
+  const dump = { exportedAt: new Date().toISOString(), tables: {}, counts: {} };
+  for (const t of TABLES) {
+    try {
+      const rows = [];
+      let offset = 0;
+      for (;;) {
+        const r = await fetch(
+          `${env.SUPABASE_URL}/rest/v1/${t}?select=*&limit=1000&offset=${offset}`,
+          { headers: h }
+        );
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const batch = await r.json();
+        rows.push(...batch);
+        if (batch.length < 1000) break;
+        offset += 1000;
+      }
+      dump.tables[t] = rows;
+      dump.counts[t] = rows.length;
+    } catch (e) {
+      dump.counts[t] = `ERREUR: ${e.message}`;
+      ok = false;
+    }
+  }
+  await writeFile(`backups/tables-${stamp}.json`, JSON.stringify(dump, null, 2), "utf-8");
+  console.log("Données des tables (JSON) -> backups/tables-" + stamp + ".json");
+}
+
 // --- 1) Dump SQL (schéma + données + policies + auth + storage meta) ---
 if (env.SUPABASE_DB_URL) {
   const sqlFile = `backups/db-${stamp}.sql`;
