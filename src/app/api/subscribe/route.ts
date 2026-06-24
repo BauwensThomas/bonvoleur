@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { findOne, insert } from "@/lib/db";
+import { findOne, insert, update } from "@/lib/db";
 import { getClientIp } from "@/lib/request";
 import { allow } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email";
@@ -55,19 +55,39 @@ export async function POST(req: Request) {
   }
 
   const normalized = email.trim().toLowerCase();
+  const airports = home_airports.map((a) => a.toUpperCase());
   const existing = await findOne(
     "subscribers",
     (s) => s.email === normalized
   );
+
   if (existing) {
-    return NextResponse.json({ ok: true, alreadySubscribed: true });
+    // Déjà inscrit, confirmé et actif -> rien à faire.
+    if (existing.consent_at && !existing.unsubscribed_at) {
+      return NextResponse.json({ ok: true, alreadySubscribed: true });
+    }
+    // Désinscrit OU inscription jamais confirmée -> on relance le double opt-in
+    // (réactivation propre, re-confirmation requise pour le RGPD).
+    const reToken = existing.unsubscribe_token || randomUUID();
+    await update("subscribers", existing.id, {
+      home_airports: airports,
+      unsubscribed_at: null,
+      consent_at: null,
+      unsubscribe_token: reToken,
+    });
+    try {
+      await sendEmail(confirmEmail(normalized, confirmUrl(normalized, reToken)));
+    } catch (err) {
+      console.error("[subscribe] envoi confirmation (réinscription) échoué:", err);
+    }
+    return NextResponse.json({ ok: true, pendingConfirmation: true });
   }
 
   const token = randomUUID();
   await insert("subscribers", {
     email: normalized,
     tier: "free",
-    home_airports: home_airports.map((a) => a.toUpperCase()),
+    home_airports: airports,
     email_frequency: "weekly",
     unsubscribe_token: token,
     consent_at: null, // double opt-in : confirmé seulement après clic sur le lien
