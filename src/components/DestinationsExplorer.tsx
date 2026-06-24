@@ -2,17 +2,12 @@
 
 import { useMemo, useState } from "react";
 import DestinationsGrid, { type DestinationCard } from "./DestinationsGrid";
+import { REGION_ORDER as REGIONS } from "@/lib/destinations";
 
 export type ExplorerDestination = DestinationCard & { region: string };
 
-const REGION_ORDER = [
-  "Europe",
-  "Amérique",
-  "Afrique",
-  "Asie",
-  "Océanie",
-  "Autre",
-];
+// Ordre des filtres = ordre partagé des régions, puis "Autre" en dernier.
+const REGION_ORDER: string[] = [...REGIONS, "Autre"];
 
 // Recherche + filtre par région au-dessus de la grille de destinations.
 export default function DestinationsExplorer({

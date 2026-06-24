@@ -5,7 +5,7 @@
 import { getAll } from "./db";
 import { seoRoutes, slugify, type SeoRoute } from "./seo-routes";
 import { ROUTE_CONTENT, type RouteContent } from "./route-content";
-import { destinationImage, destinationRegion } from "./destinations";
+import { destinationImage, destinationRegion, resolveRegion } from "./destinations";
 import { getDefaultDestImage } from "./settings";
 import type { Route } from "./types";
 
@@ -52,7 +52,7 @@ function fromDbRow(r: Route): FullRoute {
       : null,
     image: r.image_url ?? null,
     imageCredit: r.image_credit ?? null,
-    region: r.region || destinationRegion(r.destination_iata),
+    region: resolveRegion(r.destination_iata, r.region),
   };
 }
 
@@ -70,7 +70,7 @@ export async function getRoutes(): Promise<FullRoute[]> {
         content: db.content ?? base?.content ?? null,
         image: db.image ?? base?.image ?? null,
         imageCredit: db.imageCredit ?? base?.imageCredit ?? null,
-        region: db.region || base?.region || "Autre",
+        region: db.region !== "Autre" ? db.region : base?.region || "Autre",
       });
     }
   } catch {

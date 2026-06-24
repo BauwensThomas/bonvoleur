@@ -8,7 +8,56 @@
 export const DEFAULT_DEST_IMAGE =
   "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1200&q=80";
 
-export type Region = "Europe" | "Afrique" | "Amérique" | "Asie" | "Océanie";
+export type Region =
+  | "Europe"
+  | "Amérique du Nord"
+  | "Amérique du Sud"
+  | "Caraïbes"
+  | "Afrique"
+  | "Moyen-Orient"
+  | "Asie"
+  | "Océanie";
+
+// Ordre d'affichage des régions (du plus proche / fréquent au plus lointain).
+export const REGION_ORDER: Region[] = [
+  "Europe",
+  "Afrique",
+  "Moyen-Orient",
+  "Asie",
+  "Amérique du Nord",
+  "Amérique du Sud",
+  "Caraïbes",
+  "Océanie",
+];
+
+// Carte IATA -> région, SOURCE DE VÉRITÉ (prioritaire sur la colonne DB, qui
+// pouvait être mal devinée, ex. Dubaï classé "Asie"). Pour reclasser une ville :
+// une ligne ici suffit, sans toucher la base.
+export const REGION_BY_IATA: Record<string, Region> = {
+  // Europe (aéroports de départ + destinations européennes)
+  BRU: "Europe", CRL: "Europe", ANR: "Europe", OST: "Europe", LGG: "Europe",
+  CDG: "Europe", ORY: "Europe", BVA: "Europe", LYS: "Europe", NCE: "Europe",
+  MRS: "Europe", BOD: "Europe", TLS: "Europe", NTE: "Europe", LIL: "Europe",
+  SXB: "Europe", LIS: "Europe", OPO: "Europe", BCN: "Europe", AGP: "Europe",
+  ALC: "Europe", MAD: "Europe", VLC: "Europe", PMI: "Europe", FCO: "Europe",
+  NAP: "Europe", ATH: "Europe", KRK: "Europe",
+  // Afrique (Maghreb, Afrique de l'Ouest/Est/Sud, océan Indien)
+  RAK: "Afrique", CMN: "Afrique", BKO: "Afrique", DKR: "Afrique", ABJ: "Afrique",
+  NBO: "Afrique", JNB: "Afrique", MRU: "Afrique", RUN: "Afrique",
+  // Moyen-Orient (Golfe)
+  DXB: "Moyen-Orient", DOH: "Moyen-Orient",
+  // Asie
+  BKK: "Asie", DPS: "Asie", DEL: "Asie", BOM: "Asie",
+  // Amérique du Nord
+  JFK: "Amérique du Nord", EWR: "Amérique du Nord", YUL: "Amérique du Nord",
+  YYZ: "Amérique du Nord", MIA: "Amérique du Nord", LAX: "Amérique du Nord",
+  CUN: "Amérique du Nord", MEX: "Amérique du Nord",
+  // Amérique du Sud
+  GIG: "Amérique du Sud", GRU: "Amérique du Sud", EZE: "Amérique du Sud",
+  LIM: "Amérique du Sud", BOG: "Amérique du Sud",
+  // Caraïbes
+  PUJ: "Caraïbes",
+};
 
 export interface DestinationInfo {
   slug: string; // nom de fichier sans extension (public/destinations/{slug}.jpg)
@@ -22,22 +71,34 @@ export const DESTINATIONS: Record<string, DestinationInfo> = {
   BCN: { slug: "barcelone", city: "Barcelone", region: "Europe" },
   RAK: { slug: "marrakech", city: "Marrakech", region: "Afrique" },
   FCO: { slug: "rome", city: "Rome", region: "Europe" },
-  JFK: { slug: "new-york", city: "New York", region: "Amérique" },
+  JFK: { slug: "new-york", city: "New York", region: "Amérique du Nord" },
   BKK: { slug: "bangkok", city: "Bangkok", region: "Asie" },
   OPO: { slug: "porto", city: "Porto", region: "Europe" },
   KRK: { slug: "cracovie", city: "Cracovie", region: "Europe" },
   ALC: { slug: "alicante", city: "Alicante", region: "Europe" },
   ATH: { slug: "athenes", city: "Athènes", region: "Europe" },
   AGP: { slug: "malaga", city: "Malaga", region: "Europe" },
-  GIG: { slug: "rio-de-janeiro", city: "Rio de Janeiro", region: "Amérique" },
+  GIG: { slug: "rio-de-janeiro", city: "Rio de Janeiro", region: "Amérique du Sud" },
 };
 
-// Région d'une destination (par libellé "Ville (XXX)" ou code IATA). "Autre"
-// si inconnue (destination auto pas encore catégorisée).
+// Région d'une destination (par libellé "Ville (XXX)" ou code IATA). La carte
+// REGION_BY_IATA fait foi ; sinon repli sur DESTINATIONS ; sinon "Autre".
 export function destinationRegion(labelOrIata: string): Region | "Autre" {
   const iata =
     labelOrIata.length === 3 ? labelOrIata.toUpperCase() : iataOf(labelOrIata);
-  return (iata && DESTINATIONS[iata]?.region) || "Autre";
+  if (!iata) return "Autre";
+  return REGION_BY_IATA[iata] ?? DESTINATIONS[iata]?.region ?? "Autre";
+}
+
+// Région finale d'une route : le calcul par IATA (REGION_BY_IATA) FAIT FOI ;
+// sinon la valeur stockée en base ; sinon "Autre".
+export function resolveRegion(
+  labelOrIata: string,
+  dbRegion?: string | null
+): string {
+  const computed = destinationRegion(labelOrIata);
+  if (computed !== "Autre") return computed;
+  return dbRegion || "Autre";
 }
 
 // Extrait le code IATA d'un libellé du type "Lisbonne (LIS)".

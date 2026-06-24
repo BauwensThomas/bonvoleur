@@ -116,7 +116,7 @@ async function genCityContent(city, origins) {
  "duration": "durée de vol typique vers ${city} depuis la Belgique/France (direct, et avec escale si pertinent)",
  "bestPeriod": "meilleure période pour visiter ${city} : météo ET prix (mois les moins chers, et combien de temps a l'avance reserver)",
  "tips": ["4 à 5 conseils concrets et actionnables pour un voyage à ${city} (transfert aeroport vers le centre, bagages low cost, decalage horaire, formalites/visa si besoin, meilleur jour pour reserver...), dont OBLIGATOIREMENT un sur la MONNAIE : si ${city} est dans la zone euro, indique qu'on paie en euros (aucun change à prévoir) ; sinon donne un ordre de grandeur du taux de change (environ 1 euro = X en monnaie locale, et environ 1 unité de cette monnaie = Y euros), en précisant que c'est approximatif et variable"],
- "region": "le continent de ${city} : exactement l'une de ces valeurs -> Europe, Amérique, Afrique, Asie, Océanie"
+ "region": "la région de ${city} : exactement l'une de ces valeurs -> Europe, Afrique, Moyen-Orient, Asie, Amérique du Nord, Amérique du Sud, Caraïbes, Océanie. Repères : Golfe (Dubaï, Doha, Abu Dhabi, Riyad) = Moyen-Orient ; USA/Canada/Mexique = Amérique du Nord ; Brésil/Argentine/Pérou/Colombie/Chili = Amérique du Sud ; Rép. dominicaine/Cuba/Antilles = Caraïbes ; Maghreb et reste de l'Afrique = Afrique"
 }
 IMPÉRATIF : français correct avec TOUS les accents (é, è, ê, à, â, ç, ô, î, ù...). Pas d'émoji, pas de tiret long (em dash). Pas de prix inventés présentés comme garantis. N'inclus AUCUNE balise dans les valeurs (pas de <cite>, pas de HTML) : uniquement du texte brut.`,
     }],
