@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "backup": "node scripts/backup-db.mjs",
-    "backup:full": "node scripts/backup-full.mjs"
+    "backup:full": "node scripts/backup-full.mjs",
+    "harden:auth": "node scripts/harden-auth.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",
