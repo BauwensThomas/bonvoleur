@@ -126,12 +126,15 @@ export default function ConditionsGenerales() {
               exercice du droit de rétractation ci-dessus).
             </p>
             <p className="mt-2">
-              À distinguer de la <strong>suppression de compte</strong> (lien
-              « se désinscrire » des emails ou page dédiée) : après confirmation,
-              elle <strong>efface définitivement</strong> ton compte et tes
-              données, et <strong>résilie immédiatement</strong> l&apos;abonnement
-              premium (sans remboursement de la période en cours). Tu ne seras
-              plus jamais débité.
+              Trois actions distinctes : le lien <strong>« se désinscrire »</strong>
+              {" "}des emails <strong>arrête seulement les emails</strong> (ton
+              compte et ton accès premium restent actifs) ; la{" "}
+              <strong>résiliation</strong> via le portail (ci-dessus) garde
+              l&apos;accès jusqu&apos;à la fin de la période payée ; la{" "}
+              <strong>suppression de compte</strong> (depuis ton espace, Mes
+              préférences) <strong>efface définitivement</strong> ton compte et
+              tes données et <strong>résilie immédiatement</strong> le premium
+              (sans remboursement de la période en cours).
             </p>
           </section>
 
