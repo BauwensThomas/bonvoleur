@@ -9,6 +9,7 @@
 //    anciennes. C'est ce qui rend le premium intéressant.
 import { getAll } from "./db";
 import { FRESH_MAX_MS } from "./deal-freshness";
+import { destinationRegion } from "./destinations";
 import type { Deal, Tier } from "./types";
 
 export const FREE_DELAY_HOURS = 96; // 4 jours de retard pour le gratuit
@@ -19,6 +20,7 @@ export const FREE_MAX_DEALS = 6;
 export interface MemberFilters {
   origin?: string; // code IATA de départ (ex. "BRU")
   destination?: string; // texte libre (ville ou code)
+  region?: string; // région de la destination (ex. "Europe", "Asie")
   maxPrice?: number;
   dateFrom?: string; // date de départ min (YYYY-MM-DD) - premium
   dateTo?: string; // date de départ max (YYYY-MM-DD) - premium
@@ -78,6 +80,9 @@ export async function getMemberDeals(
   if (filters.destination) {
     const q = filters.destination.trim().toLowerCase();
     if (q) all = all.filter((d) => d.destination.toLowerCase().includes(q));
+  }
+  if (filters.region) {
+    all = all.filter((d) => destinationRegion(d.destination) === filters.region);
   }
   if (typeof filters.maxPrice === "number" && !Number.isNaN(filters.maxPrice)) {
     all = all.filter((d) => d.price <= filters.maxPrice!);

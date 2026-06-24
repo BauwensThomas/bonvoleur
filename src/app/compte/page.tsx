@@ -41,6 +41,7 @@ export default async function Compte({
   searchParams: Promise<{
     origin?: string;
     destination?: string;
+    region?: string;
     maxPrice?: string;
     view?: string;
     sort?: string;
@@ -131,6 +132,7 @@ export default async function Compte({
   const tier = member.tier;
   const origin = sp.origin ?? "";
   const destination = sp.destination ?? "";
+  const region = sp.region ?? "";
   const maxPriceNum = sp.maxPrice ? Number(sp.maxPrice) : undefined;
   const view: "grid" | "list" = sp.view === "list" ? "list" : "grid";
   const sort = sp.sort ?? "recent";
@@ -141,6 +143,7 @@ export default async function Compte({
   const { deals, total, liveLockedForFree, lastRefresh } = await getMemberDeals(tier, {
     origin: origin || undefined,
     destination: destination || undefined,
+    region: region || undefined,
     maxPrice: maxPriceNum,
     dateFrom: from || undefined,
     dateTo: to || undefined,

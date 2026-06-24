@@ -44,8 +44,8 @@ export const REGION_BY_IATA: Record<string, Region> = {
   // Afrique (Maghreb, Afrique de l'Ouest/Est/Sud, océan Indien)
   RAK: "Afrique", CMN: "Afrique", BKO: "Afrique", DKR: "Afrique", ABJ: "Afrique",
   NBO: "Afrique", JNB: "Afrique", MRU: "Afrique", RUN: "Afrique",
-  // Moyen-Orient (Golfe)
-  DXB: "Moyen-Orient", DOH: "Moyen-Orient",
+  // Moyen-Orient (Golfe + Levant)
+  DXB: "Moyen-Orient", DOH: "Moyen-Orient", AMM: "Moyen-Orient",
   // Asie
   BKK: "Asie", DPS: "Asie", DEL: "Asie", BOM: "Asie",
   // Amérique du Nord
