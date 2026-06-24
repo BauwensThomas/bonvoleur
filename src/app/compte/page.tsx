@@ -292,7 +292,7 @@ export default async function Compte({
                   type="submit"
                   className="rounded-lg border border-brand px-4 py-2 text-sm font-semibold text-brand-dark transition hover:bg-brand/10"
                 >
-                  39 € / an (2 mois offerts)
+                  ou 39 € / an (4 mois offerts)
                 </button>
               </form>
             </div>
