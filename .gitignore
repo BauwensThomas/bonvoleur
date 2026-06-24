@@ -51,6 +51,9 @@ next-env.d.ts
 # md (docs de travail privées)
 /md/
 
+# sauvegardes de la base (contiennent des données personnelles : ne pas committer)
+/backups/
+
 # Claude / outils IA (ne pas committer ni servir)
 /.claude/
 .claude/
