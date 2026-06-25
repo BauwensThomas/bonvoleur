@@ -3,6 +3,7 @@ import { Rubik, Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/site";
 import CookieBanner from "@/components/CookieBanner";
+import { Analytics } from "@vercel/analytics/next";
 
 // Rubik : titres (du caractère). Nunito Sans : corps (lisible).
 const rubik = Rubik({
@@ -53,6 +54,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <CookieBanner />
+        <Analytics />
       </body>
     </html>
   );
