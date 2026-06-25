@@ -23,9 +23,13 @@ export default async function Preferences() {
     redirect("/compte");
   }
 
-  const initialFrequency: EmailFrequency =
-    member.subscriber.email_frequency ??
-    (member.tier === "premium" ? "daily" : "weekly");
+  // Si l'abonné s'est désinscrit (emails coupés), les préférences reflètent
+  // l'état réel : tout en « pause » / décoché. Réenregistrer réactive les emails.
+  const unsubscribed = !!member.subscriber.unsubscribed_at;
+  const initialFrequency: EmailFrequency = unsubscribed
+    ? "none"
+    : member.subscriber.email_frequency ??
+      (member.tier === "premium" ? "daily" : "weekly");
 
   return (
     <>
@@ -50,7 +54,7 @@ export default async function Preferences() {
             tier={member.tier}
             initialAirports={member.subscriber.home_airports ?? []}
             initialFrequency={initialFrequency}
-            initialNewsletter={member.subscriber.newsletter !== false}
+            initialNewsletter={!unsubscribed && member.subscriber.newsletter !== false}
           />
         </div>
 

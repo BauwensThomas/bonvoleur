@@ -89,6 +89,34 @@ function spacer(): string {
   return `<tr><td style="height:14px;"></td></tr>`;
 }
 
+// Bouton CTA vers l'espace compte (voir TOUS les bons plans).
+function accountCta(accountUrl: string): string {
+  return `<tr><td align="center" style="padding:10px 28px 20px;">
+    <a href="${accountUrl}" style="display:inline-block;background:#0ea5e9;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:12px 24px;border-radius:9px;">Voir tous mes bons plans</a>
+  </td></tr>`;
+}
+
+// Digest teaser : jusqu'à 3 bons plans PAR aéroport + bouton vers le compte.
+// (On ne met pas tout dans l'email : ça pousse l'abonné à venir sur le site.)
+export function teaserDigestHtml(
+  groups: { origin: string; deals: Deal[] }[],
+  accountUrl: string,
+  unsubscribeUrl: string
+): string {
+  const intro = `<tr><td style="padding:22px 28px 0;font-size:15px;color:#334155;">Voici un aperçu de tes meilleurs bons plans. Retrouve-les tous (et plus) sur ton compte.</td></tr>`;
+  const sections = groups
+    .map((g) => {
+      const header = `<tr><td style="padding:18px 28px 2px;font-size:16px;font-weight:800;color:#0f172a;">Depuis ${escapeHtml(g.origin)}</td></tr>`;
+      return header + g.deals.map(dealCard).join("");
+    })
+    .join("");
+  return emailLayout(
+    "Tes bons plans",
+    intro + hurryLine + sections + accountCta(accountUrl) + spacer(),
+    unsubscribeUrl
+  );
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -251,7 +279,7 @@ interface DigestOptions {
 export async function sendScheduledDigest(
   opts: DigestOptions
 ): Promise<DigestResult> {
-  const { tier, frequency, sinceDays, periodDays, hotOnly, maxDeals = 8 } = opts;
+  const { tier, frequency, sinceDays, periodDays, hotOnly } = opts;
   const since = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
   const periodMs = periodDays * 24 * 60 * 60 * 1000;
   const allDeals = await getAll("deals");
@@ -283,43 +311,65 @@ export async function sendScheduledDigest(
     }
   }
 
+  const accountUrl = `${site.url}/compte`;
+  const todayStr = new Date().toISOString().slice(0, 10);
+
   let emails = 0;
   for (const sub of subs) {
     // Plafond : déjà servi dans la période en cours ? on saute.
     const last = lastSentAt.get(sub.id);
     if (last && Date.now() - last < periodMs) continue;
 
-    // Deals de son aéroport, pas déjà reçus, les moins chers d'abord.
-    const theirs = recent
-      .filter(
-        (d) =>
-          matches(sub, originIata(d.origin)) &&
-          !alreadySent.has(`${d.id}|${sub.id}`)
-      )
-      .sort((a, b) => a.price - b.price)
-      .slice(0, maxDeals);
-    if (theirs.length === 0) continue;
+    // Pour CHAQUE aéroport de l'abonné : jusqu'à 3 bons plans (pas déjà reçus,
+    // date non passée, 1 par route, les moins chers). Le freemium n'a qu'un seul
+    // aéroport, le premium plusieurs -> on incite à venir voir TOUT sur le compte.
+    const groups: { origin: string; deals: Deal[] }[] = [];
+    for (const ap of (sub.home_airports ?? []).map((a) => a.toUpperCase())) {
+      const seenRoutes = new Set<string>();
+      const apDeals = recent
+        .filter((d) => {
+          if (originIata(d.origin) !== ap) return false;
+          if (alreadySent.has(`${d.id}|${sub.id}`)) return false;
+          const dep = (d.dates ?? "").match(/\d{4}-\d{2}-\d{2}/)?.[0];
+          return !dep || dep >= todayStr;
+        })
+        .sort((a, b) => a.price - b.price)
+        .filter((d) => {
+          const key = `${d.origin}||${d.destination}`;
+          if (seenRoutes.has(key)) return false;
+          seenRoutes.add(key);
+          return true;
+        })
+        .slice(0, 3);
+      if (apDeals.length) groups.push({ origin: apDeals[0].origin, deals: apDeals });
+    }
+
+    const shown = groups.flatMap((g) => g.deals);
+    if (shown.length === 0) continue;
 
     const unsubscribeUrl = unsubUrl(sub.email, sub.unsubscribe_token ?? "");
-    const subject =
-      theirs.length === 1
-        ? (theirs[0].email?.subject ?? "Un bon plan vol pour toi")
-        : `${theirs.length} bons plans vol pour toi`;
     try {
       await sendEmail(
         {
           to: sub.email,
-          subject,
-          html: digestHtml(theirs, unsubscribeUrl),
-          text: theirs
-            .map((d) => `${d.origin} -> ${d.destination} : aux alentours de ${d.price} EUR\n${d.booking_url}`)
-            .join("\n\n"),
+          subject: "Tes bons plans de vols",
+          html: teaserDigestHtml(groups, accountUrl, unsubscribeUrl),
+          text:
+            groups
+              .map(
+                (g) =>
+                  `Depuis ${g.origin} :\n` +
+                  g.deals
+                    .map((d) => `  ${d.origin} -> ${d.destination} : aux alentours de ${d.price} EUR`)
+                    .join("\n")
+              )
+              .join("\n\n") + `\n\nVoir tous tes bons plans : ${accountUrl}`,
           replyTo: site.email,
           listUnsubscribe: unsubscribeUrl,
         },
         sub.tier,
       );
-      for (const d of theirs) {
+      for (const d of shown) {
         await insert("sends", {
           deal_id: d.id,
           subscriber_id: sub.id,

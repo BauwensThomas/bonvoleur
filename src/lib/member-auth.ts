@@ -29,10 +29,12 @@ export async function getMemberState(): Promise<MemberState> {
     "subscribers",
     (s) => s.email.toLowerCase() === email
   );
-  // Pas d'abonné, ou désinscrit -> doit (re)passer par l'inscription.
-  if (!sub || sub.unsubscribed_at) return { status: "no-account", email };
+  // Pas d'abonné -> doit s'inscrire.
+  if (!sub) return { status: "no-account", email };
   // Inscrit mais double opt-in non validé -> doit confirmer par email d'abord.
   if (!sub.consent_at) return { status: "unconfirmed", email };
+  // NB : `unsubscribed_at` (emails coupés) ne bloque PAS l'accès au compte :
+  // l'abonné garde son espace et son premium, il a juste arrêté les emails.
 
   const tier: Tier = sub.tier === "premium" ? "premium" : "free";
   return { status: "member", email, tier, subscriber: sub };

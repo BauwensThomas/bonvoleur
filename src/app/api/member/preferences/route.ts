@@ -51,6 +51,10 @@ export async function POST(req: Request) {
     home_airports: airports,
     email_frequency: frequency,
     newsletter: parsed.data.newsletter,
+    // Gérer ses préférences réactive les emails (le détail est géré par la
+    // fréquence « pause » et le toggle newsletter). Annule un précédent
+    // « se désinscrire ».
+    unsubscribed_at: null,
   });
 
   return NextResponse.json({ ok: true });

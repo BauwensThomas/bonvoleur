@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getMemberState } from "@/lib/member-auth";
 import { remove } from "@/lib/db";
+import { sendEmail } from "@/lib/email";
+import { accountDeletedEmail } from "@/lib/email-templates";
 import { deleteStripeCustomer } from "@/lib/stripe";
 import { deleteAuthUserByEmail } from "@/lib/supabase/admin";
 import { createSupabaseServer } from "@/lib/supabase/server";
@@ -21,6 +23,12 @@ export async function POST(req: Request) {
     } catch (err) {
       console.error("[member delete] Stripe échoué:", err);
     }
+  }
+  // Email de confirmation AVANT de tout effacer (on a encore l'adresse).
+  try {
+    await sendEmail(accountDeletedEmail(state.email));
+  } catch (err) {
+    console.error("[member delete] email confirmation échoué:", err);
   }
   await remove("subscribers", state.subscriber.id);
   // Déconnexion (efface les cookies) puis suppression du compte auth.

@@ -159,6 +159,26 @@ Tu changes d'avis ? Réinscris-toi sur ${site.url}.`;
   };
 }
 
+// Confirmation de SUPPRESSION DÉFINITIVE du compte (données + abonnement effacés).
+export function accountDeletedEmail(to: string): EmailMessage {
+  const inner = emailContent(
+    `<h1 style="margin:0 0 12px;font-size:22px;">Ton compte a été supprimé</h1>
+     <p style="margin:0 0 12px;">Comme demandé, ton compte ${site.name} a été supprimé : toutes tes données ont été effacées et ton abonnement premium éventuel a été résilié. Tu ne seras plus débité.</p>
+     <p style="margin:0;">Tu peux te réinscrire à tout moment sur <a href="${site.url}" style="${LINK}">${site.domain}</a>.</p>`
+  );
+
+  const text = `Ton compte ${site.name} a été supprimé : données effacées et abonnement résilié.
+Tu peux te réinscrire sur ${site.url}.`;
+
+  return {
+    to,
+    subject: `Ton compte ${site.name} a été supprimé`,
+    html: emailLayout("Compte supprimé", inner),
+    text,
+    replyTo: site.email,
+  };
+}
+
 // Newsletter blog hebdomadaire (vendredi) : les 3 derniers articles publiés.
 type NewsletterPost = Pick<Post, "slug" | "title" | "excerpt" | "cover_image">;
 

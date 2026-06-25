@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAll, getById, remove } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { sendEmail } from "@/lib/email";
+import { accountDeletedEmail } from "@/lib/email-templates";
 import { deleteStripeCustomer } from "@/lib/stripe";
 import { deleteAuthUserByEmail } from "@/lib/supabase/admin";
 
@@ -34,6 +36,11 @@ export async function DELETE(req: Request) {
       await deleteAuthUserByEmail(sub.email);
     } catch (err) {
       console.error("[admin subscribers] suppression compte auth échouée:", err);
+    }
+    try {
+      await sendEmail(accountDeletedEmail(sub.email));
+    } catch (err) {
+      console.error("[admin subscribers] email confirmation échoué:", err);
     }
   }
 
