@@ -96,9 +96,6 @@ export default async function Desinscription({
               >
                 Ne plus recevoir d&apos;emails
               </button>
-              <a href="/" className="text-sm text-slate-500 underline">
-                Annuler
-              </a>
             </form>
             <p className="mt-6 text-sm text-slate-600">
               Pour <strong>supprimer définitivement ton compte</strong> (et

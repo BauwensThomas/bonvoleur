@@ -4,7 +4,7 @@
 
 import { getAll, getById, insert } from "./db";
 import { sendEmail } from "./email";
-import { IG_LOGO, FB_LOGO } from "./email-templates";
+import { emailLayout } from "./email-templates";
 import { site, discountPct } from "./site";
 import { unsubscribeUrl as unsubUrl } from "./unsubscribe";
 import type { Deal, EmailFrequency, Subscriber, Tier } from "./types";
@@ -36,7 +36,6 @@ function matches(sub: Subscriber, iata: string | null): boolean {
   return (sub.home_airports ?? []).map((a) => a.toUpperCase()).includes(iata);
 }
 
-const linkStyle = "color:#0369a1;text-decoration:none;";
 
 // Carte d'un deal (réutilisée en email simple et en digest).
 function dealCard(deal: Deal): string {
@@ -71,46 +70,19 @@ function dealCard(deal: Deal): string {
   </td></tr>`;
 }
 
-function wrap(subtitle: string, inner: string, unsubscribeUrl: string): string {
-  return `<!doctype html>
-<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
-<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 0;">
-    <tr><td align="center">
-      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;">
-        <tr><td style="background:#0ea5e9;padding:18px 28px;">
-          <span style="font-size:18px;font-weight:800;color:#ffffff;">BonVoleur<span style="color:#bae6fd;">.com</span></span>
-          <span style="float:right;color:#e0f2fe;font-size:13px;">${subtitle}</span>
-        </td></tr>
-        ${inner}
-        <tr><td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:18px 28px;">
-          <p style="margin:0 0 6px;font-size:14px;"><a href="${site.url}" style="${linkStyle}font-weight:bold;">${site.domain}</a></p>
-          <p style="margin:0 0 12px;font-size:14px;">
-            <a href="${site.social.instagram}" style="${linkStyle}margin-right:16px;">${IG_LOGO}Instagram</a>
-            <a href="${site.social.facebook}" style="${linkStyle}">${FB_LOGO}Facebook</a>
-          </p>
-          <p style="margin:0 0 10px;font-size:12px;color:#94a3b8;">${site.name} - tu reçois cet email car tu es inscrit.</p>
-          <a href="${unsubscribeUrl}" style="display:inline-block;border:1px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;color:#64748b;text-decoration:none;">Se desinscrire</a>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body></html>`;
-}
-
 const hurryLine = `<tr><td style="padding:6px 28px 0;font-size:13px;font-weight:700;color:#ea580c;">Les bons prix partent vite, ne traine pas.</td></tr>`;
 
 // Email d'un seul deal.
 export function dealHtml(deal: Deal, unsubscribeUrl: string): string {
   const intro = `<tr><td style="padding:22px 28px 0;font-size:15px;color:#334155;">Un nouveau bon plan pour toi :</td></tr>`;
-  return wrap("Bon plan vol", intro + hurryLine + dealCard(deal) + spacer(), unsubscribeUrl);
+  return emailLayout("Bon plan vol", intro + hurryLine + dealCard(deal) + spacer(), unsubscribeUrl);
 }
 
 // Email digest : plusieurs deals dans un seul email.
 export function digestHtml(deals: Deal[], unsubscribeUrl: string): string {
   const intro = `<tr><td style="padding:22px 28px 0;font-size:16px;font-weight:700;color:#0f172a;">${deals.length} bon${deals.length > 1 ? "s" : ""} plan${deals.length > 1 ? "s" : ""} pour toi</td></tr>`;
   const cards = deals.map(dealCard).join("");
-  return wrap("Tes bons plans", intro + hurryLine + cards + spacer(), unsubscribeUrl);
+  return emailLayout("Tes bons plans", intro + hurryLine + cards + spacer(), unsubscribeUrl);
 }
 
 function spacer(): string {
