@@ -15,16 +15,30 @@ export default function Footer() {
               href={site.social.instagram}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium hover:border-brand hover:text-brand"
+              aria-label="Instagram"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium hover:border-brand hover:text-brand"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand/instagram.png"
+                alt=""
+                className="h-4 w-4"
+              />
               Instagram
             </a>
             <a
               href={site.social.facebook}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium hover:border-brand hover:text-brand"
+              aria-label="Facebook"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium hover:border-brand hover:text-brand"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand/facebook.png"
+                alt=""
+                className="h-4 w-4"
+              />
               Facebook
             </a>
           </div>

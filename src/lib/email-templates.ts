@@ -14,9 +14,11 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-// Petits logos (SVG inline) pour les liens reseaux. Partages avec deal-send.
-export const IG_LOGO = `<svg width="13" height="13" viewBox="0 0 24 24" fill="#0369a1" style="vertical-align:middle;margin-right:5px;"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.43.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s0 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23a3.7 3.7 0 0 1-.9 1.38 3.7 3.7 0 0 1-1.38.9c-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58 0-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.21 15.6 2.2 15.2 2.2 12s0-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.21 8.8 2.2 12 2.2zm0 3.4a6.4 6.4 0 1 0 0 12.8 6.4 6.4 0 0 0 0-12.8zm0 2.25a4.15 4.15 0 1 1 0 8.3 4.15 4.15 0 0 1 0-8.3zm6.6-3.7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>`;
-export const FB_LOGO = `<svg width="13" height="13" viewBox="0 0 24 24" fill="#0369a1" style="vertical-align:middle;margin-right:5px;"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg>`;
+// Petits logos réseaux en PNG hébergé (Supabase Storage) : un email affiche
+// fiablement une image PNG (le SVG inline est ignoré par Gmail et d'autres).
+const ICON_BASE = "https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand";
+export const IG_LOGO = `<img src="${ICON_BASE}/instagram.png" width="14" height="14" alt="" style="vertical-align:middle;margin-right:5px;" />`;
+export const FB_LOGO = `<img src="${ICON_BASE}/facebook.png" width="14" height="14" alt="" style="vertical-align:middle;margin-right:5px;" />`;
 
 const LINK = "color:#0369a1;text-decoration:none;";
 
