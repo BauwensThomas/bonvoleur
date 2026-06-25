@@ -61,8 +61,12 @@ export default async function BlogIndex() {
                   <p className="text-xs font-medium text-slate-500">
                     {frDate(p.published_at ?? p.created_at)}
                   </p>
-                  <h2 className="mt-1 text-lg font-semibold">{p.title}</h2>
-                  <p className="mt-2 text-sm text-slate-600">{p.excerpt}</p>
+                  <h2 className="mt-1 text-lg font-semibold line-clamp-2 min-h-14">
+                    {p.title}
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-600 line-clamp-3 min-h-15">
+                    {p.excerpt}
+                  </p>
                   <span className="mt-auto pt-3 text-sm font-medium text-brand">
                     Lire l&apos;article
                   </span>
