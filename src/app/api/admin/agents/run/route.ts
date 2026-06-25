@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { insert } from "@/lib/db";
 import { findAgent } from "@/lib/agents";
 import { runContentPublisher } from "@/lib/content";
+import { sendBlogNewsletter } from "@/lib/newsletter";
 import { dispatchWorkflow } from "@/lib/github-actions";
 import { requireAdmin } from "@/lib/auth";
+
+// content-publisher (génération IA longue) peut tourner depuis ici -> budget max.
+export const maxDuration = 300;
 
 // Exécute un agent depuis le back-office.
 // content-publisher : génère réellement un article en brouillon.
@@ -20,6 +24,12 @@ export async function POST(req: Request) {
   if (agent.name === "content-publisher") {
     const run = await runContentPublisher("manuel");
     return NextResponse.json(run, { status: 201 });
+  }
+
+  // Newsletter : envoie tout de suite les 3 derniers articles (et logue le run).
+  if (agent.name === "newsletter") {
+    const result = await sendBlogNewsletter("manuel");
+    return NextResponse.json(result, { status: 201 });
   }
 
   // SEO Route : (re)genere les fiches destinations sur GitHub Actions, utile

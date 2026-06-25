@@ -27,11 +27,20 @@ export default async function AgentsAdmin() {
           return (
             <div
               key={a.name}
-              className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              className={`flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm${
+                a.inactive ? " opacity-70" : ""
+              }`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h2 className="font-semibold">{a.label}</h2>
+                  <h2 className="font-semibold">
+                    {a.label}
+                    {a.inactive && (
+                      <span className="ml-2 align-middle rounded bg-slate-200 px-1.5 py-0.5 text-xs font-medium text-slate-500">
+                        inactif
+                      </span>
+                    )}
+                  </h2>
                   <p className="mt-0.5 text-sm font-medium text-slate-500">
                     {a.role}
                   </p>

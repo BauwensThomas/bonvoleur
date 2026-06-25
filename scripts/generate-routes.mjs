@@ -7,6 +7,7 @@
 // Local : node scripts/generate-routes.mjs   |  CI : variables d'env (secrets).
 
 import { readFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import { rehostImage } from "./rehost.mjs";
 
@@ -36,6 +37,7 @@ const SB = env.SUPABASE_URL;
 const SK = env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SB || !SK) throw new Error("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY manquants.");
 const sbHeaders = { apikey: SK, Authorization: `Bearer ${SK}`, "Content-Type": "application/json" };
+const startedAt = new Date().toISOString();
 
 const ORIGIN = { BRU: "Bruxelles", CRL: "Charleroi", CDG: "Paris", LYS: "Lyon" };
 const DEST = {
@@ -233,3 +235,24 @@ console.log(
   `\nTerminé. ${generated} destination(s) générée(s), ${skipped} déjà à jour, ` +
     `${deferred} reportée(s) au prochain run (plafond ${MAX_NEW}/run).`
 );
+
+// Journalise le run dans agent_runs -> visible dans l'historique des agents (admin).
+try {
+  await fetch(`${SB}/rest/v1/agent_runs`, {
+    method: "POST",
+    headers: { ...sbHeaders, Prefer: "return=minimal" },
+    body: JSON.stringify({
+      id: randomUUID(),
+      agent_name: "seo-route",
+      started_at: startedAt,
+      finished_at: new Date().toISOString(),
+      status: generated > 0 ? "success" : "draft",
+      trigger: "auto",
+      summary: `${generated} fiche(s) generee(s), ${skipped} deja a jour, ${deferred} reportee(s).`,
+      output_ref: null,
+      error: null,
+    }),
+  });
+} catch (e) {
+  console.log(`(log du run echoue: ${e?.message ?? e})`);
+}

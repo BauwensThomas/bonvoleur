@@ -10,6 +10,38 @@ import { getDestinations } from "./routes";
 import { rehostImage } from "./rehost";
 import type { AgentRun, FaqItem } from "./types";
 
+// Detecte un texte francais sorti SANS accents (bug ponctuel de generation).
+const ACCENT_RE = /[àâäçéèêëîïôöùûüœ]/i;
+function looksUnaccented(text: string): boolean {
+  return typeof text === "string" && text.length > 60 && !ACCENT_RE.test(text);
+}
+
+// Filet de securite : reaccentue un texte via un appel bon marche, sans rien
+// changer d'autre. Utilise quand le modele rend du francais sans accents.
+async function reaccentuate(client: Anthropic, text: string): Promise<string> {
+  if (!text || ACCENT_RE.test(text)) return text;
+  try {
+    const res = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 16000,
+      thinking: { type: "disabled" },
+      messages: [
+        {
+          role: "user",
+          content: `Ajoute UNIQUEMENT les accents francais manquants a ce texte. Ne change RIEN d'autre : ni les mots, ni la ponctuation, ni le Markdown, ni les liens, ni les majuscules, ni les retours a la ligne. Ne traduis pas, n'ajoute aucun commentaire ni delimiteur. Reponds UNIQUEMENT avec le texte corrige.\n\n${text}`,
+        },
+      ],
+    });
+    const out = res.content.find((b) => b.type === "text");
+    let fixed = out && out.type === "text" ? out.text.trim() : null;
+    if (!fixed) return text;
+    fixed = fixed.replace(/^---\s*(\n|$)/, "").replace(/\n---\s*$/, "").trim();
+    return fixed;
+  } catch {
+    return text; // en cas d'echec, on garde le texte (mieux que rien)
+  }
+}
+
 // Sécurité : réécrit tout lien interne /vols-pas-chers/... vers une fiche
 // DESTINATION valide (retire un prefixe d'aeroport de depart, sinon renvoie au
 // hub). Garantit qu'un article généré n'a aucun lien cassé ni redirigé.
@@ -330,7 +362,9 @@ Contraintes impératives :
 - "slug" : court, minuscules, mots séparés par des tirets.
 - "image_query" : 2 à 4 mots EN ANGLAIS décrivant une photo d'illustration qui colle à l'article (ex. "Lisbon tram", "airplane window view", "Barcelona skyline"). Vise une image qui représente vraiment le sujet de l'article.
 - N'invente pas de prix présentés comme garantis : reste sur des fourchettes ou des ordres de grandeur ("aux alentours de", "à partir d'environ").
-- Si le pays de la destination utilise une monnaie autre que l'euro, donne un ordre de grandeur du taux de change : environ combien vaut 1 € dans cette monnaie, ET environ combien vaut 1 unité de cette monnaie en euros. Précise que c'est approximatif et variable (ex. "environ 1 € = X, soit 1 X = Y €, à titre indicatif").`;
+- Si le pays de la destination utilise une monnaie autre que l'euro, donne un ordre de grandeur du taux de change : environ combien vaut 1 € dans cette monnaie, ET environ combien vaut 1 unité de cette monnaie en euros. Précise que c'est approximatif et variable (ex. "environ 1 € = X, soit 1 X = Y €, à titre indicatif").
+
+RAPPEL FINAL CRITIQUE : TOUT le texte (title, excerpt, content, meta_title, meta_description, FAQ) doit être en français avec TOUS les accents (é, è, ê, à, â, ç, ô, î, ù, ë, ï, œ...). Ne renvoie JAMAIS de texte sans accents.`;
 
   const response = await withRetry(
     () =>
@@ -351,6 +385,22 @@ Contraintes impératives :
   const data = JSON.parse(textBlock.text) as GeneratedArticle;
   data.slug = slugify(data.slug || data.title);
   if (!Array.isArray(data.faq)) data.faq = [];
+
+  // Filet de securite : si le modele a rendu l'article SANS accents (observe
+  // avec la sortie structuree json_schema), on reaccentue avant publication.
+  if (looksUnaccented(data.content)) {
+    data.title = await reaccentuate(client, data.title);
+    data.excerpt = await reaccentuate(client, data.excerpt);
+    data.content = await reaccentuate(client, data.content);
+    data.meta_title = await reaccentuate(client, data.meta_title);
+    data.meta_description = await reaccentuate(client, data.meta_description);
+    data.faq = await Promise.all(
+      data.faq.map(async (f) => ({
+        question: await reaccentuate(client, f.question),
+        answer: await reaccentuate(client, f.answer),
+      }))
+    );
+  }
   return data;
 }
 

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { sendScheduledDigest } from "@/lib/deal-send";
 
+// Envoi séquentiel à tous les abonnés -> peut s'allonger : budget max Hobby.
+export const maxDuration = 300;
+
 // Digest GRATUIT : une fois par semaine, les deals des 7 derniers jours.
 // Planifié dans vercel.json. Protégé par CRON_SECRET.
 export async function GET(req: Request) {

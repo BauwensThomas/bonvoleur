@@ -8,18 +8,10 @@ export interface AgentDef {
   description: string; // explication détaillée, en clair
   cadence: string; // quand il tourne
   appButton: boolean; // bouton "Lancer" sur la page Agents
+  inactive?: boolean; // déclaré mais pas (encore) câblé -> badge "inactif"
 }
 
 export const agents: AgentDef[] = [
-  {
-    name: "deal-writer",
-    label: "Deal Writer",
-    role: "Écrit l'email d'un bon plan.",
-    description:
-      "Quand un bon plan arrive, il met en forme l'email à envoyer : l'objet et le contenu (route, prix, dates, lien pour réserver). Si c'est une erreur de prix, il ajoute l'avertissement. Il n'invente rien : il utilise seulement les infos du deal. Il ne cherche pas les bons plans et ne vérifie pas les liens, c'est le rôle du Scanner.",
-    cadence: "Automatique à chaque nouveau deal",
-    appButton: false,
-  },
   {
     name: "deal-sender",
     label: "Deal Sender",
@@ -39,13 +31,23 @@ export const agents: AgentDef[] = [
     appButton: true,
   },
   {
+    name: "newsletter",
+    label: "Newsletter",
+    role: "Envoie la newsletter du blog.",
+    description:
+      "Chaque vendredi, envoie un email aux abonnés (qui ont la newsletter activée) avec les 3 derniers articles de blog publiés. Les désinscrits et ceux qui ont désactivé la newsletter ne reçoivent rien. Le bouton « Lancer » l'envoie tout de suite.",
+    cadence: "Vendredi (hebdomadaire)",
+    appButton: true,
+  },
+  {
     name: "social-clipper",
     label: "Social Clipper",
     role: "Partage l'article sur les réseaux.",
     description:
-      "Prend le dernier article de blog et crée les publications pour Instagram et Facebook qui le mettent en avant, avec un appel à nous suivre, commenter et partager. Pensé pour fonctionner avec ManyChat (réponses et messages privés automatiques aux commentaires). Tourne 30 minutes après Content Publisher, pour publier juste après que l'article soit prêt.",
+      "Prend le dernier article de blog et crée les publications pour Instagram et Facebook qui le mettent en avant, avec un appel à nous suivre, commenter et partager. Pensé pour fonctionner avec ManyChat (réponses et messages privés automatiques aux commentaires). Tournerait 30 minutes après Content Publisher. Pas encore branché.",
     cadence: "30 min après Content Publisher (via ManyChat)",
     appButton: false,
+    inactive: true,
   },
   {
     name: "seo-route",

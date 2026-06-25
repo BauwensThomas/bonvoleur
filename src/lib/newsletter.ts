@@ -1,10 +1,11 @@
 // Newsletter blog hebdomadaire (vendredi soir) : les 3 derniers articles
 // publiés, envoyée aux abonnés confirmés qui ne l'ont pas désactivée.
 
-import { getAll } from "./db";
+import { getAll, insert } from "./db";
 import { sendEmail } from "./email";
 import { blogNewsletterEmail } from "./email-templates";
 import { unsubscribeUrl } from "./unsubscribe";
+import type { AgentTrigger } from "./types";
 
 export interface NewsletterResult {
   ok: boolean;
@@ -13,7 +14,30 @@ export interface NewsletterResult {
   reason?: string;
 }
 
-export async function sendBlogNewsletter(): Promise<NewsletterResult> {
+export async function sendBlogNewsletter(
+  trigger: AgentTrigger = "cron"
+): Promise<NewsletterResult> {
+  const startedAt = new Date().toISOString();
+  const result = await runNewsletter();
+
+  // Journalise l'exécution (visible dans l'historique des agents).
+  await insert("agent_runs", {
+    agent_name: "newsletter",
+    started_at: startedAt,
+    finished_at: new Date().toISOString(),
+    status: result.sent > 0 ? "success" : "draft",
+    trigger,
+    summary: result.ok
+      ? `Newsletter envoyée à ${result.sent} abonné(s) (${result.posts} article(s)).`
+      : `Newsletter non envoyée : ${result.reason ?? "raison inconnue"}.`,
+    output_ref: null,
+    error: null,
+  });
+
+  return result;
+}
+
+async function runNewsletter(): Promise<NewsletterResult> {
   const posts = (await getAll("posts"))
     .filter((p) => p.status === "published")
     .sort((a, b) =>

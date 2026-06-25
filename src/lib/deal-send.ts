@@ -383,7 +383,16 @@ export async function sendScheduledDigest(
     }
   }
 
-  const label = hotOnly ? "premium quotidien" : "garantie hebdo";
+  // Libellé basé sur la fréquence ciblée (daily = premium, weekly = gratuit),
+  // pas sur hotOnly (les deux crons utilisent hotOnly:true).
+  const label =
+    frequency === "daily"
+      ? "quotidien (premium)"
+      : frequency === "weekly"
+      ? "hebdomadaire (gratuit)"
+      : hotOnly
+      ? "deals chauds"
+      : "tous deals";
   await insert("agent_runs", {
     agent_name: "deal-sender",
     started_at: new Date().toISOString(),
