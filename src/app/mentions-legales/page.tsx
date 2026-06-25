@@ -18,10 +18,18 @@ export default function MentionsLegales() {
           <section>
             <h2 className="text-xl font-semibold">Éditeur du site</h2>
             <p className="mt-2">
-              {site.name}{" "}({site.domain}), service édité par une personne
-              physique.
+              {site.name}{" "}({site.domain}), service édité par {site.legal.editor}
+              {" "}(personne physique).
               <br />
-              Bruxelles, Belgique.
+              {site.legal.city}.
+              <br />
+              {site.legal.bce ? (
+                <>
+                  Numéro d&apos;entreprise (BCE) : {site.legal.bce}.
+                  <br />
+                </>
+              ) : null}
+              {site.legal.vatNote}
               <br />
               Contact :{" "}
               <a className="underline" href={`mailto:${site.email}`}>

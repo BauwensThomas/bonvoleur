@@ -14,6 +14,16 @@ export const site = {
     instagram: "https://www.instagram.com/bonvoleur",
     facebook: "https://www.facebook.com/profile.php?id=61590940048347",
   },
+  // Infos légales (mentions + CGV). A COMPLETER : `bce` dès l'obtention du
+  // numéro d'entreprise (guichet d'entreprises). TVA : régime de la franchise
+  // (< 25 000 € de CA/an) => pas de numéro de TVA, mention "TVA non applicable".
+  legal: {
+    editor: "Thomas",
+    city: "Bruxelles, Belgique",
+    bce: "", // ex. "0123.456.789" (laisser vide tant que non attribué)
+    vatNote:
+      "TVA non applicable (régime de la franchise, article 56bis du Code de la TVA).",
+  },
 } as const;
 
 // Heures d'actualisation du scanner (heure de Bruxelles). Sert au compte à

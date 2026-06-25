@@ -17,7 +17,7 @@ export default function ConditionsGenerales() {
           Conditions générales d&apos;utilisation et de vente
         </h1>
         <p className="mt-2 text-slate-500 text-sm">
-          Dernière mise à jour : 11 juin 2026
+          Dernière mise à jour : 25 juin 2026
         </p>
 
         <div className="mt-6 space-y-6 text-slate-700 leading-relaxed">
@@ -34,8 +34,12 @@ export default function ConditionsGenerales() {
           <section>
             <h2 className="text-xl font-semibold">2. Éditeur</h2>
             <p className="mt-2">
-              Le service {site.name}{" "}est édité par Bauwens Thomas (personne
-              physique), Bruxelles, Belgique. Contact :{" "}
+              Le service {site.name}{" "}est édité par {site.legal.editor} (personne
+              physique), {site.legal.city}.{" "}
+              {site.legal.bce
+                ? `Numéro d'entreprise (BCE) : ${site.legal.bce}. `
+                : ""}
+              {site.legal.vatNote} Contact :{" "}
               <a className="underline" href={`mailto:${site.email}`}>
                 {site.email}
               </a>
@@ -58,7 +62,7 @@ export default function ConditionsGenerales() {
                 semaine, pour un aéroport de départ au choix.
               </li>
               <li>
-                <strong>Offre premium :</strong> jusqu&apos;à une alerte par
+                <strong>Offre premium :</strong>{" "}jusqu&apos;à une alerte par
                 jour, plusieurs aéroports de départ au choix, accès aux meilleurs
                 bons plans en priorité.
               </li>
@@ -84,11 +88,11 @@ export default function ConditionsGenerales() {
               5. Abonnement premium, prix et paiement
             </h2>
             <p className="mt-2">
-              L&apos;abonnement premium est proposé au prix de{" "}
-              <strong>4,99 € par mois ou 39 € par an (TTC)</strong>. Le paiement
-              est traité de façon sécurisée par notre prestataire <strong>Stripe</strong>.
-              {" "}{site.name}{" "}ne voit ni ne stocke jamais tes données de carte
-              bancaire.
+              L&apos;abonnement premium coûte{" "}
+              <strong>4,99 € par mois ou 39 € par an</strong>. {site.legal.vatNote}{" "}
+              Le paiement est traité de façon sécurisée par notre prestataire
+              Stripe : {site.name}{" "}ne voit ni ne conserve jamais tes données de
+              carte bancaire.
             </p>
             <p className="mt-2">
               L&apos;abonnement est reconduit automatiquement à chaque échéance,
@@ -101,16 +105,17 @@ export default function ConditionsGenerales() {
           <section>
             <h2 className="text-xl font-semibold">6. Droit de rétractation</h2>
             <p className="mt-2">
-              Conformément au droit de la consommation, tu disposes d&apos;un
-              délai de 14 jours à compter de la souscription pour te rétracter,
-              sans avoir à te justifier. Pour l&apos;exercer, le plus simple est
-              d&apos;annuler ton abonnement depuis le portail Stripe ; tu peux
-              aussi nous adresser une déclaration claire, par exemple par email à{" "}
-              <a className="underline" href={`mailto:${site.email}`}>
-                {site.email}
-              </a>
-              . Si tu as demandé que le service démarre immédiatement, une somme
-              proportionnelle au service déjà fourni pourra être retenue.
+              L&apos;abonnement premium est un service numérique à accès
+              immédiat. Au moment du paiement, tu demandes expressément à y
+              accéder tout de suite et tu renonces à ton droit de rétractation de
+              14 jours (case à cocher obligatoire, conformément à l&apos;article
+              VI.53 du Code de droit économique).
+            </p>
+            <p className="mt-2">
+              Une fois l&apos;accès premium activé, l&apos;abonnement n&apos;est
+              donc pas remboursable. Tu peux toutefois résilier à tout moment
+              (voir l&apos;article 7) : cela arrête le renouvellement, sans
+              remboursement de la période en cours.
             </p>
           </section>
 
@@ -122,19 +127,16 @@ export default function ConditionsGenerales() {
               abonnement »). La résiliation prend effet à la fin de la période
               déjà payée : tu
               gardes l&apos;accès premium jusqu&apos;à cette date, et aucun
-              remboursement de la période en cours n&apos;est effectué (sauf
-              exercice du droit de rétractation ci-dessus).
+              remboursement de la période en cours n&apos;est effectué.
             </p>
             <p className="mt-2">
-              Trois actions distinctes : le lien <strong>« se désinscrire »</strong>
-              {" "}des emails <strong>arrête seulement les emails</strong> (ton
-              compte et ton accès premium restent actifs) ; la{" "}
-              <strong>résiliation</strong> via le portail (ci-dessus) garde
-              l&apos;accès jusqu&apos;à la fin de la période payée ; la{" "}
-              <strong>suppression de compte</strong> (depuis ton espace, Mes
-              préférences) <strong>efface définitivement</strong> ton compte et
-              tes données et <strong>résilie immédiatement</strong> le premium
-              (sans remboursement de la période en cours).
+              Trois actions à ne pas confondre : se désinscrire des emails arrête
+              seulement les emails (ton compte et ton accès premium restent
+              actifs) ; la résiliation via le portail (ci-dessus) garde
+              l&apos;accès jusqu&apos;à la fin de la période payée ; la
+              suppression de compte (depuis ton espace, Mes préférences) efface
+              définitivement ton compte et tes données et résilie immédiatement
+              le premium (sans remboursement de la période en cours).
             </p>
           </section>
 

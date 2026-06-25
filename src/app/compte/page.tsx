@@ -276,26 +276,44 @@ export default async function Compte({
                 </>
               )}
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <form action="/api/billing/checkout" method="post">
-                <input type="hidden" name="plan" value="monthly" />
+            <form action="/api/billing/checkout" method="post" className="mt-3">
+              <label className="flex items-start gap-2 text-xs text-slate-600">
+                <input
+                  type="checkbox"
+                  name="waive_withdrawal"
+                  value="yes"
+                  required
+                  className="mt-0.5 h-4 w-4 shrink-0"
+                />
+                <span>
+                  Je demande l&apos;accès immédiat au service premium et je
+                  reconnais perdre mon droit de rétractation de 14 jours dès que
+                  le service commence (voir l&apos;
+                  <a href="/conditions-generales" className="underline">
+                    article 6 des CGV
+                  </a>
+                  ).
+                </span>
+              </label>
+              <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   type="submit"
+                  name="plan"
+                  value="monthly"
                   className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
                 >
                   Premium 4,99 € / mois
                 </button>
-              </form>
-              <form action="/api/billing/checkout" method="post">
-                <input type="hidden" name="plan" value="yearly" />
                 <button
                   type="submit"
+                  name="plan"
+                  value="yearly"
                   className="rounded-lg border border-brand px-4 py-2 text-sm font-semibold text-brand-dark transition hover:bg-brand/10"
                 >
                   ou 39 € / an (4 mois offerts)
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         )}
 

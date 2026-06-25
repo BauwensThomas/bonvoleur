@@ -26,7 +26,8 @@ export async function proxy(req: NextRequest) {
       pathname === "/acces" ||
       pathname === "/api/acces" ||
       pathname.startsWith("/auth/") ||
-      pathname === "/api/billing/webhook"; // appelé par Stripe (hors session)
+      pathname === "/api/billing/webhook" || // appelé par Stripe (hors session)
+      pathname.startsWith("/api/cron/"); // crons Vercel (protégés par CRON_SECRET)
     const hasGate = req.cookies.get(GATE_COOKIE)?.value === gatePass;
     if (!isGatePath && !hasGate) {
       if (pathname.startsWith("/api/")) {

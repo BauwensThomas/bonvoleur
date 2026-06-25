@@ -19,6 +19,11 @@ export async function POST(req: Request) {
   }
 
   const form = await req.formData();
+  // Renonciation au droit de rétractation : case obligatoire côté UI (required).
+  // On revérifie ici par sécurité : sans consentement explicite, pas de checkout.
+  if (form.get("waive_withdrawal") !== "yes") {
+    return NextResponse.redirect(`${origin}/compte`, { status: 303 });
+  }
   const plan: Plan = form.get("plan") === "yearly" ? "yearly" : "monthly";
   const sb = stripe();
 
@@ -43,6 +48,13 @@ export async function POST(req: Request) {
     client_reference_id: state.subscriber.id,
     allow_promotion_codes: true,
     locale: "fr",
+    // Preuve de la renonciation au droit de rétractation, attachée à l'abonnement.
+    subscription_data: {
+      metadata: {
+        withdrawal_waived: "yes",
+        withdrawal_waived_at: new Date().toISOString(),
+      },
+    },
     success_url: `${origin}/compte?upgraded=1`,
     cancel_url: `${origin}/compte`,
   });
