@@ -2,11 +2,12 @@
 //
 // Principe : on garde TOUS les deals en base (historique / contrôle des
 // aéroports). L'affichage déduplique par route et applique le gating par tier :
-//  - premium : voit chaque route avec son deal le plus récent (date "vu" =
-//    published_at, rafraîchie à chaque scan) -> dates récentes.
+//  - premium : voit chaque route FRAÎCHE (revue il y a <= FRESH_MAX_DAYS) avec
+//    son deal le plus récent (date "vu" = published_at) -> dates récentes.
 //  - gratuit : ne voit qu'un aperçu (FREE_MAX_DEALS) des deals DÉCOUVERTS il y a
-//    plus de 72h (created_at), et on affiche leur date de découverte -> dates
-//    anciennes. C'est ce qui rend le premium intéressant.
+//    plus de FREE_DELAY_HOURS (96h / 4 j), affichés avec leur date de découverte
+//    -> dates anciennes. Pas de filtre de fraîcheur (deals "anciens" assumés).
+//    C'est ce qui rend le premium intéressant.
 import { getAll } from "./db";
 import { FRESH_MAX_MS } from "./deal-freshness";
 import { destinationRegion } from "./destinations";
@@ -61,10 +62,6 @@ export async function getMemberDeals(
       ? all.reduce((m, d) => (seenAt(d) > m ? seenAt(d) : m), seenAt(all[0]))
       : null;
 
-  // Fraîcheur : on ne montre PAS aux membres les deals non revus depuis plus de
-  // FRESH_MAX_DAYS jours (ils restent en base pour l'historique).
-  all = all.filter((d) => now - new Date(seenAt(d)).getTime() <= FRESH_MAX_MS);
-
   // On ne montre jamais un deal dont la DATE DE DÉPART est déjà passée.
   const today = new Date(now).toISOString().slice(0, 10);
   all = all.filter((d) => {
@@ -98,13 +95,19 @@ export async function getMemberDeals(
     });
   }
 
-  // Premium : une entrée par route, la plus récemment vue.
-  const premium = newestPerRoute(all, seenAt).sort((a, b) =>
+  // Premium : routes FRAÎCHES uniquement (revues il y a <= FRESH_MAX_DAYS, donc
+  // encore d'actualité), une entrée par route, la plus récemment vue.
+  const fresh = all.filter(
+    (d) => now - new Date(seenAt(d)).getTime() <= FRESH_MAX_MS,
+  );
+  const premium = newestPerRoute(fresh, seenAt).sort((a, b) =>
     seenAt(b).localeCompare(seenAt(a)),
   );
 
-  // Gratuit : une entrée par route, parmi les deals découverts il y a >= 72h,
-  // le plus récemment découvert. On trie/affiche sur la date de découverte.
+  // Gratuit : les FREE_MAX_DEALS routes les plus récemment découvertes parmi les
+  // deals découverts il y a >= FREE_DELAY (4 j) et dont le départ est à venir.
+  // Pas de filtre de fraîcheur ici : ce sont des deals "anciens" assumés (teaser),
+  // donc on les garde affichés tant que le voyage est encore réservable.
   const olderThanDelay = all.filter(
     (d) => now - new Date(d.created_at).getTime() >= FREE_DELAY_MS,
   );
