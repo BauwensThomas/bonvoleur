@@ -181,6 +181,34 @@ Tu peux te réinscrire sur ${site.url}.`;
   };
 }
 
+// Alerte ADMIN (interne) : stock de bons plans visibles trop bas. Envoyée à
+// contact@bonvoleur.com. Pas de pied "se désinscrire" (ce n'est pas marketing).
+export function dealsAlertEmail(
+  count: number,
+  level: "urgence" | "attention"
+): EmailMessage {
+  const urgence = level === "urgence";
+  const color = urgence ? "#dc2626" : "#d97706";
+  const title = urgence
+    ? "URGENCE : moins de 50 bons plans aujourd'hui"
+    : "ATTENTION : moins de 100 bons plans aujourd'hui";
+  const inner = emailContent(
+    `<h1 style="margin:0 0 12px;font-size:22px;color:${color};">${title}</h1>
+     <p style="margin:0 0 12px;">Il reste actuellement <strong>${count}</strong> bon${count > 1 ? "s" : ""} plan${count > 1 ? "s" : ""} visible${count > 1 ? "s" : ""} sur ${site.name}.</p>
+     <p style="margin:0;">Vérifie le scanner (GitHub Actions) ou relance-le pour réalimenter le stock.</p>`
+  );
+
+  return {
+    to: site.email,
+    subject: urgence
+      ? `URGENCE : moins de 50 bons plans aujourd'hui (${count})`
+      : `ATTENTION : moins de 100 bons plans aujourd'hui (${count})`,
+    html: emailLayout("Alerte stock", inner),
+    text: `${title}\nIl reste ${count} bon(s) plan(s) visible(s) sur ${site.name}. Vérifie le scanner.`,
+    replyTo: site.email,
+  };
+}
+
 // Newsletter blog hebdomadaire (vendredi) : les 3 derniers articles publiés.
 type NewsletterPost = Pick<Post, "slug" | "title" | "excerpt" | "cover_image">;
 
