@@ -2,8 +2,8 @@
 // Cible : les abonnés dont l'aéroport choisi (home_airport) correspond à
 // l'origine du deal, non désinscrits. L'email vient de deal.email (Deal Writer).
 
-import { getAll, getById, insert } from "./db";
-import { sendEmail } from "./email";
+import { getAll, getById, insert, insertMany } from "./db";
+import { sendEmail, sendBatch, type EmailMessage } from "./email";
 import { emailLayout } from "./email-templates";
 import { site, discountPct } from "./site";
 import { unsubscribeUrl as unsubUrl } from "./unsubscribe";
@@ -314,7 +314,9 @@ export async function sendScheduledDigest(
   const accountUrl = `${site.url}/compte`;
   const todayStr = new Date().toISOString().slice(0, 10);
 
-  let emails = 0;
+  // 1) Construire un message par abonné qui a des bons plans frais à recevoir.
+  type Entry = { sub: Subscriber; shown: Deal[]; msg: EmailMessage };
+  const entries: Entry[] = [];
   for (const sub of subs) {
     // Plafond : déjà servi dans la période en cours ? on saute.
     const last = lastSentAt.get(sub.id);
@@ -348,40 +350,58 @@ export async function sendScheduledDigest(
     if (shown.length === 0) continue;
 
     const unsubscribeUrl = unsubUrl(sub.email, sub.unsubscribe_token ?? "");
-    try {
-      await sendEmail(
-        {
-          to: sub.email,
-          subject: "Tes bons plans de vols",
-          html: teaserDigestHtml(groups, accountUrl, unsubscribeUrl),
-          text:
-            groups
-              .map(
-                (g) =>
-                  `Depuis ${g.origin} :\n` +
-                  g.deals
-                    .map((d) => `  ${d.origin} -> ${d.destination} : aux alentours de ${d.price} EUR`)
-                    .join("\n")
-              )
-              .join("\n\n") + `\n\nVoir tous tes bons plans : ${accountUrl}`,
-          replyTo: site.email,
-          listUnsubscribe: unsubscribeUrl,
-        },
-        sub.tier,
-      );
-      for (const d of shown) {
-        await insert("sends", {
+    entries.push({
+      sub,
+      shown,
+      msg: {
+        to: sub.email,
+        subject: "Tes bons plans de vols",
+        html: teaserDigestHtml(groups, accountUrl, unsubscribeUrl),
+        text:
+          groups
+            .map(
+              (g) =>
+                `Depuis ${g.origin} :\n` +
+                g.deals
+                  .map((d) => `  ${d.origin} -> ${d.destination} : aux alentours de ${d.price} EUR`)
+                  .join("\n")
+            )
+            .join("\n\n") + `\n\nVoir tous tes bons plans : ${accountUrl}`,
+        replyTo: site.email,
+        listUnsubscribe: unsubscribeUrl,
+      },
+    });
+  }
+
+  // 2) Envoyer par BATCH (groupé par tier pour le routage provider), puis
+  //    enregistrer la dédup EN MASSE pour les seuls envois réussis. Évite le
+  //    timeout Vercel et les limites de débit quel que soit le nombre d'abonnés.
+  let emails = 0;
+  const sentAt = new Date().toISOString();
+  const sendRows: {
+    deal_id: string;
+    subscriber_id: string;
+    sent_at: string;
+    opened_at: null;
+  }[] = [];
+  for (const t of ["premium", "free"] as const) {
+    const group = entries.filter((e) => (e.sub.tier === "premium") === (t === "premium"));
+    if (group.length === 0) continue;
+    const oks = await sendBatch(group.map((e) => e.msg), t);
+    for (let i = 0; i < group.length; i += 1) {
+      if (!oks[i]) continue;
+      emails += 1;
+      for (const d of group[i].shown) {
+        sendRows.push({
           deal_id: d.id,
-          subscriber_id: sub.id,
-          sent_at: new Date().toISOString(),
+          subscriber_id: group[i].sub.id,
+          sent_at: sentAt,
           opened_at: null,
         });
       }
-      emails += 1;
-    } catch (err) {
-      console.error(`[digest] échec pour ${sub.email}:`, err);
     }
   }
+  await insertMany("sends", sendRows);
 
   // Libellé basé sur la fréquence ciblée (daily = premium, weekly = gratuit),
   // pas sur hotOnly (les deux crons utilisent hotOnly:true).

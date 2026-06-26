@@ -32,6 +32,10 @@ export interface EmailResult {
 export interface EmailProvider {
   readonly name: string;
   send(msg: EmailMessage): Promise<EmailResult>;
+  // Envoi groupé optimisé si le provider le supporte (ex. endpoint batch Resend).
+  // Renvoie le succès par message, dans l'ordre d'entrée. Si absent : on retombe
+  // sur des envois individuels en parallèle limité.
+  sendMany?(messages: EmailMessage[]): Promise<boolean[]>;
 }
 
 function fromAddress(): string {
@@ -90,6 +94,44 @@ class ResendProvider implements EmailProvider {
     }
     const data = (await res.json()) as { id?: string };
     return { id: data.id ?? null, provider: this.name };
+  }
+
+  // Endpoint batch : jusqu'à 100 emails en UNE requête (contourne la limite de
+  // débit de l'offre Resend). Un lot accepté (HTTP ok) = tous ses emails partis.
+  async sendMany(messages: EmailMessage[]): Promise<boolean[]> {
+    const out: boolean[] = [];
+    for (let i = 0; i < messages.length; i += 100) {
+      const chunk = messages.slice(i, i + 100);
+      let ok = false;
+      try {
+        const res = await fetch("https://api.resend.com/emails/batch", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(
+            chunk.map((msg) => ({
+              from: fromAddress(),
+              to: toArray(msg.to),
+              subject: msg.subject,
+              html: msg.html,
+              text: msg.text,
+              reply_to: msg.replyTo,
+              headers: buildHeaders(msg),
+            }))
+          ),
+        });
+        ok = res.ok;
+        if (!ok) {
+          console.error(`[resend:batch] ${res.status}: ${await res.text()}`);
+        }
+      } catch (e) {
+        console.error("[resend:batch] exception:", e);
+      }
+      for (let k = 0; k < chunk.length; k += 1) out.push(ok);
+    }
+    return out;
   }
 }
 
@@ -157,4 +199,43 @@ export function getEmailProvider(tier?: ProviderTier): EmailProvider {
 
 export function sendEmail(msg: EmailMessage, tier?: ProviderTier): Promise<EmailResult> {
   return getEmailProvider(tier).send(msg);
+}
+
+// Envoi de masse (digests, newsletter) : utilise l'envoi groupé du provider si
+// dispo (batch Resend = 100/requête), sinon des envois individuels en parallèle
+// limité (Brevo). Renvoie le succès par message, dans l'ordre de `messages`.
+// Robuste face au timeout Vercel et aux limites de débit, jusqu'à des dizaines
+// de milliers d'emails par exécution.
+export async function sendBatch(
+  messages: EmailMessage[],
+  tier?: ProviderTier
+): Promise<boolean[]> {
+  if (messages.length === 0) return [];
+  const provider = getEmailProvider(tier);
+  if (provider.sendMany) return provider.sendMany(messages);
+  return pooledSend(provider, messages);
+}
+
+async function pooledSend(
+  provider: EmailProvider,
+  messages: EmailMessage[],
+  concurrency = 8
+): Promise<boolean[]> {
+  const results = new Array<boolean>(messages.length).fill(false);
+  let next = 0;
+  async function worker() {
+    while (next < messages.length) {
+      const idx = next++;
+      try {
+        await provider.send(messages[idx]);
+        results[idx] = true;
+      } catch (e) {
+        console.error(`[email:batch] échec ${toArray(messages[idx].to)[0]}:`, e);
+      }
+    }
+  }
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, messages.length) }, worker)
+  );
+  return results;
 }

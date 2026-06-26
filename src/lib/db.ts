@@ -72,6 +72,27 @@ export async function insert<T extends TableName>(
   return inserted as Tables[T];
 }
 
+// Insertion en masse (1 requête par lot de 500). Pour les écritures volumineuses
+// (ex. enregistrer tous les envois d'un digest) sans multiplier les requêtes.
+export async function insertMany<T extends TableName>(
+  table: T,
+  rows: (Omit<Tables[T], "id" | "created_at"> & Partial<Pick<Tables[T], "id">>)[]
+): Promise<void> {
+  if (rows.length === 0) return;
+  const now = new Date().toISOString();
+  const prepared = rows.map((r) => ({
+    id: randomUUID(),
+    created_at: now,
+    ...r,
+  })) as Tables[T][];
+  for (let i = 0; i < prepared.length; i += 500) {
+    const { error } = await sb()
+      .from(table)
+      .insert(prepared.slice(i, i + 500) as never);
+    if (error) throw new Error(`Supabase insertMany(${table}): ${error.message}`);
+  }
+}
+
 export async function update<T extends TableName>(
   table: T,
   id: string,

@@ -2,7 +2,7 @@
 // publiés, envoyée aux abonnés confirmés qui ne l'ont pas désactivée.
 
 import { getAll, insert } from "./db";
-import { sendEmail } from "./email";
+import { sendBatch } from "./email";
 import { blogNewsletterEmail } from "./email-templates";
 import { unsubscribeUrl } from "./unsubscribe";
 import type { AgentTrigger } from "./types";
@@ -58,21 +58,21 @@ async function runNewsletter(): Promise<NewsletterResult> {
     (s) => s.consent_at && !s.unsubscribed_at && s.newsletter !== false
   );
 
+  // Envoi par BATCH, groupé par tier (routage provider) -> pas de timeout Vercel
+  // ni de souci de limite de débit, quel que soit le nombre d'abonnés.
   let sent = 0;
-  for (const s of subs) {
-    try {
-      await sendEmail(
-        blogNewsletterEmail(
-          s.email,
-          posts,
-          unsubscribeUrl(s.email, s.unsubscribe_token)
-        ),
-        s.tier
-      );
-      sent++;
-    } catch (err) {
-      console.error(`[newsletter] échec pour ${s.email}:`, err);
-    }
+  for (const t of ["premium", "free"] as const) {
+    const group = subs.filter((s) => (s.tier === "premium") === (t === "premium"));
+    if (group.length === 0) continue;
+    const msgs = group.map((s) =>
+      blogNewsletterEmail(
+        s.email,
+        posts,
+        unsubscribeUrl(s.email, s.unsubscribe_token)
+      )
+    );
+    const oks = await sendBatch(msgs, t);
+    sent += oks.filter(Boolean).length;
   }
 
   return { ok: true, sent, posts: posts.length };
