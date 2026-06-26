@@ -309,8 +309,12 @@ export default async function Home({
                     />
                   )}
                   <div className="flex flex-1 flex-col p-5">
-                    <h3 className="text-lg font-semibold">{p.title}</h3>
-                    <p className="mt-2 text-sm text-slate-600">{p.excerpt}</p>
+                    <h3 className="text-lg font-semibold line-clamp-2 min-h-14">
+                      {p.title}
+                    </h3>
+                    <p className="mt-2 text-sm text-slate-600 line-clamp-3 min-h-15">
+                      {p.excerpt}
+                    </p>
                     <span className="mt-auto pt-3 text-sm font-medium text-brand">
                       Lire l&apos;article
                     </span>
