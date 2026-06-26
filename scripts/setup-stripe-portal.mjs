@@ -45,12 +45,26 @@ const params = {
 };
 
 const existing = env.STRIPE_PORTAL_CONFIG_ID;
-if (existing) {
-  const cfg = await sb.billingPortal.configurations.update(existing, params);
-  console.log("Config portail mise à jour:", cfg.id);
-} else {
+async function createConfig() {
   const cfg = await sb.billingPortal.configurations.create(params);
   await appendFile(".env.local", `\nSTRIPE_PORTAL_CONFIG_ID=${cfg.id}\n`);
-  console.log("Config portail créée:", cfg.id, "-> ajoutée à .env.local");
+  console.log("Config portail créée:", cfg.id);
+  console.log(">>> Mets cet ID dans Vercel (STRIPE_PORTAL_CONFIG_ID) et remplace l'ancienne ligne dans .env.local.");
+}
+if (existing) {
+  try {
+    const cfg = await sb.billingPortal.configurations.update(existing, params);
+    console.log("Config portail mise à jour:", cfg.id);
+  } catch (e) {
+    if (e?.code === "resource_missing") {
+      // Config absente dans ce mode (ex. passage test -> live) : on en crée une.
+      console.log(`Ancienne config (${existing}) absente ici -> création d'une nouvelle.`);
+      await createConfig();
+    } else {
+      throw e;
+    }
+  }
+} else {
+  await createConfig();
 }
 console.log("Changement de formule activé dans le portail (immédiat, proration none).");
