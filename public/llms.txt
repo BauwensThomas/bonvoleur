@@ -1,0 +1,24 @@
+# BonVoleur
+
+> BonVoleur déniche les vols pas chers au départ de la Belgique et de la France et envoie les meilleures alertes par email. Tu réserves, tu voyages.
+
+BonVoleur (https://www.bonvoleur.com) est un service francophone d'alertes de bons plans de vols, au départ des aéroports belges (Bruxelles, Charleroi) et français (Paris, Lyon). Les bons plans sont sélectionnés (curation), pas issus d'un métamoteur : compagnies réelles, fourchettes de prix, meilleures périodes, conseils concrets. BonVoleur ne vend pas de billets : les réservations se font sur les sites des compagnies ou de partenaires.
+
+- **Gratuit** : un aperçu des bons plans (quelques jours de décalage), une alerte par semaine.
+- **Premium (4,99 €/mois ou 39 €/an)** : tous les bons plans en direct, plusieurs aéroports, une alerte par jour, filtre par période de voyage.
+
+## Pages principales
+- [Accueil](https://www.bonvoleur.com/) : présentation, inscription gratuite, aperçu des bons plans.
+- [Vols pas chers par destination](https://www.bonvoleur.com/vols-pas-chers) : fiches par ville (fourchettes de prix, compagnies, meilleure période, aéroports de départ).
+- [Blog](https://www.bonvoleur.com/blog) : conseils pour voyager moins cher (bagages low-cost, erreurs de prix, meilleures périodes, destinations).
+- [Mon espace](https://www.bonvoleur.com/compte) : espace membre avec les bons plans en direct (connexion par email / Google).
+
+## Légal
+- [Mentions légales](https://www.bonvoleur.com/mentions-legales)
+- [Politique de confidentialité](https://www.bonvoleur.com/confidentialite)
+- [Conditions générales](https://www.bonvoleur.com/conditions-generales)
+
+## Contact
+- Email : contact@bonvoleur.com
+- Instagram : https://www.instagram.com/bonvoleur
+- Facebook : https://www.facebook.com/profile.php?id=61590940048347

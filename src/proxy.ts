@@ -93,6 +93,6 @@ async function refreshMemberSession(req: NextRequest): Promise<NextResponse> {
 export const config = {
   // Tout le site, sauf les assets internes et les fichiers SEO publics.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|llms.txt).*)",
   ],
 };
