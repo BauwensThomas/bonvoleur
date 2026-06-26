@@ -44,8 +44,8 @@ export const agents: AgentDef[] = [
     label: "Social Clipper",
     role: "Partage l'article sur les réseaux.",
     description:
-      "À chaque article publié, Claude rédige une légende Instagram/Facebook et un webhook part vers Make, qui publie l'image + la légende (le lien de l'article est posté en commentaire). ManyChat envoie ensuite le lien en message privé à qui commente le mot-clé « DEAL ». Le bouton « Lancer » rejoue l'envoi pour le dernier article publié.",
-    cadence: "Automatique à chaque article (via Make + ManyChat)",
+      "À chaque article publié, Claude rédige une légende Instagram/Facebook et un webhook part vers Make, qui publie l'image + la légende sur IG et FB, avec un commentaire renvoyant à l'article. Sur Instagram (liens non cliquables), le lien cliquable est dans la BIO (adresse du blog) ; sur Facebook le lien du commentaire est cliquable. Le bouton « Lancer » rejoue l'envoi pour le dernier article publié.",
+    cadence: "Automatique à chaque article (via Make)",
     appButton: true,
   },
   {

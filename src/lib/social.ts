@@ -25,8 +25,8 @@ async function generateCaption(
   url: string
 ): Promise<{ caption: string; comment: string }> {
   const fallback = {
-    caption: `${post.title}\n\n${post.excerpt ?? ""}\n\nCommente ${KEYWORD} et on t'envoie le lien en message prive. Suis-nous pour les bons plans de vols depuis la Belgique et la France, et partage a un ami qui voyage.\n\n#volspascher #bonsplans #voyage #belgique #france #vol #voyagepascher`,
-    comment: `Lis l'article complet ici : ${url}\nEt inscris-toi gratuitement sur ${site.domain} pour recevoir les bons plans par email.`,
+    caption: `${post.title}\n\n${post.excerpt ?? ""}\n\nLe lien est dans notre bio pour lire l'article complet. Suis-nous pour les bons plans de vols depuis la Belgique et la France, et partage a un ami qui voyage.\n\n#volspascher #bonsplans #voyage #belgique #france #vol #voyagepascher`,
+    comment: `Lien en bio pour lire l'article complet ! (ou directement : ${url})`,
   };
   if (!process.env.ANTHROPIC_API_KEY) return fallback;
   try {
@@ -46,13 +46,13 @@ Titre : ${post.title}
 Resume : ${post.excerpt ?? ""}
 
 Contraintes :
-- N'inclus AUCUN lien dans la legende (Instagram ne les rend pas cliquables). Invite plutot a "commenter ${KEYWORD} pour recevoir le lien en message prive" et precise que le lien est aussi "en commentaire".
+- N'inclus AUCUN lien dans la legende et PAS de "commente tel mot" (aucune automation). Invite simplement a aller voir "le lien en bio" (l'adresse du blog y est mise).
 - Appel a action clair : suivre, commenter, partager.
 - Termine par 6 a 8 hashtags pertinents BE/FR (voyage, vols pas chers, bons plans...).
 - N'invente aucun prix ni chiffre : reste sur le sujet de l'article.
 
 Reponds STRICTEMENT en JSON, sans texte autour :
-{"caption": "la legende complete (avec les hashtags a la fin)", "comment": "le 1er commentaire a poster, qui contient le lien : ${url}"}`,
+{"caption": "la legende complete (hashtags a la fin, et un appel a voir le lien en bio)", "comment": "un court commentaire qui renvoie au lien en bio, en finissant par l'URL : ${url}"}`,
         },
       ],
     });
