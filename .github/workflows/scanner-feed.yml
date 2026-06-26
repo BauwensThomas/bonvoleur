@@ -49,24 +49,23 @@ jobs:
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
         run: node scripts/generate-routes.mjs
 
-      # APRES le scan du SOIR uniquement (1x/jour) : digest premium quotidien,
-      # avec les deals frais qui viennent d'etre scannes. github.event.schedule
-      # vaut la cron qui a declenche le run ('' en declenchement manuel -> saute).
-      - name: Digest premium (quotidien, apres le scan du soir)
-        if: ${{ success() && github.event.schedule == '30 17 * * *' }}
+      # APRES chaque scan : declenche les digests pour le CRENEAU de ce scan.
+      # Le slot (0/1/2 selon le scan matin/midi/soir) repartit les abonnes sur
+      # les 3 scans -> charge etalee. Chaque premium recoit 1x/jour (a son scan) ;
+      # chaque gratuit 1x/semaine (le jour de son inscription, a son scan).
+      # github.event.schedule = la cron qui a declenche ('' en manuel -> saute).
+      - name: Digests (repartis par creneau, apres le scan)
+        if: ${{ success() && github.event.schedule != '' }}
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SCHED: ${{ github.event.schedule }}
         run: |
-          curl -fsS -H "Authorization: Bearer $CRON_SECRET" https://www.bonvoleur.com/api/cron/digest-daily
-
-      # Le VENDREDI soir seulement (1x/semaine) : digest gratuit hebdomadaire.
-      - name: Digest gratuit (hebdo, vendredi soir)
-        if: ${{ success() && github.event.schedule == '30 17 * * *' }}
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          if [ "$(date -u +%u)" = "5" ]; then
-            curl -fsS -H "Authorization: Bearer $CRON_SECRET" https://www.bonvoleur.com/api/cron/digest-weekly
-          else
-            echo "Pas vendredi : digest hebdo non envoye."
-          fi
+          case "$SCHED" in
+            "30 5 * * *") SLOT=0 ;;
+            "30 11 * * *") SLOT=1 ;;
+            "30 17 * * *") SLOT=2 ;;
+            *) echo "Scan hors planning, pas de digest."; exit 0 ;;
+          esac
+          BASE="https://www.bonvoleur.com/api/cron"
+          curl -fsS -H "Authorization: Bearer $CRON_SECRET" "$BASE/digest-daily?slot=$SLOT&scans=3"
+          curl -fsS -H "Authorization: Bearer $CRON_SECRET" "$BASE/digest-weekly?slot=$SLOT&scans=3"

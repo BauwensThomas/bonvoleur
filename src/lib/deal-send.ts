@@ -274,12 +274,36 @@ interface DigestOptions {
   periodDays: number;
   hotOnly: boolean;
   maxDeals?: number;
+  // Répartition de la charge ("sharding") : si `slot`/`scansPerDay` sont fournis,
+  // on n'envoie qu'aux abonnés dont le créneau == slot (créneau stable dérivé de
+  // leur id). Permet d'étaler l'envoi sur les N scans du jour sans qu'un abonné
+  // reçoive plus que son quota. `byInscriptionWeekday` (gratuit hebdo) restreint
+  // en plus au jour de la semaine de l'inscription -> étalement sur 7 jours.
+  slot?: number;
+  scansPerDay?: number;
+  byInscriptionWeekday?: boolean;
+}
+
+// Créneau stable d'un abonné (0..scans-1) à partir de son id (hash déterministe).
+function daySlot(id: string, scans: number): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i += 1) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return scans > 0 ? h % scans : 0;
+}
+
+// Jour de la semaine de l'inscription (0 = dimanche .. 6 = samedi, UTC).
+function inscriptionWeekday(sub: Subscriber): number {
+  const d = sub.consent_at ?? sub.created_at;
+  return new Date(d).getUTCDay();
 }
 
 export async function sendScheduledDigest(
   opts: DigestOptions
 ): Promise<DigestResult> {
   const { tier, frequency, sinceDays, periodDays, hotOnly } = opts;
+  const { slot, scansPerDay, byInscriptionWeekday } = opts;
+  const sharded = slot != null && scansPerDay != null && scansPerDay > 0;
+  const todayWeekday = new Date().getUTCDay();
   const since = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
   const periodMs = periodDays * 24 * 60 * 60 * 1000;
   const allDeals = await getAll("deals");
@@ -295,6 +319,13 @@ export async function sendScheduledDigest(
     if (tier !== null && s.tier !== tier) return false;
     // Respecte la préférence de fréquence ("none" = jamais d'email).
     if (frequency && effectiveFrequency(s) !== frequency) return false;
+    // Sharding : on ne sert que les abonnés de CE créneau (étalement sur les
+    // scans), et pour le gratuit hebdo, ceux dont c'est le jour d'inscription
+    // (étalement sur la semaine). Sans slot (appel manuel) -> aucun filtre.
+    if (sharded) {
+      if (daySlot(s.id, scansPerDay!) !== slot) return false;
+      if (byInscriptionWeekday && inscriptionWeekday(s) !== todayWeekday) return false;
+    }
     return true;
   });
   const sends = await getAll("sends");
