@@ -309,7 +309,7 @@ export default function HeroCinematic() {
           }}
         />
 
-        <div className="absolute inset-0 flex items-center justify-start px-8 md:px-16 lg:px-32 pt-16">
+        <div className="absolute inset-0 flex items-center justify-start px-6 sm:px-8 md:px-16 lg:px-32 pt-16">
           <div className="max-w-xl pointer-events-none">
             <div className={`transition-all duration-700 ${stage >= 0 ? 'opacity-100' : 'opacity-0'}`}>
               <span className="inline-flex items-center gap-2 rounded-full backdrop-blur-sm px-4 py-1.5 text-sm font-semibold tracking-widest uppercase mb-6 border border-white/25 bg-white/10 text-white">
@@ -327,7 +327,7 @@ export default function HeroCinematic() {
 
             <div className={`transition-all duration-700 ${stage >= 1 ? 'opacity-100' : 'opacity-0'}`}>
               <h1
-                className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.03] tracking-tight"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight"
                 style={{ textShadow: '0 2px 24px rgba(0,0,0,0.45)' }}
               >
                 Vole plus loin,

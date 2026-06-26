@@ -6,7 +6,7 @@ export default function Header() {
     <header className="border-b border-slate-200 bg-white/80 backdrop-blur sticky top-0 z-50">
       <div className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between">
         <Logo />
-        <nav className="flex items-center gap-6 text-sm font-medium">
+        <nav className="flex items-center gap-3 sm:gap-6 text-sm font-medium">
           <Link href="/blog" className="text-slate-600 hover:text-slate-900">
             Blog
           </Link>
@@ -15,7 +15,7 @@ export default function Header() {
           </Link>
           <Link
             href="/#inscription"
-            className="rounded-lg bg-brand px-4 py-2 font-semibold text-white hover:bg-brand-dark transition-colors"
+            className="rounded-lg bg-brand px-3 sm:px-4 py-2 font-semibold text-white hover:bg-brand-dark transition-colors"
           >
             S&apos;inscrire
           </Link>
