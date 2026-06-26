@@ -11,7 +11,9 @@
     "backup": "node scripts/backup-db.mjs",
     "backup:full": "node scripts/backup-full.mjs",
     "harden:auth": "node scripts/harden-auth.mjs",
-    "stripe:listen": "node scripts/stripe-listen.mjs"
+    "stripe:listen": "node scripts/stripe-listen.mjs",
+    "stripe:products": "node scripts/setup-stripe-products.mjs",
+    "stripe:portal": "node scripts/setup-stripe-portal.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",
