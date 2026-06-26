@@ -248,7 +248,7 @@ try {
       finished_at: new Date().toISOString(),
       status: generated > 0 ? "success" : "draft",
       trigger: "auto",
-      summary: `${generated} fiche(s) generee(s), ${skipped} deja a jour, ${deferred} reportee(s).`,
+      summary: `${generated} fiche(s) générée(s), ${skipped} déjà à jour, ${deferred} reportée(s).`,
       output_ref: null,
       error: null,
     }),
