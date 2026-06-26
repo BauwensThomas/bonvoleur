@@ -3,6 +3,7 @@ import { insert } from "@/lib/db";
 import { findAgent } from "@/lib/agents";
 import { runContentPublisher } from "@/lib/content";
 import { sendBlogNewsletter } from "@/lib/newsletter";
+import { runSocialClipper } from "@/lib/social";
 import { dispatchWorkflow } from "@/lib/github-actions";
 import { requireAdmin } from "@/lib/auth";
 
@@ -30,6 +31,25 @@ export async function POST(req: Request) {
   if (agent.name === "newsletter") {
     const result = await sendBlogNewsletter("manuel");
     return NextResponse.json(result, { status: 201 });
+  }
+
+  // Social Clipper : (re)envoie le webhook Make pour le dernier article publié.
+  if (agent.name === "social-clipper") {
+    const start = new Date().toISOString();
+    const result = await runSocialClipper();
+    const run = await insert("agent_runs", {
+      agent_name: "social-clipper",
+      started_at: start,
+      finished_at: new Date().toISOString(),
+      status: result.ok ? "success" : "draft",
+      trigger: "manuel",
+      summary: result.ok
+        ? `Webhook Make envoyé pour : "${result.post}".`
+        : `Non envoyé : ${result.reason}.`,
+      output_ref: null,
+      error: null,
+    });
+    return NextResponse.json(run, { status: 201 });
   }
 
   // SEO Route : (re)genere les fiches destinations sur GitHub Actions, utile

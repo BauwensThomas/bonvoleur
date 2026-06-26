@@ -8,6 +8,7 @@ import { site } from "./site";
 import { DESTINATIONS } from "./destinations";
 import { getDestinations } from "./routes";
 import { rehostImage } from "./rehost";
+import { notifySocial } from "./social";
 import type { AgentRun, FaqItem } from "./types";
 
 // Detecte un texte francais sorti SANS accents (bug ponctuel de generation).
@@ -443,6 +444,10 @@ export async function runContentPublisher(
       published_at: now,
       updated_at: now,
     });
+
+    // Réseaux sociaux : prévient Make (webhook) pour publier sur IG/FB.
+    // Ne lève jamais -> ne bloque pas la publication de l'article.
+    await notifySocial(post);
 
     return insert("agent_runs", {
       agent_name: "content-publisher",
