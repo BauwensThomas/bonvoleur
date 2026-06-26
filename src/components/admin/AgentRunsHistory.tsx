@@ -6,8 +6,15 @@ import { agents } from "@/lib/agents";
 
 const statusStyles: Record<string, string> = {
   success: "bg-emerald-100 text-emerald-700",
-  draft: "bg-amber-100 text-amber-700",
+  draft: "bg-slate-100 text-slate-600",
   error: "bg-red-100 text-red-700",
+};
+
+// Libellés clairs (le statut "draft" signifie "exécuté mais rien à envoyer/produire").
+const statusLabels: Record<string, string> = {
+  success: "réussi",
+  draft: "rien à faire",
+  error: "échec",
 };
 
 export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
@@ -92,7 +99,7 @@ export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
                       statusStyles[r.status] ?? "bg-slate-100 text-slate-500"
                     }`}
                   >
-                    {r.status}
+                    {statusLabels[r.status] ?? r.status}
                   </span>
                 </td>
                 <td className="px-4 py-2 text-slate-500 whitespace-nowrap">

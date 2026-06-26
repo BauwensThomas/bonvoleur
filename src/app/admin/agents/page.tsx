@@ -3,6 +3,13 @@ import { agents } from "@/lib/agents";
 import RunAgentButton from "@/components/admin/RunAgentButton";
 import AgentRunsHistory from "@/components/admin/AgentRunsHistory";
 
+// "draft" = exécuté mais rien à envoyer/produire (pas une erreur).
+const STATUS_FR: Record<string, string> = {
+  success: "réussi",
+  draft: "rien à faire",
+  error: "échec",
+};
+
 export default async function AgentsAdmin() {
   const runs = await getAll("agent_runs");
   const history = [...runs].sort((a, b) =>
@@ -55,7 +62,7 @@ export default async function AgentsAdmin() {
                 {last && (
                   <span>
                     Dernier run : {new Date(last.started_at).toLocaleString("fr-BE")}{" "}
-                    ({last.status})
+                    ({STATUS_FR[last.status] ?? last.status})
                   </span>
                 )}
               </div>
