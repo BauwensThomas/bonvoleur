@@ -67,6 +67,34 @@ export default function HeroCinematic() {
     )
     camera.position.set(6, 3, 38)
 
+    // Adapte la vue au format d'ecran. La camera a un FOV VERTICAL : en portrait
+    // (mobile/tablette) le champ HORIZONTAL devient minuscule et l'avion (place a
+    // droite) sort du cadre. On elargit donc le FOV vertical pour garder un champ
+    // horizontal ~constant, et on ramene l'avion vers le centre (xf). Inclut le
+    // resize (sinon rotation/redimensionnement casse le rendu).
+    let xf = 1
+    let yOff = 0
+    const fitView = () => {
+      const w = window.innerWidth
+      const h = window.innerHeight
+      const aspect = w / h
+      camera.aspect = aspect
+      const targetH = 2 * Math.atan(Math.tan(((50 * Math.PI) / 180) / 2) * (16 / 9))
+      const vFov = (2 * Math.atan(Math.tan(targetH / 2) / aspect) * 180) / Math.PI
+      camera.fov = Math.min(Math.max(vFov, 50), 86)
+      camera.updateProjectionMatrix()
+      renderer.setSize(w, h)
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+      // En dessous de 1450px : disposition empilee -> on descend l'avion vers le
+      // BAS (texte en haut) et on le recentre s'il est etroit. Au-dessus : avion
+      // a droite, sans decalage (cinematique cote a cote).
+      const isStacked = w <= 1450
+      xf = isStacked ? Math.min(1, aspect / 1.4) : 1
+      yOff = isStacked ? -3 : 0
+    }
+    fitView()
+    window.addEventListener('resize', fitView)
+
     // LIGHTS : eclairage neutre (lumiere du jour) pour que l'avion soit beau
     // au-dessus de n'importe quelle photo.
     scene.add(new THREE.AmbientLight(0xffffff, 2.2))
@@ -210,8 +238,8 @@ export default function HeroCinematic() {
 
       const planeProgress = Math.min(p * 1.2, 1)
       planePos.z = -planeProgress * 22
-      planePos.x = 16 - planeProgress * 10
-      planePos.y = -1 + Math.sin(tick * 0.7) * 0.4 + planeProgress * 4
+      planePos.x = (16 - planeProgress * 10) * xf
+      planePos.y = -1 + Math.sin(tick * 0.7) * 0.4 + planeProgress * 4 + yOff
 
       plane.position.x = planePos.x + Math.sin(tick * 0.4) * 0.05
       plane.position.y = planePos.y + Math.sin(tick * 0.6) * 0.05
@@ -240,6 +268,7 @@ export default function HeroCinematic() {
     return () => {
       cancelAnimationFrame(animationRef.current!)
       window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', fitView)
       if (rendererRef.current) {
         rendererRef.current.dispose()
         if (mountRef.current && rendererRef.current.domElement) {
@@ -309,7 +338,7 @@ export default function HeroCinematic() {
           }}
         />
 
-        <div className="absolute inset-0 flex items-center justify-start px-6 sm:px-8 md:px-16 lg:px-32 pt-16">
+        <div className="absolute inset-0 flex items-start justify-start px-6 sm:px-8 md:px-16 lg:px-32 pt-20">
           <div className="max-w-xl pointer-events-none">
             <div className={`transition-all duration-700 ${stage >= 0 ? 'opacity-100' : 'opacity-0'}`}>
               <span className="inline-flex items-center gap-2 rounded-full backdrop-blur-sm px-4 py-1.5 text-sm font-semibold tracking-widest uppercase mb-6 border border-white/25 bg-white/10 text-white">

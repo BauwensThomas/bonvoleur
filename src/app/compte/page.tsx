@@ -348,9 +348,10 @@ export default async function Compte({
                   key={d.id}
                   className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 transition-colors hover:bg-slate-50"
                 >
-                  <div className="min-w-48 flex-1">
+                  <div className="w-full sm:w-auto sm:min-w-48 sm:flex-1">
                     <p className="font-semibold text-slate-900">
-                      {d.origin} vers {d.destination}
+                      {d.origin} vers{" "}
+                {d.destination}
                     </p>
                     <p className="text-sm text-slate-500">
                       {d.dates}
@@ -432,7 +433,8 @@ export default async function Compte({
                     )}
                   </div>
                   <p className="mt-3 font-semibold text-slate-900">
-                    {d.origin} vers {d.destination}
+                    {d.origin} vers{" "}
+                {d.destination}
                   </p>
                   <p className="mt-2">
                     <span className="text-sm text-slate-500">

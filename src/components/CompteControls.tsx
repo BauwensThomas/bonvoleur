@@ -40,7 +40,8 @@ export default function CompteControls({
       if (v) p.set(k, v);
       else p.delete(k);
     }
-    router.push(`/compte?${p.toString()}`);
+    // scroll:false -> on ne remonte PAS en haut quand on change un filtre / la vue.
+    router.push(`/compte?${p.toString()}`, { scroll: false });
   }
 
   // Au chargement : applique la vue memorisee si l'URL n'en precise pas.
@@ -133,7 +134,7 @@ export default function CompteControls({
           <button
             onClick={() => {
               setDest("");
-              router.push(`/compte?view=${view}`);
+              router.push(`/compte?view=${view}`, { scroll: false });
             }}
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm hover:border-slate-400"
           >
@@ -144,26 +145,26 @@ export default function CompteControls({
 
       {/* Période de voyage (réservée au premium) à gauche, vue Cartes/Liste à droite */}
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 text-sm">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
           <span className="font-medium text-slate-600">Période de voyage :</span>
-          <label className="flex items-center gap-1 text-slate-600">
-            du
+          <label className="flex items-center gap-2 text-slate-600">
+            <span className="w-5 shrink-0">du</span>
             <input
               type="date"
               value={from}
               disabled={!isPremium}
               onChange={(e) => update({ from: e.target.value })}
-              className="rounded-lg border border-slate-300 px-2 py-1 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+              className="w-full rounded-lg border border-slate-300 px-2 py-1 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 sm:w-auto"
             />
           </label>
-          <label className="flex items-center gap-1 text-slate-600">
-            au
+          <label className="flex items-center gap-2 text-slate-600">
+            <span className="w-5 shrink-0">au</span>
             <input
               type="date"
               value={to}
               disabled={!isPremium}
               onChange={(e) => update({ to: e.target.value })}
-              className="rounded-lg border border-slate-300 px-2 py-1 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+              className="w-full rounded-lg border border-slate-300 px-2 py-1 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 sm:w-auto"
             />
           </label>
           {isPremium ? (
@@ -181,7 +182,7 @@ export default function CompteControls({
             </span>
           )}
         </div>
-        <div className="inline-flex overflow-hidden rounded-lg border border-slate-300 text-sm">
+        <div className="ml-auto inline-flex overflow-hidden rounded-lg border border-slate-300 text-sm">
           <button
             onClick={() => setView("grid")}
             className={
