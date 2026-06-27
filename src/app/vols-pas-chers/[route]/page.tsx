@@ -165,6 +165,18 @@ export default async function DestinationPage({
   // Maillage interne : toutes les autres destinations.
   const others = (await getDestinations()).filter((x) => x.slug !== dest.slug);
 
+  // Articles de blog pertinents : priorité aux articles qui mentionnent la ville,
+  // sinon les 2 plus récents (tous traitent de vols pas chers = toujours pertinents).
+  const allPosts = (await getAll("posts"))
+    .filter((p) => p.status === "published")
+    .sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at));
+  const cityLower = dest.destCity.toLowerCase();
+  const relatedPosts = (
+    allPosts.filter((p) => p.title?.toLowerCase().includes(cityLower)).length > 0
+      ? allPosts.filter((p) => p.title?.toLowerCase().includes(cityLower))
+      : allPosts
+  ).slice(0, 2);
+
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -288,6 +300,27 @@ export default async function DestinationPage({
             ))}
           </div>
         </section>
+
+        {/* Maillage interne : articles de blog pertinents */}
+        {relatedPosts.length > 0 && (
+          <section className="mt-12">
+            <h2 className="text-xl font-bold">À lire aussi</h2>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {relatedPosts.map((p) => (
+                <Link
+                  key={p.slug}
+                  href={`/blog/${p.slug}`}
+                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand/40 hover:shadow-md"
+                >
+                  <p className="font-semibold text-slate-800 leading-snug">{p.title}</p>
+                  {p.meta_description && (
+                    <p className="mt-1 text-sm text-slate-500 line-clamp-2">{p.meta_description}</p>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Maillage interne : autres destinations */}
         {others.length > 0 && (

@@ -114,10 +114,28 @@ export default async function Home({
   const totalArticles = publishedPosts.length;
   const articles = publishedPosts.slice(0, 3);
 
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: site.name,
+    url: site.canonicalBase,
+    description: site.description,
+    email: site.email,
+    sameAs: [site.social.instagram, site.social.facebook],
+  };
+  const webSiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: site.name,
+    url: site.canonicalBase,
+  };
+
   return (
     <>
       {/* Précharge l'image hero LCP dès le <head> SSR */}
       <link rel="preload" as="image" href="/hero/01-nuit.webp" fetchPriority="high" />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }} />
       <Header />
 
       <main>
