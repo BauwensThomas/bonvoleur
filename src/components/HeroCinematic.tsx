@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type ComponentType } from 'react'
+import { useEffect, useReducer, useState, type ComponentType } from 'react'
 
 const PHOTOS = [
   '/hero/01-nuit.webp',
@@ -9,9 +9,16 @@ const PHOTOS = [
   '/hero/04-ville.webp',
 ]
 
+type ScrollState = { stage: number; scrollProgress: number }
+
+function scrollReducer(state: ScrollState, p: number): ScrollState {
+  const stage = p < 0.05 ? -1 : p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3
+  if (state.scrollProgress === p && state.stage === stage) return state
+  return { scrollProgress: p, stage }
+}
+
 export default function HeroCinematic() {
-  const [stage, setStage] = useState(-1)
-  const [scrollProgress, setScrollProgress] = useState(0)
+  const [{ stage, scrollProgress }, dispatchScroll] = useReducer(scrollReducer, { stage: -1, scrollProgress: 0 })
   const [PlaneComp, setPlaneComp] = useState<ComponentType | null>(null)
   // Photos 2-4 ne se chargent qu'au premier scroll (345 KB économisés au chargement initial).
   const [imgsReady, setImgsReady] = useState(false)
@@ -26,7 +33,9 @@ export default function HeroCinematic() {
   }, [])
 
   useEffect(() => {
-    window.addEventListener('scroll', () => setImgsReady(true), { passive: true, once: true })
+    const onFirstScroll = () => setImgsReady(true)
+    window.addEventListener('scroll', onFirstScroll, { passive: true, once: true })
+    return () => window.removeEventListener('scroll', onFirstScroll)
   }, [])
 
   useEffect(() => {
@@ -34,8 +43,7 @@ export default function HeroCinematic() {
 
     const onScroll = () => {
       const p = Math.min(Math.max(window.scrollY / scrollMax, 0), 1)
-      setScrollProgress(p)
-      setStage(p < 0.05 ? -1 : p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3)
+      dispatchScroll(p)
     }
 
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -43,8 +51,6 @@ export default function HeroCinematic() {
     if (window.location.hash) {
       const el = document.querySelector(window.location.hash)
       if (el) requestAnimationFrame(() => el.scrollIntoView({ behavior: 'auto', block: 'start' }))
-    } else {
-      window.scrollTo(0, 0)
     }
 
     return () => window.removeEventListener('scroll', onScroll)
