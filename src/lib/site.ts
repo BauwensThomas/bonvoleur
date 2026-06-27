@@ -1,4 +1,4 @@
-// Configuration centrale de la marque et constantes du site.
+// Configuration centrale de la marque et constantes du site. Utiliser canonicalBase (pas url) pour les canonicals/sitemap.
 
 export const site = {
   name: "BonVoleur",
