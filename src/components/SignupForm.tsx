@@ -88,7 +88,7 @@ export default function SignupForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <GoogleSignInButton next="/compte" label="S'inscrire avec Google" />
-      <div className="flex items-center gap-3 text-xs text-slate-400">
+      <div className="flex items-center gap-3 text-xs text-slate-500">
         <span className="h-px flex-1 bg-slate-200" />
         ou par email
         <span className="h-px flex-1 bg-slate-200" />

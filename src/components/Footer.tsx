@@ -51,22 +51,22 @@ export default function Footer() {
           <p className="font-semibold mb-2">Liens</p>
           <ul className="space-y-0.5 text-slate-600">
             <li>
-              <Link href="/vols-pas-chers" className="block py-0.5 hover:text-slate-900">
+              <Link href="/vols-pas-chers" className="block py-1 hover:text-slate-900">
                 Vols pas chers
               </Link>
             </li>
             <li>
-              <Link href="/blog" className="block py-0.5 hover:text-slate-900">
+              <Link href="/blog" className="block py-1 hover:text-slate-900">
                 Blog
               </Link>
             </li>
             <li>
-              <Link href="/#inscription" className="block py-0.5 hover:text-slate-900">
+              <Link href="/#inscription" className="block py-1 hover:text-slate-900">
                 S&apos;inscrire
               </Link>
             </li>
             <li>
-              <Link href="/compte" className="block py-0.5 hover:text-slate-900">
+              <Link href="/compte" className="block py-1 hover:text-slate-900">
                 Connexion
               </Link>
             </li>
@@ -76,22 +76,22 @@ export default function Footer() {
           <p className="font-semibold mb-2">Légal</p>
           <ul className="space-y-0.5 text-slate-600">
             <li>
-              <Link href="/mentions-legales" className="block py-0.5 hover:text-slate-900">
+              <Link href="/mentions-legales" className="block py-1 hover:text-slate-900">
                 Mentions légales
               </Link>
             </li>
             <li>
-              <Link href="/confidentialite" className="block py-0.5 hover:text-slate-900">
+              <Link href="/confidentialite" className="block py-1 hover:text-slate-900">
                 Politique de confidentialité
               </Link>
             </li>
             <li>
-              <Link href="/conditions-generales" className="block py-0.5 hover:text-slate-900">
+              <Link href="/conditions-generales" className="block py-1 hover:text-slate-900">
                 Conditions générales
               </Link>
             </li>
             <li>
-              <Link href="/desinscription" className="block py-0.5 hover:text-slate-900">
+              <Link href="/desinscription" className="block py-1 hover:text-slate-900">
                 Se désinscrire
               </Link>
             </li>
