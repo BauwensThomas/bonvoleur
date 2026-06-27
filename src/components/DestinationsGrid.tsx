@@ -28,9 +28,13 @@ export default function DestinationsGrid({
           href={`/vols-pas-chers/${d.slug}`}
           className="group relative block aspect-4/3 overflow-hidden rounded-2xl bg-slate-200 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
         >
-          <div
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-            style={{ backgroundImage: `url(${d.image ?? DEFAULT_DEST_IMAGE})` }}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={d.image ?? DEFAULT_DEST_IMAGE}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
           <span className="absolute bottom-3 left-4 text-lg font-bold text-white drop-shadow">
