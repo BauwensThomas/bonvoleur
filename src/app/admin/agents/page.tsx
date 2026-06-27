@@ -61,7 +61,7 @@ export default async function AgentsAdmin() {
                 </span>
                 {last && (
                   <span>
-                    Dernier run : {new Date(last.started_at).toLocaleString("fr-BE")}{" "}
+                    Dernier run : {new Date(last.started_at).toLocaleString("fr-BE", { timeZone: "Europe/Brussels" })}{" "}
                     ({STATUS_FR[last.status] ?? last.status})
                   </span>
                 )}

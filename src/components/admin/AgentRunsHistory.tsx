@@ -103,7 +103,7 @@ export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
                   </span>
                 </td>
                 <td className="px-4 py-2 text-slate-500 whitespace-nowrap">
-                  {new Date(r.started_at).toLocaleString("fr-BE")}
+                  {new Date(r.started_at).toLocaleString("fr-BE", { timeZone: "Europe/Brussels" })}
                 </td>
                 <td className="px-4 py-2 text-slate-600">
                   {r.summary}
