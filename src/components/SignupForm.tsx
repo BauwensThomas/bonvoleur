@@ -1,27 +1,38 @@
 "use client";
 
-import { useState } from "react";
-import dynamic from "next/dynamic";
+import { useState, useEffect, useRef, type ComponentType } from "react";
 import { airports } from "@/lib/site";
 
-const GoogleSignInButton = dynamic(
-  () => import("@/components/GoogleSignInButton"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-10 w-full items-center justify-center rounded-lg border border-slate-300 text-sm text-slate-400">
-        Chargement...
-      </div>
-    ),
-  }
-);
-
 type Status = "idle" | "loading" | "success" | "error";
+type GoogleBtnProps = { next: string; label: string };
 
 export default function SignupForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
   const [showLogin, setShowLogin] = useState(false);
+  const [GoogleBtn, setGoogleBtn] = useState<ComponentType<GoogleBtnProps> | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    // Chunk Supabase chargé uniquement quand le formulaire entre dans le viewport.
+    // Aucun <link rel=prefetch> généré (import() brut, pas next/dynamic).
+    // Sur mobile Lighthouse (pas de scroll), ce chunk ne se charge jamais.
+    const el = formRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          import("@/components/GoogleSignInButton").then(
+            (mod) => setGoogleBtn(() => mod.default)
+          );
+          obs.disconnect();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -86,8 +97,14 @@ export default function SignupForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <GoogleSignInButton next="/compte" label="S'inscrire avec Google" />
+    <form ref={formRef} onSubmit={onSubmit} className="space-y-4">
+      {GoogleBtn ? (
+        <GoogleBtn next="/compte" label="S'inscrire avec Google" />
+      ) : (
+        <div className="flex h-10 w-full items-center justify-center rounded-lg border border-slate-300 text-sm text-slate-400">
+          Connexion avec Google
+        </div>
+      )}
       <div className="flex items-center gap-3 text-xs text-slate-500">
         <span className="h-px flex-1 bg-slate-200" />
         ou par email
