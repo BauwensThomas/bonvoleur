@@ -7,7 +7,7 @@ export default function CookieSettingsLink() {
     <button
       type="button"
       onClick={openCookieSettings}
-      className="block py-0.5 text-left hover:text-slate-900"
+      className="block py-1 text-left hover:text-slate-900"
     >
       Gérer les cookies
     </button>

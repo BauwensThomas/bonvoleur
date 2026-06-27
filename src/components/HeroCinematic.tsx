@@ -1,12 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import dynamic from 'next/dynamic'
-
-// Three.js chargé en chunk séparé (ssr:false) pour ne pas bloquer le thread
-// principal au premier chargement. Le reste du composant (photos, texte, CTA)
-// est SSR-rendu et s'affiche immédiatement.
-const HeroPlane = dynamic(() => import('./HeroPlane'), { ssr: false, loading: () => null })
+import { useEffect, useState, type ComponentType } from 'react'
 
 const PHOTOS = [
   '/hero/01-nuit.webp',
@@ -18,11 +12,15 @@ const PHOTOS = [
 export default function HeroCinematic() {
   const [stage, setStage] = useState(-1)
   const [scrollProgress, setScrollProgress] = useState(0)
-  const [showPlane, setShowPlane] = useState(false)
+  const [PlaneComp, setPlaneComp] = useState<ComponentType | null>(null)
 
   useEffect(() => {
-    // Three.js désactivé sur mobile : trop lourd pour le thread principal (TBT).
-    if (window.innerWidth >= 1024) setShowPlane(true)
+    // Import conditionnel dans useEffect : évite que Next.js génère un
+    // <link rel=prefetch> pour le chunk Three.js sur mobile.
+    // Sur desktop >= 1024px, le chunk se charge et monte HeroPlane.
+    if (window.innerWidth >= 1024) {
+      import('./HeroPlane').then(mod => setPlaneComp(() => mod.default))
+    }
   }, [])
 
   useEffect(() => {
@@ -99,8 +97,8 @@ export default function HeroCinematic() {
           }}
         />
 
-        {/* Avion 3D : desktop uniquement (>= 1024px) pour ne pas bloquer le TBT mobile */}
-        {showPlane && <HeroPlane />}
+        {/* Avion 3D : desktop uniquement (>= 1024px), chunk non-préchargé sur mobile */}
+        {PlaneComp && <PlaneComp />}
 
         {/* Micro-grain filmique (texture premium, tres subtil) */}
         <div
