@@ -49,23 +49,17 @@ jobs:
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
         run: node scripts/generate-routes.mjs
 
-      # APRES chaque scan : declenche les digests pour le CRENEAU de ce scan.
-      # Le slot (0/1/2 selon le scan matin/midi/soir) repartit les abonnes sur
-      # les 3 scans -> charge etalee. Chaque premium recoit 1x/jour (a son scan) ;
-      # chaque gratuit 1x/semaine (le jour de son inscription, a son scan).
+      # APRES chaque scan (3x/jour) : on declenche les digests SANS sharding.
+      # C'est le PLAFOND par periode qui regle la frequence (premium = 24h,
+      # gratuit = 7j) : un abonne n'est servi qu'une fois passe son delai. Lancer
+      # apres CHAQUE scan garantit qu'aucun jour n'est saute -> si un scan tombe
+      # "trop tot" (< plafond depuis le dernier envoi), le scan suivant rattrape.
       # github.event.schedule = la cron qui a declenche ('' en manuel -> saute).
-      - name: Digests (repartis par creneau, apres le scan)
+      - name: Digests (apres chaque scan, plafond = frequence)
         if: ${{ success() && github.event.schedule != '' }}
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          SCHED: ${{ github.event.schedule }}
         run: |
-          case "$SCHED" in
-            "30 5 * * *") SLOT=0 ;;
-            "30 11 * * *") SLOT=1 ;;
-            "30 17 * * *") SLOT=2 ;;
-            *) echo "Scan hors planning, pas de digest."; exit 0 ;;
-          esac
           BASE="https://www.bonvoleur.com/api/cron"
-          curl -fsS -H "Authorization: Bearer $CRON_SECRET" "$BASE/digest-daily?slot=$SLOT&scans=3"
-          curl -fsS -H "Authorization: Bearer $CRON_SECRET" "$BASE/digest-weekly?slot=$SLOT&scans=3"
+          curl -fsS -H "Authorization: Bearer $CRON_SECRET" "$BASE/digest-daily"
+          curl -fsS -H "Authorization: Bearer $CRON_SECRET" "$BASE/digest-weekly"
