@@ -13,6 +13,8 @@ export default function HeroCinematic() {
   const [stage, setStage] = useState(-1)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [PlaneComp, setPlaneComp] = useState<ComponentType | null>(null)
+  // Photos 2-4 ne se chargent qu'au premier scroll (345 KB économisés au chargement initial).
+  const [imgsReady, setImgsReady] = useState(false)
 
   useEffect(() => {
     // Import conditionnel dans useEffect : évite que Next.js génère un
@@ -21,6 +23,10 @@ export default function HeroCinematic() {
     if (window.innerWidth >= 1024) {
       import('./HeroPlane').then(mod => setPlaneComp(() => mod.default))
     }
+  }, [])
+
+  useEffect(() => {
+    window.addEventListener('scroll', () => setImgsReady(true), { passive: true, once: true })
   }, [])
 
   useEffect(() => {
@@ -76,12 +82,16 @@ export default function HeroCinematic() {
             className="absolute inset-0 w-full h-full object-cover object-center"
             style={{ opacity: layerOpacity(0) }}
           />
-          {/* Images suivantes : background-image (pas LCP, sous le fold) */}
+          {/* Images suivantes : chargées au premier scroll uniquement */}
           {PHOTOS.slice(1).map((src, i) => (
-            <div
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
               key={src}
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${src})`, opacity: layerOpacity(i + 1) }}
+              src={imgsReady ? src : undefined}
+              alt=""
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-cover object-center"
+              style={{ opacity: layerOpacity(i + 1) }}
             />
           ))}
         </div>
