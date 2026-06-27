@@ -101,7 +101,7 @@ export default function SignupForm() {
       {GoogleBtn ? (
         <GoogleBtn next="/compte" label="S'inscrire avec Google" />
       ) : (
-        <div className="flex h-10 w-full items-center justify-center rounded-lg border border-slate-300 text-sm text-slate-400">
+        <div className="flex h-10 w-full items-center justify-center rounded-lg border border-slate-300 text-sm text-slate-500">
           Connexion avec Google
         </div>
       )}
