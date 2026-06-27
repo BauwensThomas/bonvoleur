@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import sharp from "sharp";
 import { requireAdmin } from "@/lib/auth";
 
 // Téléverse une image dans Supabase Storage (bucket public "photos") et renvoie
@@ -26,16 +27,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Image trop lourde (max 6 Mo)." }, { status: 400 });
   }
 
-  const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-  const path = `defaults/secours-${Date.now()}.${ext}`;
+  const path = `defaults/secours-${Date.now()}.webp`;
   const sb = createClient(url, key, { auth: { persistSession: false } });
   // Crée le bucket public "photos" s'il n'existe pas (idempotent).
   await sb.storage.createBucket("photos", { public: true }).catch(() => {});
-  const bytes = new Uint8Array(await file.arrayBuffer());
+  const raw = Buffer.from(await file.arrayBuffer());
+
+  let webp = await sharp(raw).resize({ width: 900, withoutEnlargement: true }).webp({ quality: 70 }).toBuffer();
+  if (webp.byteLength > 120 * 1024) {
+    webp = await sharp(raw).resize({ width: 700, withoutEnlargement: true }).webp({ quality: 60 }).toBuffer();
+  }
 
   const { error } = await sb.storage
     .from("photos")
-    .upload(path, bytes, { contentType: file.type || "image/jpeg", upsert: true });
+    .upload(path, webp, { contentType: "image/webp", upsert: true, cacheControl: "31536000" });
   if (error) {
     // Message d'aide si le bucket n'existe pas / n'est pas accessible.
     return NextResponse.json(

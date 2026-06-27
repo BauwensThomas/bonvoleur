@@ -2,6 +2,7 @@
 // public "photos"), en version allégée, et renvoie l'URL publique. En cas
 // d'échec, renvoie l'URL d'origine (jamais de casse).
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import sharp from "sharp";
 
 let _sb: SupabaseClient | null = null;
 let _bucketReady = false;
@@ -51,13 +52,19 @@ export async function rehostImage(
   try {
     const r = await fetch(fetchUrl, { headers: { "User-Agent": "Mozilla/5.0 BonVoleur" } });
     if (!r.ok) return sourceUrl;
-    const buf = new Uint8Array(await r.arrayBuffer());
-    if (buf.byteLength === 0) return sourceUrl;
+    const raw = Buffer.from(await r.arrayBuffer());
+    if (raw.byteLength === 0) return sourceUrl;
+
+    let webp = await sharp(raw).resize({ width: 900, withoutEnlargement: true }).webp({ quality: 70 }).toBuffer();
+    if (webp.byteLength > 120 * 1024) {
+      webp = await sharp(raw).resize({ width: 700, withoutEnlargement: true }).webp({ quality: 60 }).toBuffer();
+    }
+
     await ensureBucket(client);
     const path = `${prefix}/${slugify(name)}.jpg`;
     const { error } = await client.storage
       .from("photos")
-      .upload(path, buf, { contentType: "image/jpeg", upsert: true });
+      .upload(path, webp, { contentType: "image/webp", upsert: true, cacheControl: "31536000" });
     if (error) return sourceUrl;
     return client.storage.from("photos").getPublicUrl(path).data.publicUrl;
   } catch {

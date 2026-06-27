@@ -13,7 +13,8 @@
     "harden:auth": "node scripts/harden-auth.mjs",
     "stripe:listen": "node scripts/stripe-listen.mjs",
     "stripe:products": "node scripts/setup-stripe-products.mjs",
-    "stripe:portal": "node scripts/setup-stripe-portal.mjs"
+    "stripe:portal": "node scripts/setup-stripe-portal.mjs",
+    "compress": "node scripts/compress-images.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",
@@ -28,6 +29,7 @@
     "react-dom": "19.2.4",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "sharp": "^0.35.2",
     "stripe": "^22.2.3",
     "three": "^0.184.0",
     "zod": "^4.4.3"
@@ -41,7 +43,6 @@
     "@types/three": "^0.184.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
-    "sharp": "^0.35.2",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.9"
