@@ -75,8 +75,6 @@ export default function HeroCinematic() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={PHOTOS[0]}
-            srcSet="/hero/01-nuit-sm.webp 450w, /hero/01-nuit.webp 900w"
-            sizes="(max-width: 768px) 100vw, 100vw"
             alt="Vue panoramique depuis un avion en vol"
             width={1920}
             height={1080}
