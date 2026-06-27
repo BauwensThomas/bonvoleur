@@ -8,6 +8,7 @@ import { getAll } from "@/lib/db";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { DEFAULT_DEST_IMAGE } from "@/lib/destinations";
 import { site } from "@/lib/site";
+import { getMemberState } from "@/lib/member-auth";
 import {
   getDestination,
   getDestinations,
@@ -155,6 +156,12 @@ export default async function DestinationPage({
   const originCities = dest.routes.map((r) => r.originCity);
   const faq = faqFor(dest.destCity, originCities);
 
+  // Bouton CTA : si connecté → espace membre filtré sur cette destination.
+  const member = await getMemberState();
+  const ctaHref = member.status !== "anonymous"
+    ? `/compte?destination=${encodeURIComponent(dest.destCity)}`
+    : "/#inscription";
+
   // Preuve par aéroport de départ.
   const airports: AirportProof[] = await Promise.all(
     dest.routes.map(async (r) => {
@@ -224,10 +231,10 @@ export default async function DestinationPage({
             </p>
             <div className="mt-6">
               <Link
-                href="/#inscription"
+                href={ctaHref}
                 className="inline-block rounded-lg bg-white px-6 py-3 font-semibold text-brand-dark shadow-lg ring-1 ring-black/5 transition hover:bg-slate-100"
               >
-                Recevoir les bons plans {dest.destCity}
+                {member.status !== "anonymous" ? `Voir mes bons plans ${dest.destCity}` : `Recevoir les bons plans ${dest.destCity}`}
               </Link>
             </div>
           </div>
