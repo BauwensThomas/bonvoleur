@@ -17,11 +17,15 @@ export default function HeroCinematic() {
   const [imgsReady, setImgsReady] = useState(false)
 
   useEffect(() => {
-    // Import conditionnel dans useEffect : évite que Next.js génère un
-    // <link rel=prefetch> pour le chunk Three.js sur mobile.
-    // Sur desktop >= 1024px, le chunk se charge et monte HeroPlane.
-    if (window.innerWidth >= 1024) {
-      import('./HeroPlane').then(mod => setPlaneComp(() => mod.default))
+    if (window.innerWidth < 1024) return
+    // requestIdleCallback diffère Three.js après TTI (browser idle) pour ne pas
+    // bloquer le thread principal pendant le chargement initial (TBT desktop).
+    // Fallback setTimeout 2s pour Safari qui ne supporte pas requestIdleCallback.
+    const load = () => import('./HeroPlane').then(mod => setPlaneComp(() => mod.default))
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(load, { timeout: 3000 })
+    } else {
+      setTimeout(load, 2000)
     }
   }, [])
 
