@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -198,7 +199,7 @@ export default async function Home() {
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
-              <NeedsSignupBanner />
+              <Suspense><NeedsSignupBanner /></Suspense>
               <h3 className="text-xl font-bold">Inscris-toi gratuitement</h3>
               <p className="mt-1 text-sm text-slate-600">
                 Choisis tes aéroports de départ et reçois par email les bons
