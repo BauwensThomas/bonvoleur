@@ -105,8 +105,10 @@ export async function notifySocial(post: Post): Promise<void> {
   }
 }
 
-// Rejoue le webhook pour le DERNIER article publié (test / bouton admin / cron).
-export async function runSocialClipper(): Promise<{
+// Envoie le webhook pour un article : `slug` précis si fourni (utile pour
+// (re)poster un article donné, ex. backfill du plus vieux au plus récent),
+// sinon le DERNIER article publié. Utilisé par le cron/endpoint et le bouton admin.
+export async function runSocialClipper(slug?: string): Promise<{
   ok: boolean;
   post?: string;
   reason?: string;
@@ -114,14 +116,22 @@ export async function runSocialClipper(): Promise<{
   if (!process.env.MAKE_WEBHOOK_URL) {
     return { ok: false, reason: "MAKE_WEBHOOK_URL non configuré" };
   }
-  const latest = (await getAll("posts"))
-    .filter((p) => p.status === "published")
-    .sort((a, b) =>
-      (b.published_at ?? b.created_at).localeCompare(
-        a.published_at ?? a.created_at
-      )
-    )[0];
-  if (!latest) return { ok: false, reason: "aucun article publié" };
-  await notifySocial(latest);
-  return { ok: true, post: latest.title };
+  const published = (await getAll("posts")).filter(
+    (p) => p.status === "published"
+  );
+  const target = slug
+    ? published.find((p) => p.slug === slug)
+    : published.sort((a, b) =>
+        (b.published_at ?? b.created_at).localeCompare(
+          a.published_at ?? a.created_at
+        )
+      )[0];
+  if (!target) {
+    return {
+      ok: false,
+      reason: slug ? `article introuvable : ${slug}` : "aucun article publié",
+    };
+  }
+  await notifySocial(target);
+  return { ok: true, post: target.title };
 }
