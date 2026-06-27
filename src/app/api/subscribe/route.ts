@@ -18,7 +18,7 @@ const schema = z.object({
 export async function POST(req: Request) {
   // Limite : 10 inscriptions par minute et par IP (anti-abus).
   const ip = getClientIp(req);
-  if (!allow("subscribe", ip, { windowMs: 60 * 1000, max: 10 })) {
+  if (!await allow("subscribe", ip, { windowMs: 60 * 1000, max: 10 })) {
     return NextResponse.json(
       { error: "Trop de requêtes. Réessaie dans une minute." },
       { status: 429 }

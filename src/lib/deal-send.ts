@@ -101,7 +101,8 @@ function accountCta(accountUrl: string): string {
 export function teaserDigestHtml(
   groups: { origin: string; deals: Deal[] }[],
   accountUrl: string,
-  unsubscribeUrl: string
+  unsubscribeUrl: string,
+  trackingToken?: string
 ): string {
   const intro = `<tr><td style="padding:22px 28px 0;font-size:15px;color:#334155;">Voici un aperçu de tes meilleurs bons plans. Retrouve-les tous (et plus) sur ton compte.</td></tr>`;
   const sections = groups
@@ -113,7 +114,8 @@ export function teaserDigestHtml(
   return emailLayout(
     "Tes bons plans",
     intro + hurryLine + sections + accountCta(accountUrl) + spacer(),
-    unsubscribeUrl
+    unsubscribeUrl,
+    trackingToken
   );
 }
 
@@ -334,12 +336,20 @@ export async function sendScheduledDigest(
   );
   // Dernier envoi par abonné (pour le plafond par période).
   const lastSentAt = new Map<string, number>();
+  // Premier envoi par abonné + ouvertures (pour la sunset policy).
+  const firstSentAt = new Map<string, number>();
+  const hasOpened = new Set<string>();
+  const SUNSET_MS = 8 * 7 * 24 * 60 * 60 * 1000; // 8 semaines sans ouverture
+  const eightWeeksAgo = Date.now() - SUNSET_MS;
+
   for (const s of sends) {
     if (!s.sent_at) continue;
     const t = new Date(s.sent_at).getTime();
-    if (t > (lastSentAt.get(s.subscriber_id) ?? 0)) {
-      lastSentAt.set(s.subscriber_id, t);
+    if (t > (lastSentAt.get(s.subscriber_id) ?? 0)) lastSentAt.set(s.subscriber_id, t);
+    if (!firstSentAt.has(s.subscriber_id) || t < firstSentAt.get(s.subscriber_id)!) {
+      firstSentAt.set(s.subscriber_id, t);
     }
+    if (s.opened_at) hasOpened.add(s.subscriber_id);
   }
 
   const accountUrl = `${site.url}/compte`;
@@ -352,6 +362,10 @@ export async function sendScheduledDigest(
     // Plafond : déjà servi dans la période en cours ? on saute.
     const last = lastSentAt.get(sub.id);
     if (last && Date.now() - last < periodMs) continue;
+
+    // Sunset : a reçu des emails depuis plus de 8 semaines sans jamais en ouvrir un.
+    const first = firstSentAt.get(sub.id);
+    if (first && first < eightWeeksAgo && !hasOpened.has(sub.id)) continue;
 
     // Pour CHAQUE aéroport de l'abonné : jusqu'à 3 bons plans (pas déjà reçus,
     // date non passée, 1 par route, les moins chers). Le freemium n'a qu'un seul
@@ -387,7 +401,7 @@ export async function sendScheduledDigest(
       msg: {
         to: sub.email,
         subject: "Tes bons plans de vols",
-        html: teaserDigestHtml(groups, accountUrl, unsubscribeUrl),
+        html: teaserDigestHtml(groups, accountUrl, unsubscribeUrl, sub.unsubscribe_token ?? undefined),
         text:
           groups
             .map(

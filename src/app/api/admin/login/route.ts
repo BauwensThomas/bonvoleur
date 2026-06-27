@@ -9,7 +9,7 @@ const LIMIT = { windowMs: 15 * 60 * 1000, max: 5, blockMs: 15 * 60 * 1000 };
 export async function POST(req: Request) {
   const ip = getClientIp(req);
 
-  const blockedFor = getBlock("admin-login", ip);
+  const blockedFor = await getBlock("admin-login", ip);
   if (blockedFor !== null) {
     return NextResponse.json(
       {
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   }
 
   if (body.password !== adminPassword()) {
-    const blocked = registerFailure("admin-login", ip, LIMIT);
+    const blocked = await registerFailure("admin-login", ip, LIMIT);
     if (blocked !== null) {
       return NextResponse.json(
         {
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
   }
 
   // Succès : on efface l'historique d'échecs de l'IP.
-  clear("admin-login", ip);
+  await clear("admin-login", ip);
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set(ADMIN_COOKIE, adminToken(), {

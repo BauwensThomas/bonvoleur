@@ -32,10 +32,14 @@ const LOGO_URL =
 export function emailLayout(
   subtitle: string,
   inner: string,
-  unsubscribeUrl?: string
+  unsubscribeUrl?: string,
+  trackingToken?: string
 ): string {
   const footerUnsub = unsubscribeUrl
     ? `<a href="${unsubscribeUrl}" style="display:inline-block;border:1px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;color:#64748b;text-decoration:none;">Se désinscrire</a>`
+    : "";
+  const pixel = trackingToken
+    ? `<img src="${site.url}/api/track/open?t=${encodeURIComponent(trackingToken)}" width="1" height="1" style="border:0;display:block;height:1px;width:1px;max-height:1px;overflow:hidden;" alt="" />`
     : "";
 
   return `<!doctype html>
@@ -59,6 +63,7 @@ export function emailLayout(
           ${footerUnsub}
         </td></tr>
       </table>
+      ${pixel}
     </td></tr>
   </table>
 </body></html>`;
@@ -215,7 +220,8 @@ type NewsletterPost = Pick<Post, "slug" | "title" | "excerpt" | "cover_image">;
 export function blogNewsletterEmail(
   to: string,
   posts: NewsletterPost[],
-  unsubscribeUrl: string
+  unsubscribeUrl: string,
+  trackingToken?: string
 ): EmailMessage {
   const cards = posts
     .map((p) => {
@@ -249,7 +255,7 @@ Te desinscrire : ${unsubscribeUrl}`;
   return {
     to,
     subject: `Le blog ${site.name} : nos derniers articles`,
-    html: emailLayout("Newsletter", inner, unsubscribeUrl),
+    html: emailLayout("Newsletter", inner, unsubscribeUrl, trackingToken),
     text,
     replyTo: site.email,
     listUnsubscribe: unsubscribeUrl,

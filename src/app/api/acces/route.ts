@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   const origin = new URL(req.url).origin;
   const ip = getClientIp(req);
 
-  if (getBlock("gate", ip) !== null) {
+  if ((await getBlock("gate", ip)) !== null) {
     return NextResponse.redirect(`${origin}/acces?error=rate`, { status: 303 });
   }
 
@@ -19,11 +19,11 @@ export async function POST(req: Request) {
   const password = String(form.get("password") ?? "");
 
   if (!expected || password !== expected) {
-    registerFailure("gate", ip, LIMIT);
+    await registerFailure("gate", ip, LIMIT);
     return NextResponse.redirect(`${origin}/acces?error=1`, { status: 303 });
   }
 
-  clear("gate", ip);
+  await clear("gate", ip);
   const res = NextResponse.redirect(origin + "/", { status: 303 });
   res.cookies.set("bv_gate", expected, {
     httpOnly: true,

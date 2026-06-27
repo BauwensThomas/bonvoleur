@@ -19,8 +19,8 @@ export async function POST(req: Request) {
   // Anti-spam : limite par IP (3/min) ET délai par compte (1 renvoi / 2 min)
   // pour ne pas inonder la boîte mail de la personne.
   const ip = getClientIp(req);
-  const ipOk = allow("resend-confirm-ip", ip, { windowMs: 60 * 1000, max: 3 });
-  const emailOk = allow("resend-confirm-email", state.email, {
+  const ipOk = await allow("resend-confirm-ip", ip, { windowMs: 60 * 1000, max: 3 });
+  const emailOk = await allow("resend-confirm-email", state.email, {
     windowMs: 2 * 60 * 1000,
     max: 1,
   });

@@ -1,85 +1,117 @@
 // Protection anti-force-brute par IP.
-// Phase 0 (local) : compteur en mémoire (suffisant pour un seul process).
-// Phase 1 (Vercel/serverless) : remplacer le store par un store persistant
-// partagé (Upstash Redis, Supabase), car la mémoire n'est pas partagée
-// entre instances. Les signatures de fonctions ne changeront pas.
+// Utilise Upstash Redis (UPSTASH_REDIS_REST_URL + TOKEN) si disponible,
+// sinon repli sur un store en mémoire (local dev / instance unique).
+// Toutes les fonctions sont async pour supporter les deux backends sans
+// changer les signatures au niveau des call sites.
 
-interface Entry {
-  count: number;
-  windowStart: number;
-  blockedUntil?: number;
-}
-
-const store = new Map<string, Entry>();
+import { Redis } from "@upstash/redis";
 
 export interface RateLimitOptions {
-  windowMs: number; // fenêtre d'observation
-  max: number; // nombre d'échecs tolérés dans la fenêtre
-  blockMs: number; // durée du blocage une fois le seuil atteint
+  windowMs: number;
+  max: number;
+  blockMs: number;
 }
 
-// Préfixe pour éviter les collisions entre différents usages (login, subscribe).
-function k(scope: string, ip: string): string {
-  return `${scope}:${ip}`;
+// ---- Backend Redis (Upstash) ----------------------------------------
+
+let _redis: Redis | null = null;
+
+function getRedis(): Redis | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+  if (!_redis) _redis = new Redis({ url, token });
+  return _redis;
 }
 
-// Retourne le nombre de secondes restantes si l'IP est bloquée, sinon null.
-export function getBlock(scope: string, ip: string): number | null {
-  const e = store.get(k(scope, ip));
-  if (!e?.blockedUntil) return null;
-  const remaining = e.blockedUntil - Date.now();
-  if (remaining <= 0) {
-    store.delete(k(scope, ip));
-    return null;
+// ---- Fallback in-memory (local dev / instance unique) ----------------
+
+interface MemEntry { count: number; windowStart: number; blockedUntil?: number; }
+const failMem = new Map<string, MemEntry>();
+const allowMem = new Map<string, { count: number; windowStart: number }>();
+
+// ---- API publique (async) --------------------------------------------
+
+// Retourne les secondes de blocage restantes si l'IP est bloquée, null sinon.
+export async function getBlock(scope: string, ip: string): Promise<number | null> {
+  const r = getRedis();
+  if (r) {
+    const ttl = await r.pttl(`rl:b:${scope}:${ip}`);
+    return ttl > 0 ? Math.ceil(ttl / 1000) : null;
   }
-  return Math.ceil(remaining / 1000);
+  const e = failMem.get(`${scope}:${ip}`);
+  if (!e?.blockedUntil) return null;
+  const rem = e.blockedUntil - Date.now();
+  if (rem <= 0) { failMem.delete(`${scope}:${ip}`); return null; }
+  return Math.ceil(rem / 1000);
 }
 
-// Enregistre un échec. Si le seuil est dépassé, pose un blocage.
-// Retourne les secondes de blocage si le seuil vient d'être atteint.
-export function registerFailure(
+// Enregistre un échec. Retourne les secondes de blocage si le seuil est atteint.
+export async function registerFailure(
   scope: string,
   ip: string,
   opts: RateLimitOptions
-): number | null {
-  const key = k(scope, ip);
-  const now = Date.now();
-  const e = store.get(key);
-
-  if (!e || now - e.windowStart > opts.windowMs) {
-    store.set(key, { count: 1, windowStart: now });
+): Promise<number | null> {
+  const r = getRedis();
+  if (r) {
+    const fk = `rl:f:${scope}:${ip}`;
+    const bk = `rl:b:${scope}:${ip}`;
+    const n = await r.incr(fk);
+    if (n === 1) await r.expire(fk, Math.ceil(opts.windowMs / 1000));
+    if (n >= opts.max) {
+      await r.set(bk, 1, { px: opts.blockMs });
+      return Math.ceil(opts.blockMs / 1000);
+    }
     return null;
   }
-
-  e.count += 1;
+  const key = `${scope}:${ip}`;
+  const now = Date.now();
+  const e = failMem.get(key);
+  if (!e || now - e.windowStart > opts.windowMs) {
+    failMem.set(key, { count: 1, windowStart: now });
+    return null;
+  }
+  e.count++;
   if (e.count >= opts.max) {
     e.blockedUntil = now + opts.blockMs;
     return Math.ceil(opts.blockMs / 1000);
   }
-  store.set(key, e);
+  failMem.set(key, e);
   return null;
 }
 
-// À appeler en cas de succès : on efface l'historique de l'IP.
-export function clear(scope: string, ip: string): void {
-  store.delete(k(scope, ip));
+// Efface l'historique d'une IP (succès d'authentification).
+export async function clear(scope: string, ip: string): Promise<void> {
+  const r = getRedis();
+  if (r) {
+    await r.del(`rl:f:${scope}:${ip}`, `rl:b:${scope}:${ip}`);
+    return;
+  }
+  failMem.delete(`${scope}:${ip}`);
 }
 
-// Limiteur simple (sans notion d'échec) : limite le nombre de requêtes par
-// fenêtre. Retourne true si la requête est autorisée, false si dépassée.
-export function allow(
+// Limite simple de débit (sans notion d'échec / blocage).
+// Retourne true si la requête est autorisée, false si le plafond est dépassé.
+export async function allow(
   scope: string,
   ip: string,
   opts: { windowMs: number; max: number }
-): boolean {
-  const key = k(scope, ip);
+): Promise<boolean> {
+  const r = getRedis();
+  if (r) {
+    const key = `rl:a:${scope}:${ip}`;
+    const n = await r.incr(key);
+    if (n === 1) await r.expire(key, Math.ceil(opts.windowMs / 1000));
+    return n <= opts.max;
+  }
+  const key = `${scope}:${ip}`;
   const now = Date.now();
-  const e = store.get(key);
+  const e = allowMem.get(key);
   if (!e || now - e.windowStart > opts.windowMs) {
-    store.set(key, { count: 1, windowStart: now });
+    allowMem.set(key, { count: 1, windowStart: now });
     return true;
   }
-  e.count += 1;
-  store.set(key, e);
+  e.count++;
+  allowMem.set(key, e);
   return e.count <= opts.max;
 }

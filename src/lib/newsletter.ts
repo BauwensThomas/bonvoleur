@@ -68,7 +68,8 @@ async function runNewsletter(): Promise<NewsletterResult> {
       blogNewsletterEmail(
         s.email,
         posts,
-        unsubscribeUrl(s.email, s.unsubscribe_token)
+        unsubscribeUrl(s.email, s.unsubscribe_token),
+        s.unsubscribe_token ?? undefined
       )
     );
     const oks = await sendBatch(msgs, t);
