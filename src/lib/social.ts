@@ -4,9 +4,9 @@
 // (Instagram ne rend pas les liens cliquables dans la légende). ManyChat gère
 // ensuite les réponses/DM via le mot-clé (ex. "DEAL").
 import Anthropic from "@anthropic-ai/sdk";
-import { getAll } from "./db";
+import { getAll, insert } from "./db";
 import { site } from "./site";
-import type { Post } from "./types";
+import type { Post, AgentTrigger } from "./types";
 
 // Mot-clé à commenter pour déclencher l'envoi du lien en DM via ManyChat.
 const KEYWORD = "DEAL";
@@ -78,9 +78,15 @@ Reponds STRICTEMENT en JSON, sans texte autour :
 
 // Envoie le webhook Make pour un article. No-op si MAKE_WEBHOOK_URL absent.
 // Ne lève jamais (ne doit pas casser la publication de l'article).
-export async function notifySocial(post: Post): Promise<void> {
+export async function notifySocial(
+  post: Post,
+  trigger: AgentTrigger = "auto"
+): Promise<void> {
   const hook = process.env.MAKE_WEBHOOK_URL;
   if (!hook) return;
+  const startedAt = new Date().toISOString();
+  let ok = false;
+  let detail = "";
   try {
     const url = `${site.url}/blog/${post.slug}`;
     const { caption, comment } = await generateCaption(post, url);
@@ -97,18 +103,38 @@ export async function notifySocial(post: Post): Promise<void> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!res.ok) {
-      console.error(`[social] webhook Make ${res.status}: ${await res.text()}`);
-    }
+    ok = res.ok;
+    if (!ok) detail = `webhook Make ${res.status}: ${await res.text()}`;
   } catch (e) {
+    detail = e instanceof Error ? e.message : String(e);
     console.error("[social] envoi webhook Make echoue:", e);
+  }
+  // Journalise le run (visible dans l'historique des agents).
+  try {
+    await insert("agent_runs", {
+      agent_name: "social-clipper",
+      started_at: startedAt,
+      finished_at: new Date().toISOString(),
+      status: ok ? "success" : "error",
+      trigger,
+      summary: ok
+        ? `Post envoyé à Make (IG + FB) : "${post.title}".`
+        : `Échec de l'envoi à Make : ${detail || "inconnu"}.`,
+      output_ref: post.id,
+      error: ok ? null : detail || null,
+    });
+  } catch (e) {
+    console.error("[social] log du run échoué:", e);
   }
 }
 
 // Envoie le webhook pour un article : `slug` précis si fourni (utile pour
 // (re)poster un article donné, ex. backfill du plus vieux au plus récent),
 // sinon le DERNIER article publié. Utilisé par le cron/endpoint et le bouton admin.
-export async function runSocialClipper(slug?: string): Promise<{
+export async function runSocialClipper(
+  slug?: string,
+  trigger: AgentTrigger = "manuel"
+): Promise<{
   ok: boolean;
   post?: string;
   reason?: string;
@@ -132,6 +158,6 @@ export async function runSocialClipper(slug?: string): Promise<{
       reason: slug ? `article introuvable : ${slug}` : "aucun article publié",
     };
   }
-  await notifySocial(target);
+  await notifySocial(target, trigger);
   return { ok: true, post: target.title };
 }

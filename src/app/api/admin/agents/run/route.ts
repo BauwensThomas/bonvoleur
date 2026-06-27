@@ -34,22 +34,10 @@ export async function POST(req: Request) {
   }
 
   // Social Clipper : (re)envoie le webhook Make pour le dernier article publié.
+  // runSocialClipper -> notifySocial journalise déjà le run (pas de double log).
   if (agent.name === "social-clipper") {
-    const start = new Date().toISOString();
-    const result = await runSocialClipper();
-    const run = await insert("agent_runs", {
-      agent_name: "social-clipper",
-      started_at: start,
-      finished_at: new Date().toISOString(),
-      status: result.ok ? "success" : "draft",
-      trigger: "manuel",
-      summary: result.ok
-        ? `Webhook Make envoyé pour : "${result.post}".`
-        : `Non envoyé : ${result.reason}.`,
-      output_ref: null,
-      error: null,
-    });
-    return NextResponse.json(run, { status: 201 });
+    const result = await runSocialClipper(undefined, "manuel");
+    return NextResponse.json(result, { status: 201 });
   }
 
   // SEO Route : (re)genere les fiches destinations sur GitHub Actions, utile

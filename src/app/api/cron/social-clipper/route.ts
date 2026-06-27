@@ -13,6 +13,6 @@ export async function GET(req: Request) {
   }
   // ?slug=... pour (re)poster un article précis (backfill), sinon le dernier.
   const slug = new URL(req.url).searchParams.get("slug") ?? undefined;
-  const result = await runSocialClipper(slug);
+  const result = await runSocialClipper(slug, "cron");
   return NextResponse.json(result);
 }
