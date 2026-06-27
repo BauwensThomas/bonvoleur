@@ -117,8 +117,6 @@ export default async function Home({
   return (
     <>
       {/* Précharge l'image hero LCP dès le <head> SSR */}
-      {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-      {/* @ts-expect-error fetchPriority absent de LinkHTMLAttributes dans certaines versions */}
       <link rel="preload" as="image" href="/hero/01-nuit.webp" fetchPriority="high" />
       <Header />
 
