@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import DealCard from "./DealCard";
 
 interface PastDeal {
@@ -45,9 +44,9 @@ export default function AirportDeals({
         <h2 className="text-2xl font-bold">Bons plans vers {destCity}</h2>
         <p className="mt-3 rounded-2xl border border-brand/30 bg-brand/5 p-6 text-slate-700">
           On surveille les vols vers {destCity} depuis la Belgique et la France.{" "}
-          <Link href="/#inscription" className="font-semibold text-brand hover:underline">
+          <a href="/#inscription" className="font-semibold text-brand hover:underline">
             Inscris-toi gratuitement
-          </Link>{" "}
+          </a>{" "}
           pour être prévenu dès qu&apos;un bon plan tombe.
         </p>
       </section>
@@ -87,12 +86,12 @@ export default function AirportDeals({
             <strong>Un bon plan</strong> {a.originCity} - {destCity} en ce
             moment, réservé aux inscrits.
           </p>
-          <Link
+          <a
             href="/#inscription"
             className="shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
           >
             Recevoir les bons plans
-          </Link>
+          </a>
         </div>
       )}
 
