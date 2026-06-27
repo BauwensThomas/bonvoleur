@@ -48,7 +48,7 @@ async function uploadImage(name, buf, mime) {
   if (!r.ok) throw new Error(`Upload ${name} -> ${r.status}: ${await r.text()}`);
 }
 
-const TARGET_KB = 250; // max après compression (WebP)
+const TARGET_KB = 120; // max après compression (WebP)
 const files = await listImages("destinations/");
 
 let skipped = 0, compressed = 0;
@@ -61,10 +61,10 @@ for (const f of files) {
 
   try {
     const orig = await downloadImage(name);
-    // Compression WebP qualité adaptative : 75 par défaut, on descend si trop lourd
-    let webp = await sharp(orig).resize({ width: 1200, withoutEnlargement: true }).webp({ quality: 75 }).toBuffer();
+    // Compression WebP qualité adaptative
+    let webp = await sharp(orig).resize({ width: 900, withoutEnlargement: true }).webp({ quality: 70 }).toBuffer();
     if (webp.length > TARGET_KB * 1024) {
-      webp = await sharp(orig).resize({ width: 1000, withoutEnlargement: true }).webp({ quality: 65 }).toBuffer();
+      webp = await sharp(orig).resize({ width: 700, withoutEnlargement: true }).webp({ quality: 60 }).toBuffer();
     }
     // On remplace en gardant l'extension .jpg mais en envoyant du WebP
     // (le bucket sert content-type depuis le header qu'on envoie)
@@ -80,22 +80,25 @@ console.log(`\nDestinations: ${compressed} compressées, ${skipped} déjà OK.`)
 // ---- 2. Hero images locales (/public/hero/*.jpg) ----------------------------
 
 const heroDir = new URL("../public/hero/", import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1");
-const heroFiles = ["01-nuit.jpg", "02-lever.jpg", "03-plage.jpg", "04-ville.jpg"];
+const heroSources = ["01-nuit.jpg", "02-lever.jpg", "03-plage.jpg", "04-ville.jpg"];
 
-console.log("\nHero images locales :");
-for (const file of heroFiles) {
-  const p = path.join(heroDir, file);
+console.log("\nHero images locales -> WebP :");
+for (const file of heroSources) {
+  const srcPath = path.join(heroDir, file);
+  const dstPath = path.join(heroDir, file.replace(".jpg", ".webp"));
   let orig;
-  try { orig = await readFile(p); } catch { continue; }
+  try { orig = await readFile(srcPath); } catch { console.log(`  ${file} manquant, ignoré`); continue; }
   const sizeKb = Math.round(orig.length / 1024);
-  if (sizeKb <= 150) { console.log(`  ${file} (${sizeKb} KB) -> déjà OK`); continue; }
-
   process.stdout.write(`  ${file} (${sizeKb} KB) -> `);
-  const compressed = await sharp(orig)
+  // WebP qualité 78 pour les grandes photos hero (1920px max)
+  let webp = await sharp(orig)
     .resize({ width: 1920, withoutEnlargement: true })
-    .jpeg({ quality: 75, progressive: true })
+    .webp({ quality: 78 })
     .toBuffer();
-  await writeFile(p, compressed);
-  console.log(`${Math.round(compressed.length / 1024)} KB ✓`);
+  if (webp.length > 200 * 1024) {
+    webp = await sharp(orig).resize({ width: 1600, withoutEnlargement: true }).webp({ quality: 70 }).toBuffer();
+  }
+  await writeFile(dstPath, webp);
+  console.log(`${file.replace(".jpg", ".webp")} ${Math.round(webp.length / 1024)} KB ✓`);
 }
 console.log("\nTerminé.");

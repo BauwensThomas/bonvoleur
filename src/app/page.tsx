@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ReactDOM from "react-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SignupForm from "@/components/SignupForm";
@@ -60,6 +61,9 @@ export default async function Home({
   searchParams: Promise<{ besoin_inscription?: string }>;
 }) {
   const needsSignup = (await searchParams).besoin_inscription === "1";
+
+  // Précharge la première image hero dans le <head> SSR (réduit le LCP).
+  ReactDOM.preload("/hero/01-nuit.webp", { as: "image", fetchPriority: "high" });
 
   // Vitrine "teaser" : route + prix uniquement (aucune info actionnable).
   const { teaserDeals, liveCount } = await getHomepageDeals();
