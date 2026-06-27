@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { preload } from "react-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SignupForm from "@/components/SignupForm";
@@ -62,9 +61,6 @@ export default async function Home({
 }) {
   const needsSignup = (await searchParams).besoin_inscription === "1";
 
-  // Précharge la première image hero dans le <head> SSR (réduit le LCP).
-  preload("/hero/01-nuit.webp", { as: "image", fetchPriority: "high" });
-
   // Vitrine "teaser" : route + prix uniquement (aucune info actionnable).
   const { teaserDeals, liveCount } = await getHomepageDeals();
 
@@ -120,6 +116,8 @@ export default async function Home({
 
   return (
     <>
+      {/* Précharge l'image hero LCP dès le <head> SSR */}
+      <link rel="preload" as="image" href="/hero/01-nuit.webp" />
       <Header />
 
       <main>

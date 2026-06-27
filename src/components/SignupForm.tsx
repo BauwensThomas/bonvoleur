@@ -1,8 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { airports } from "@/lib/site";
-import GoogleSignInButton from "@/components/GoogleSignInButton";
+
+const GoogleSignInButton = dynamic(
+  () => import("@/components/GoogleSignInButton"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-10 w-full items-center justify-center rounded-lg border border-slate-300 text-sm text-slate-400">
+        Chargement...
+      </div>
+    ),
+  }
+);
 
 type Status = "idle" | "loading" | "success" | "error";
 
