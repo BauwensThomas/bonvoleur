@@ -6,6 +6,7 @@ import DealCard from "@/components/DealCard";
 import Partners from "@/components/Partners";
 import HeroCinematic from "@/components/HeroCinematic";
 import DestinationsGrid from "@/components/DestinationsGrid";
+import NeedsSignupBanner from "@/components/NeedsSignupBanner";
 import { site } from "@/lib/site";
 import { getHomepageDeals } from "@/lib/homepage";
 import { getDestinations, destinationSlug } from "@/lib/routes";
@@ -21,8 +22,8 @@ export const metadata = {
   alternates: { canonical: "https://www.bonvoleur.com" },
 };
 
-// Rendu dynamique : l'accueil relit les deals à chaque visite (compteur à jour).
-export const dynamic = "force-dynamic";
+// ISR : page mise en cache 60s sur le CDN Vercel → TTFB ~50ms au lieu de ~1s.
+export const revalidate = 60;
 
 const steps = [
   {
@@ -54,13 +55,7 @@ const features = [
   },
 ];
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: Promise<{ besoin_inscription?: string }>;
-}) {
-  const needsSignup = (await searchParams).besoin_inscription === "1";
-
+export default async function Home() {
   // Vitrine "teaser" : route + prix uniquement (aucune info actionnable).
   const { teaserDeals, liveCount } = await getHomepageDeals();
 
@@ -203,12 +198,7 @@ export default async function Home({
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
-              {needsSignup && (
-                <p className="mb-4 rounded-lg bg-brand/10 px-4 py-3 text-sm text-brand-dark">
-                  Tu n&apos;as pas encore de compte BonVoleur. Inscris-toi ici
-                  (gratuit) pour accéder à ton espace bons plans.
-                </p>
-              )}
+              <NeedsSignupBanner />
               <h3 className="text-xl font-bold">Inscris-toi gratuitement</h3>
               <p className="mt-1 text-sm text-slate-600">
                 Choisis tes aéroports de départ et reçois par email les bons
