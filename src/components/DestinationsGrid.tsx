@@ -31,7 +31,9 @@ export default function DestinationsGrid({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={d.image ?? DEFAULT_DEST_IMAGE}
-            alt=""
+            alt={d.city}
+            width={400}
+            height={300}
             loading="lazy"
             decoding="async"
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"

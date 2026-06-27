@@ -51,6 +51,9 @@ export default async function VolsPasChersIndex() {
 
         {destinations.length > 0 ? (
           <div className="mt-10">
+            <h2 className="text-xl font-semibold text-slate-800 mb-4">
+              Toutes nos destinations
+            </h2>
             <DestinationsExplorer destinations={destinations} />
           </div>
         ) : (
@@ -58,6 +61,37 @@ export default async function VolsPasChersIndex() {
             Nos destinations arrivent très bientôt.
           </p>
         )}
+
+        <section className="mt-16 border-t border-slate-200 pt-12">
+          <h2 className="text-2xl font-bold text-slate-900">
+            Comment trouver un vol pas cher depuis la Belgique ou la France ?
+          </h2>
+          <p className="mt-4 text-slate-600">
+            BonVoleur surveille en continu les prix depuis Bruxelles (BRU),
+            Charleroi (CRL), Paris (CDG) et Lyon (LYS). Dès qu&apos;un tarif
+            chute sous les prix habituels, on t&apos;envoie une alerte par
+            email avec tous les détails pour réserver.
+          </p>
+          <h2 className="mt-10 text-2xl font-bold text-slate-900">
+            Pourquoi s&apos;inscrire à nos alertes vols ?
+          </h2>
+          <ul className="mt-4 space-y-2 text-slate-600 list-disc list-inside">
+            <li>Les meilleures promos disparaissent en quelques heures.</li>
+            <li>
+              On vérifie chaque deal avant de l&apos;envoyer : pas de faux
+              prix, pas de spam.
+            </li>
+            <li>Inscription gratuite, désinscription en un clic.</li>
+          </ul>
+          <div className="mt-6">
+            <Link
+              href="/#inscription"
+              className="inline-block rounded-lg border border-brand px-5 py-2.5 font-semibold text-brand hover:bg-brand hover:text-white transition"
+            >
+              Recevoir les alertes gratuitement
+            </Link>
+          </div>
+        </section>
       </main>
       <Footer />
     </>
