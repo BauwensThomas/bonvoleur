@@ -16,6 +16,11 @@ function destSlugOf(label: string): string {
   return destinationSlug(label.replace(/\s*\([A-Z]{3}\)\s*$/, "").trim());
 }
 
+export const metadata = {
+  title: "BonVoleur - Vols pas chers depuis la Belgique et la France",
+  alternates: { canonical: "https://www.bonvoleur.com" },
+};
+
 // Rendu dynamique : l'accueil relit les deals à chaque visite (compteur à jour).
 export const dynamic = "force-dynamic";
 

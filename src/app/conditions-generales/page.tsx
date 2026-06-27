@@ -5,7 +5,8 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Conditions générales",
-  description: `Conditions générales d'utilisation et de vente de ${site.name}.`,
+  description: `Conditions générales d'utilisation et de vente de ${site.name} : abonnements, paiements via Stripe, droit de rétractation et responsabilités.`,
+  alternates: { canonical: "https://www.bonvoleur.com/conditions-generales" },
 };
 
 export default function ConditionsGenerales() {

@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "Blog voyage et bons plans",
   description:
     "Guides destinations, conseils voyage et astuces pour voler moins cher depuis la Belgique et la France.",
+  alternates: { canonical: "https://www.bonvoleur.com/blog" },
 };
 
 function frDate(iso: string): string {

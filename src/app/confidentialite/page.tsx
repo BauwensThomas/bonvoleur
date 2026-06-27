@@ -5,7 +5,8 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Politique de confidentialité",
-  description: `Comment ${site.name} traite tes données personnelles (RGPD).`,
+  description: `Comment ${site.name} collecte, utilise et protège tes données personnelles, conformément au RGPD. Droits d'accès, de rectification et de suppression.`,
+  alternates: { canonical: "https://www.bonvoleur.com/confidentialite" },
 };
 
 export default function Confidentialite() {

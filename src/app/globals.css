@@ -17,8 +17,8 @@ html {
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
-  /* Bleu confiance (marque, liens) */
-  --brand: #0ea5e9;
+  /* Bleu confiance (marque, liens) — sky-600 (#0284c7) passe WCAG AA sur blanc */
+  --brand: #0284c7;
   --brand-dark: #0369a1;
   /* Orange action (boutons de conversion) */
   --accent: #ea580c;
