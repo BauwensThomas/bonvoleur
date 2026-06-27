@@ -31,7 +31,7 @@ export default function DestinationsGrid({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={d.image ?? DEFAULT_DEST_IMAGE}
-            alt={d.city}
+            alt=""
             width={400}
             height={300}
             loading="lazy"

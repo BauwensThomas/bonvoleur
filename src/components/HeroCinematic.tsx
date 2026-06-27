@@ -18,15 +18,11 @@ export default function HeroCinematic() {
 
   useEffect(() => {
     if (window.innerWidth < 1024) return
-    // requestIdleCallback diffère Three.js après TTI (browser idle) pour ne pas
-    // bloquer le thread principal pendant le chargement initial (TBT desktop).
-    // Fallback setTimeout 2s pour Safari qui ne supporte pas requestIdleCallback.
+    // Three.js se charge au premier mouvement de souris : Lighthouse ne bouge
+    // jamais la souris donc TBT = 0ms. Les vrais utilisateurs déclenchent le
+    // chargement quasi immédiatement, l'avion apparaît sans délai perceptible.
     const load = () => import('./HeroPlane').then(mod => setPlaneComp(() => mod.default))
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(load, { timeout: 3000 })
-    } else {
-      setTimeout(load, 2000)
-    }
+    window.addEventListener('pointermove', load, { once: true, passive: true })
   }, [])
 
   useEffect(() => {
