@@ -2,6 +2,12 @@
   "name": "bonvoleur.be",
   "version": "0.1.0",
   "private": true,
+  "browserslist": [
+    "chrome >= 92",
+    "firefox >= 90",
+    "safari >= 15",
+    "edge >= 92"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
