@@ -18,6 +18,12 @@ const PHOTOS = [
 export default function HeroCinematic() {
   const [stage, setStage] = useState(-1)
   const [scrollProgress, setScrollProgress] = useState(0)
+  const [showPlane, setShowPlane] = useState(false)
+
+  useEffect(() => {
+    // Three.js désactivé sur mobile : trop lourd pour le thread principal (TBT).
+    if (window.innerWidth >= 1024) setShowPlane(true)
+  }, [])
 
   useEffect(() => {
     const scrollMax = window.innerHeight * 3
@@ -61,11 +67,23 @@ export default function HeroCinematic() {
           className="absolute inset-0 will-change-transform"
           style={{ animation: 'hero-kenburns 26s ease-in-out infinite alternate' }}
         >
-          {PHOTOS.map((src, i) => (
+          {/* Première image : <img> réel pour que le browser la priorise comme LCP candidate */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={PHOTOS[0]}
+            alt=""
+            fetchPriority="high"
+            loading="eager"
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover object-center"
+            style={{ opacity: layerOpacity(0) }}
+          />
+          {/* Images suivantes : background-image (pas LCP, sous le fold) */}
+          {PHOTOS.slice(1).map((src, i) => (
             <div
               key={src}
               className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${src})`, opacity: layerOpacity(i) }}
+              style={{ backgroundImage: `url(${src})`, opacity: layerOpacity(i + 1) }}
             />
           ))}
         </div>
@@ -81,8 +99,8 @@ export default function HeroCinematic() {
           }}
         />
 
-        {/* Avion 3D (chunk JS separé, chargé après hydration) */}
-        <HeroPlane />
+        {/* Avion 3D : desktop uniquement (>= 1024px) pour ne pas bloquer le TBT mobile */}
+        {showPlane && <HeroPlane />}
 
         {/* Micro-grain filmique (texture premium, tres subtil) */}
         <div

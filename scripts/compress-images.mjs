@@ -1,5 +1,5 @@
-// Compresse les images destinations Supabase trop lourdes (> 300 KB)
-// et les images hero locales. Utilise sharp.
+// Compresse les images Supabase (destinations + articles) et les hero locales.
+// Toutes les images sont re-uploadées pour garantir cache-control 1 an.
 // Usage : node scripts/compress-images.mjs
 
 import sharp from "sharp";
@@ -49,33 +49,43 @@ async function uploadImage(name, buf, mime) {
 }
 
 const TARGET_KB = 120; // max après compression (WebP)
-const files = await listImages("destinations/");
 
-let skipped = 0, compressed = 0;
-for (const f of files) {
-  const sizeKb = Math.round((f.metadata?.size ?? 0) / 1024);
-  if (sizeKb <= TARGET_KB) { skipped++; continue; }
-
-  const name = `destinations/${f.name}`;
-  process.stdout.write(`${f.name} (${sizeKb} KB) -> `);
-
-  try {
-    const orig = await downloadImage(name);
-    // Compression WebP qualité adaptative
-    let webp = await sharp(orig).resize({ width: 900, withoutEnlargement: true }).webp({ quality: 70 }).toBuffer();
-    if (webp.length > TARGET_KB * 1024) {
-      webp = await sharp(orig).resize({ width: 700, withoutEnlargement: true }).webp({ quality: 60 }).toBuffer();
+async function processPrefix(prefix) {
+  const files = await listImages(prefix);
+  let compressed = 0, cached = 0;
+  for (const f of files) {
+    const sizeKb = Math.round((f.metadata?.size ?? 0) / 1024);
+    const name = `${prefix}${f.name}`;
+    process.stdout.write(`  ${f.name} (${sizeKb} KB) -> `);
+    try {
+      const orig = await downloadImage(name);
+      if (sizeKb <= TARGET_KB) {
+        // Déjà à la bonne taille : re-upload as-is pour corriger cache-control à 1 an.
+        const mime = f.metadata?.mimetype ?? "image/webp";
+        await uploadImage(name, orig, mime);
+        process.stdout.write(`cache 1 an ✓\n`);
+        cached++;
+        continue;
+      }
+      let webp = await sharp(orig).resize({ width: 900, withoutEnlargement: true }).webp({ quality: 70 }).toBuffer();
+      if (webp.length > TARGET_KB * 1024) {
+        webp = await sharp(orig).resize({ width: 700, withoutEnlargement: true }).webp({ quality: 60 }).toBuffer();
+      }
+      await uploadImage(name, webp, "image/webp");
+      process.stdout.write(`${Math.round(webp.length / 1024)} KB WebP ✓\n`);
+      compressed++;
+    } catch (e) {
+      process.stdout.write(`ERREUR: ${e.message}\n`);
     }
-    // On remplace en gardant l'extension .jpg mais en envoyant du WebP
-    // (le bucket sert content-type depuis le header qu'on envoie)
-    await uploadImage(name, webp, "image/webp");
-    process.stdout.write(`${Math.round(webp.length / 1024)} KB WebP ✓\n`);
-    compressed++;
-  } catch (e) {
-    process.stdout.write(`ERREUR: ${e.message}\n`);
   }
+  console.log(`  -> ${compressed} compressées, ${cached} cache fixé.`);
 }
-console.log(`\nDestinations: ${compressed} compressées, ${skipped} déjà OK.`);
+
+console.log("\nDestinations :");
+await processPrefix("destinations/");
+
+console.log("\nArticles :");
+await processPrefix("articles/");
 
 // ---- 2. Hero images locales (/public/hero/*.jpg) ----------------------------
 
@@ -90,13 +100,12 @@ for (const file of heroSources) {
   try { orig = await readFile(srcPath); } catch { console.log(`  ${file} manquant, ignoré`); continue; }
   const sizeKb = Math.round(orig.length / 1024);
   process.stdout.write(`  ${file} (${sizeKb} KB) -> `);
-  // WebP qualité 78 pour les grandes photos hero (1920px max)
-  let webp = await sharp(orig)
-    .resize({ width: 1920, withoutEnlargement: true })
-    .webp({ quality: 78 })
-    .toBuffer();
-  if (webp.length > 200 * 1024) {
-    webp = await sharp(orig).resize({ width: 1600, withoutEnlargement: true }).webp({ quality: 70 }).toBuffer();
+  let webp = await sharp(orig).resize({ width: 1600, withoutEnlargement: true }).webp({ quality: 72 }).toBuffer();
+  if (webp.length > 160 * 1024) {
+    webp = await sharp(orig).resize({ width: 1280, withoutEnlargement: true }).webp({ quality: 65 }).toBuffer();
+  }
+  if (webp.length > 160 * 1024) {
+    webp = await sharp(orig).resize({ width: 1024, withoutEnlargement: true }).webp({ quality: 58 }).toBuffer();
   }
   await writeFile(dstPath, webp);
   console.log(`${file.replace(".jpg", ".webp")} ${Math.round(webp.length / 1024)} KB ✓`);
