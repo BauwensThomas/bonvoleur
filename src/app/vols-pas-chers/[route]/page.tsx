@@ -76,13 +76,14 @@ async function proofFor(
       ? 1
       : 0;
     // Historique (preuve) : deals decouverts il y a plus d'une semaine,
-    // dedoublonnes par prix+dates pour ne pas afficher deux fois la meme offre.
+    // Dédoublonnés par prix : même prix sur la même route = même niveau de bon
+    // plan, inutile d'afficher deux cartes identiques avec des dates différentes.
     const seen = new Set<string>();
     const past = all
       .filter((d) => now - new Date(d.created_at).getTime() >= WEEK_MS)
       .sort((a, b) => b.created_at.localeCompare(a.created_at))
       .filter((d) => {
-        const k = `${d.price}|${d.dates}`;
+        const k = `${d.price}`;
         if (seen.has(k)) return false;
         seen.add(k);
         return true;
