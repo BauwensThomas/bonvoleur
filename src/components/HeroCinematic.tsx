@@ -75,7 +75,9 @@ export default function HeroCinematic() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={PHOTOS[0]}
-            alt=""
+            alt="Vue panoramique depuis un avion en vol"
+            width={1920}
+            height={1080}
             fetchPriority="high"
             loading="eager"
             decoding="async"
@@ -89,6 +91,8 @@ export default function HeroCinematic() {
               key={src}
               src={imgsReady ? src : undefined}
               alt=""
+              width={1920}
+              height={1080}
               decoding="async"
               className="absolute inset-0 w-full h-full object-cover object-center"
               style={{ opacity: layerOpacity(i + 1) }}

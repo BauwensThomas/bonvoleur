@@ -21,7 +21,7 @@ export default function Footer() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand/instagram.png"
-                alt=""
+                alt="Instagram"
                 width={16}
                 height={16}
                 className="h-4 w-4"
@@ -38,7 +38,7 @@ export default function Footer() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand/facebook.png"
-                alt=""
+                alt="Facebook"
                 width={16}
                 height={16}
                 className="h-4 w-4"
