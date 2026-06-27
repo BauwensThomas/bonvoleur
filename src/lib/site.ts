@@ -4,6 +4,8 @@ export const site = {
   name: "BonVoleur",
   domain: "bonvoleur.com",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  // Base canonique toujours en www pour sitemap, robots.txt et balises canonical.
+  canonicalBase: "https://www.bonvoleur.com",
   tagline: "Les meilleurs deals vols depuis la Belgique et la France",
   description:
     "BonVoleur déniche les vols pas chers depuis les aéroports belges et français et t'envoie les meilleures alertes par email. Tu réserves, tu voyages.",

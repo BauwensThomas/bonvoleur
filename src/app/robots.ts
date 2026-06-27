@@ -8,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: "/admin",
     },
-    sitemap: `${site.url}/sitemap.xml`,
+    sitemap: `${site.canonicalBase}/sitemap.xml`,
   };
 }

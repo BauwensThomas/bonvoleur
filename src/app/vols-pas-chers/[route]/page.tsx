@@ -39,7 +39,7 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `${site.url}/vols-pas-chers/${d?.slug ?? destinationSlug(city)}`,
+      canonical: `${site.canonicalBase}/vols-pas-chers/${d?.slug ?? destinationSlug(city)}`,
     },
     openGraph: {
       type: "website",

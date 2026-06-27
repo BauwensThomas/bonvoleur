@@ -18,7 +18,7 @@ function destSlugOf(label: string): string {
 
 export const metadata: Metadata = {
   title: "Mon espace",
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: true },
 };
 
 // Espace membre : dashboard des bons plans en direct.

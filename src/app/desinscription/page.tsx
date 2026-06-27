@@ -9,7 +9,7 @@ import { unsubscribeUrl } from "@/lib/unsubscribe";
 
 export const metadata: Metadata = {
   title: "Désinscription",
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: true },
 };
 
 // Sécurité : on ne supprime JAMAIS sur un simple chargement de lien (GET) — les

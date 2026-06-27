@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: "Vols pas chers depuis la Belgique et la France",
   description:
     "Toutes nos destinations : vols pas chers depuis Bruxelles, Charleroi, Paris et Lyon. Choisis ta destination, on te prévient par email.",
-  alternates: { canonical: `${site.url}/vols-pas-chers` },
+  alternates: { canonical: `${site.canonicalBase}/vols-pas-chers` },
 };
 
 export default async function VolsPasChersIndex() {

@@ -4,7 +4,7 @@ import { site } from "@/lib/site";
 import { getDestinations } from "@/lib/routes";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = site.url;
+  const base = site.canonicalBase;
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${base}/`, changeFrequency: "daily", priority: 1 },
