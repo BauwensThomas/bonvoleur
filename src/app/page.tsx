@@ -165,7 +165,7 @@ export default async function Home() {
         >
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
             <div>
-              <h2 className="text-4xl font-extrabold tracking-tight">
+              <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
                 Les meilleurs vols pas chers,
                 <br />
                 <span className="text-brand">droit dans ta boîte mail.</span>
@@ -354,7 +354,7 @@ export default async function Home() {
         {/* ── CTA final ── */}
         <section className="bg-brand">
           <div className="mx-auto max-w-3xl px-4 py-14 text-center text-white">
-            <h2 className="text-3xl font-bold">Prêt à voyager moins cher ?</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold">Prêt à voyager moins cher ?</h2>
             <p className="mt-2 text-white/90">
               Rejoins les voyageurs malins qui ne ratent plus aucun bon plan.
             </p>

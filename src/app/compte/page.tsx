@@ -239,8 +239,8 @@ export default async function Compte({
               {member.subscriber.premium_until && (
                 <p className="mt-0.5 font-medium text-brand-dark">
                   {member.subscriber.premium_cancel_at_period_end
-                    ? `Premium jusqu'au ${dateOnly(member.subscriber.premium_until)} (résilié, ne se renouvellera pas).`
-                    : `Premium actif · renouvellement automatique ${member.subscriber.premium_interval === "year" ? "annuel" : "mensuel"} le ${dateOnly(member.subscriber.premium_until)}.`}
+                    ? <>Premium jusqu&apos;au {dateOnly(member.subscriber.premium_until)}<br />(résilié, ne se renouvellera pas).</>
+                    : <>Premium actif · renouvellement automatique {member.subscriber.premium_interval === "year" ? "annuel" : "mensuel"}<br />le {dateOnly(member.subscriber.premium_until)}.</>}
                 </p>
               )}
               {lastRefresh && (
