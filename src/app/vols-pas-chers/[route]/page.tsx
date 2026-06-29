@@ -1,3 +1,4 @@
+import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -17,6 +18,22 @@ import {
 } from "@/lib/routes";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+function parseTip(tip: string): React.ReactNode {
+  const parts = tip.split(/(\[[^\]]+\]\([^)]+\))/g);
+  return parts.map((part, i) => {
+    const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (m) {
+      return (
+        <a key={i} href={m[2]} target="_blank" rel="noopener noreferrer"
+          className="font-medium text-brand underline underline-offset-2 hover:text-brand-dark">
+          {m[1]}
+        </a>
+      );
+    }
+    return part;
+  });
+}
 
 export const dynamic = "force-dynamic";
 
@@ -162,9 +179,12 @@ export default async function DestinationPage({
     ? `/compte?destination=${encodeURIComponent(dest.destCity)}`
     : "/#inscription";
 
-  // Preuve par aéroport de départ.
+  // Preuve par aéroport de départ (dédoublonnage par originIata).
+  const uniqueRoutes = dest.routes.filter(
+    (r, i, arr) => arr.findIndex((x) => x.originIata === r.originIata) === i
+  );
   const airports: AirportProof[] = await Promise.all(
-    dest.routes.map(async (r) => {
+    uniqueRoutes.map(async (r) => {
       const { past, weekCount } = await proofFor(r.originIata, dest.destIata);
       return { originCity: r.originCity, originIata: r.originIata, past, weekCount };
     })
@@ -286,13 +306,69 @@ export default async function DestinationPage({
                 </h2>
                 <ul className="mt-3 list-disc space-y-2 pl-5 text-slate-700">
                   {content.tips.map((t, i) => (
-                    <li key={i}>{t}</li>
+                    <li key={i}>{parseTip(t)}</li>
                   ))}
                 </ul>
               </>
             )}
           </section>
         )}
+
+        {/* Partenaires thématiques destination */}
+        {(() => {
+          const city = encodeURIComponent(dest.destCity);
+          const partners = [
+            {
+              name: "Booking.com",
+              url: `https://www.booking.com/searchresults.fr.html?ss=${city}`,
+              desc: `Hôtels et hébergements à ${dest.destCity}`,
+              show: true,
+            },
+            {
+              name: "GetYourGuide",
+              url: `https://www.getyourguide.com/s/?q=${city}`,
+              desc: `Activités et visites guidées à ${dest.destCity}`,
+              show: true,
+            },
+            {
+              name: "DiscoverCars",
+              url: `https://www.discovercars.com/?iata=${dest.destIata}`,
+              desc: `Location de voiture à ${dest.destCity} au meilleur prix`,
+              show: dest.region === "Europe",
+            },
+            {
+              name: "Airalo",
+              url: "https://www.airalo.com/",
+              desc: "eSIM locale, reste connecté sans frais de roaming",
+              show: dest.region !== "Europe",
+            },
+            {
+              name: "AirHelp",
+              url: "https://www.airhelp.com/fr/",
+              desc: "Jusqu'à 600 € si ton vol est retardé ou annulé",
+              show: true,
+            },
+          ].filter((p) => p.show);
+          return (
+            <section className="mt-12">
+              <h2 className="text-xl font-bold">Préparer ton séjour à {dest.destCity}</h2>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {partners.map((p) => (
+                  <a
+                    key={p.name}
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand/40 hover:shadow-md"
+                  >
+                    <p className="font-semibold text-slate-800">{p.name}</p>
+                    <p className="mt-1 text-sm text-slate-500">{p.desc}</p>
+                  </a>
+                ))}
+              </div>
+            </section>
+          );
+        })()}
 
         {/* FAQ */}
         <section className="mt-12">

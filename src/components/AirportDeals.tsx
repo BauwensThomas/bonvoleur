@@ -33,7 +33,9 @@ export default function AirportDeals({
   // On n'affiche QUE les aéroports qui ont un bon plan (en cours ou historique).
   // Les aéroports sans rien sont masqués (pas de vue vide / "pas encore de bon plan").
   const hasDeals = (x: AirportProof) => x.past.length > 0 || x.weekCount > 0;
-  const ordered = airports.filter(hasDeals);
+  const ordered = airports
+    .filter(hasDeals)
+    .filter((x, i, arr) => arr.findIndex((a) => a.originIata === x.originIata) === i);
   const [active, setActive] = useState(ordered[0]?.originIata ?? "");
   const a = ordered.find((x) => x.originIata === active) ?? ordered[0];
 
