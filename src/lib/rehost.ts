@@ -46,7 +46,7 @@ export async function rehostImage(
 
   const base = sourceUrl.split("?")[0];
   const fetchUrl = /(images|plus)\.unsplash\.com/.test(sourceUrl)
-    ? `${base}?auto=format&fit=max&w=1200&q=68`
+    ? `${base}?auto=format&fit=max&w=1200&q=68&fm=jpg`
     : sourceUrl;
 
   try {
@@ -59,6 +59,9 @@ export async function rehostImage(
     if (jpeg.byteLength > 150 * 1024) {
       jpeg = await sharp(raw).resize({ width: 700, withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer();
     }
+
+    // Garde-fou : vérifie que sharp a bien produit du JPEG (magic bytes FFD8).
+    if (jpeg[0] !== 0xff || jpeg[1] !== 0xd8) return sourceUrl;
 
     await ensureBucket(client);
     const path = `${prefix}/${slugify(name)}.jpg`;

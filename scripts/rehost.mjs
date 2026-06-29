@@ -53,6 +53,11 @@ export async function rehostImage(env, sourceUrl, prefix, name) {
     if (!r.ok) return sourceUrl;
     const buf = new Uint8Array(await r.arrayBuffer());
     if (buf.byteLength === 0) return sourceUrl;
+    // Garde-fou : vérifie que le fichier est bien un JPEG (magic bytes FFD8).
+    if (buf[0] !== 0xff || buf[1] !== 0xd8) {
+      console.log(`  rehost ${name}: format non-JPEG reçu, upload annulé`);
+      return sourceUrl;
+    }
     const sb = client(env);
     await ensureBucket(sb);
     const path = `${prefix}/${slugify(name)}.jpg`;
