@@ -61,7 +61,12 @@ export default function RootLayout({
           data-wpfc-render="false"
           data-no-defer="1"
           dangerouslySetInnerHTML={{
-            __html: `(function(){var s=document.createElement("script");s.async=1;s.src="https://emrldtp.com/NTQ0NTQ4.js?t=544548";document.head.appendChild(s);})();`,
+            __html: `(function () {
+      var script = document.createElement("script");
+      script.async = 1;
+      script.src = 'https://emrldtp.com/NTQ0NTQ4.js?t=544548';
+      document.head.appendChild(script);
+  })();`,
           }}
         />
       </head>
