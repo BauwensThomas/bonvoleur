@@ -8,6 +8,8 @@ import Footer from "@/components/Footer";
 import { findOne, getAll } from "@/lib/db";
 import { site } from "@/lib/site";
 
+export const revalidate = 60;
+
 type Params = { slug: string };
 
 // Temps de lecture estimé (~200 mots/minute).
