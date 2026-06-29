@@ -13,7 +13,7 @@ const securityHeaders = [
       "font-src 'self' fonts.gstatic.com",
       "img-src 'self' data: blob: *.supabase.co *.brandfetch.io *.bing.com *.bing.net th.bing.com",
       // blob: requis pour Three.js (textures GLB chargées via createObjectURL)
-      "connect-src 'self' blob: *.supabase.co va.vercel-scripts.com *.emrldtp.com",
+      "connect-src 'self' blob: *.supabase.co va.vercel-scripts.com *.emrldtp.com *.travelpayouts.com tp.media",
       // worker-src blob: pour le décodeur Draco de GLTFLoader (Three.js)
       "worker-src 'self' blob:",
       "frame-ancestors 'self'",
