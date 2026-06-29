@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Rubik, Nunito_Sans } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -52,15 +53,14 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${rubik.variable} ${nunito.variable} h-full antialiased`}
     >
-      <head>
-        <script
+      <body className="min-h-full flex flex-col">
+        <Script
           id="tp-drive"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(){var s=document.createElement("script");s.async=1;s.src="https://emrldtp.com/NTQ0NTQ4.js?t=544548";document.head.appendChild(s);})();`,
           }}
         />
-      </head>
-      <body className="min-h-full flex flex-col">
         {children}
         <CookieBanner />
         <Analytics />
