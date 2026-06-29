@@ -55,6 +55,11 @@ export default function RootLayout({
       <head>
         {/* Travelpayouts Drive — doit être dans le HTML statique pour la vérification */}
         <script
+          {...{ nowprocket: "", "seraph-accel-crit": "1" }}
+          data-noptimize="1"
+          data-cfasync="false"
+          data-wpfc-render="false"
+          data-no-defer="1"
           dangerouslySetInnerHTML={{
             __html: `(function(){var s=document.createElement("script");s.async=1;s.src="https://emrldtp.com/NTQ0NTQ4.js?t=544548";document.head.appendChild(s);})();`,
           }}
