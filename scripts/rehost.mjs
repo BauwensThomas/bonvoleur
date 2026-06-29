@@ -43,7 +43,7 @@ export async function rehostImage(env, sourceUrl, prefix, name) {
   // Version allégée : Unsplash sait redimensionner/compresser via l'URL.
   const base = sourceUrl.split("?")[0];
   const fetchUrl = /(images|plus)\.unsplash\.com/.test(sourceUrl)
-    ? `${base}?auto=format&fit=max&w=1200&q=68`
+    ? `${base}?auto=format&fit=max&w=1200&q=68&fm=jpg`
     : sourceUrl;
 
   try {
