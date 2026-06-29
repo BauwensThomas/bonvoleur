@@ -56,7 +56,7 @@ export default function RootLayout({
         <script
           id="tp-drive"
           dangerouslySetInnerHTML={{
-            __html: `(function(){var s=document.createElement("script");s.async=1;s.src="https://emrldtp.com/NTM3MjE1.js?t=537215";document.head.appendChild(s);})();`,
+            __html: `(function(){var s=document.createElement("script");s.async=1;s.src="https://emrldtp.com/NTQ0NTQ4.js?t=544548";document.head.appendChild(s);})();`,
           }}
         />
       </head>
