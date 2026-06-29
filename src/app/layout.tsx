@@ -52,6 +52,14 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${rubik.variable} ${nunito.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          id="tp-drive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var s=document.createElement("script");s.async=1;s.src="https://emrldtp.com/NTM3MjE1.js?t=537215";document.head.appendChild(s);})();`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         {children}
         <CookieBanner />
