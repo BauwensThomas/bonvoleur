@@ -18,6 +18,7 @@ import {
 } from "@/lib/routes";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const DAY5_MS = 5 * 24 * 60 * 60 * 1000;
 
 function parseTip(tip: string): React.ReactNode {
   const parts = tip.split(/(\[[^\]]+\]\([^)]+\))/g);
@@ -67,11 +68,11 @@ export async function generateMetadata({
   };
 }
 
-// Preuve sociale par aéroport : deals passés (plus d'1 semaine) + nombre de la
-// semaine en cours (teaser). On NE montre PAS les deals en cours (inscrits).
+// Preuve sociale par aéroport. Non-membres : deals > 5 jours. Membres : tous.
 async function proofFor(
   originIata: string,
-  destIata: string
+  destIata: string,
+  isMember = false
 ): Promise<{ past: AirportProof["past"]; weekCount: number }> {
   try {
     const todayStr = new Date().toISOString().slice(0, 10);
@@ -98,7 +99,7 @@ async function proofFor(
     // plan, inutile d'afficher deux cartes identiques avec des dates différentes.
     const seen = new Set<string>();
     const past = all
-      .filter((d) => now - new Date(d.created_at).getTime() >= WEEK_MS)
+      .filter((d) => isMember || now - new Date(d.created_at).getTime() >= DAY5_MS)
       .sort((a, b) => b.created_at.localeCompare(a.created_at))
       .filter((d) => {
         const k = `${d.price}`;
@@ -149,42 +150,53 @@ function faqFor(city: string, originCities: string[]) {
 
 function DestPartners({ dest }: { dest: { destCity: string; destIata: string; region: string } }) {
   const city = encodeURIComponent(dest.destCity);
+  const isEurope = dest.region === "Europe";
+  // Booking, GetYourGuide, Airalo et AirHelp sont dans le texte — pas de doublon ici.
   const partners = [
     {
-      name: "Booking.com",
-      url: `https://www.booking.com/searchresults.fr.html?ss=${city}`,
-      desc: `Hôtels et hébergements à ${dest.destCity}`,
-      show: true,
-    },
-    {
-      name: "GetYourGuide",
-      url: `https://www.getyourguide.com/s/?q=${city}`,
-      desc: `Activités et visites guidées à ${dest.destCity}`,
-      show: true,
-    },
-    {
       name: "DiscoverCars",
-      url: `https://www.discovercars.com/?iata=${dest.destIata}`,
-      desc: `Location de voiture à ${dest.destCity} au meilleur prix`,
-      show: dest.region === "Europe",
+      url: `https://www.discovercars.com/fr?iata=${dest.destIata}`,
+      desc: `Location de voiture à ${dest.destCity}, comparateur sans frais cachés`,
     },
     {
-      name: "Airalo",
-      url: "https://www.airalo.com/",
-      desc: "eSIM locale, reste connecté sans frais de roaming",
-      show: dest.region !== "Europe",
+      name: "Hostelworld",
+      url: `https://www.hostelworld.com/fr/auberges-de-jeunesse/${encodeURIComponent(dest.destCity)}/`,
+      desc: `Auberges et hébergements budget à ${dest.destCity}`,
     },
     {
-      name: "AirHelp",
-      url: "https://www.airhelp.com/fr/",
-      desc: "Jusqu'à 600 € si ton vol est retardé ou annulé",
-      show: true,
+      name: "Viator",
+      url: "https://www.viator.com/fr-FR/",
+      desc: `Visites, excursions et expériences à ${dest.destCity} avec avis vérifiés`,
     },
-  ].filter((p) => p.show);
+    {
+      name: "Wise",
+      url: "https://wise.com/fr/",
+      desc: "Carte de voyage sans frais de change, économise sur chaque paiement à l'étranger",
+    },
+    {
+      name: "Omio",
+      url: "https://www.omio.fr/",
+      desc: "Trains et bus en Europe, compare et réserve en un clic",
+      europeOnly: true,
+    },
+    {
+      name: "iVisa",
+      url: "https://www.ivisa.com/fr/",
+      desc: `Visa et autorisation de voyage pour ${dest.destCity} en ligne`,
+      europeOnly: false,
+    },
+    {
+      name: "SafetyWing",
+      url: "https://safetywing.com/",
+      desc: "Assurance voyage médicale dès 1,5 $/jour, pour voyager l'esprit tranquille",
+    },
+  ].filter((p) =>
+    p.europeOnly === undefined ? true : isEurope ? p.europeOnly === true : p.europeOnly === false
+  );
   return (
     <section className="mt-12">
       <h2 className="text-xl font-bold">Préparer ton séjour à {dest.destCity}</h2>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {partners.map((p) => (
           <a
             key={p.name}
@@ -238,9 +250,10 @@ export default async function DestinationPage({
   const uniqueRoutes = dest.routes.filter(
     (r, i, arr) => arr.findIndex((x) => x.originIata === r.originIata) === i
   );
+  const isMember = member.status !== "anonymous";
   const airports: AirportProof[] = await Promise.all(
     uniqueRoutes.map(async (r) => {
-      const { past, weekCount } = await proofFor(r.originIata, dest.destIata);
+      const { past, weekCount } = await proofFor(r.originIata, dest.destIata, isMember);
       return { originCity: r.originCity, originIata: r.originIata, past, weekCount };
     })
   );

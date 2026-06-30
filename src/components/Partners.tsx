@@ -1,11 +1,33 @@
+import { headers } from "next/headers";
 import { getAll } from "@/lib/db";
+
+function refcc(acceptLang: string): "fr" | "be" {
+  const lang = acceptLang.toLowerCase();
+  if (lang.includes("fr-fr") || lang.includes("fr-ch")) return "fr";
+  return "be"; // fr-BE, fr, et tout le reste → Belgique par défaut
+}
+
+function localizeUrl(url: string, cc: "fr" | "be"): string {
+  if (!url) return url;
+  // Kiwitaxi : remplace refcc= par le bon code pays
+  if (url.includes("kiwitaxi.com")) {
+    return url.replace(/refcc=[a-z]+/i, `refcc=${cc}`);
+  }
+  return url;
+}
 
 // Affiche dynamiquement les partenaires actifs, triés par position.
 export default async function Partners() {
   const all = await getAll("partners");
+  const hdrs = await headers();
+  const cc = refcc(hdrs.get("accept-language") ?? "");
   const partners = all
     .filter((p) => p.is_active)
-    .sort((a, b) => a.position - b.position);
+    .sort((a, b) => a.position - b.position)
+    .map((p) => ({
+      ...p,
+      affiliate_url: localizeUrl(p.affiliate_url || p.url, cc),
+    }));
 
   if (partners.length === 0) return null;
 

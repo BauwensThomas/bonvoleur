@@ -31,8 +31,9 @@ export default function DealCard({
   image,
 }: DealCardProps) {
   const img =
-    (image !== undefined ? image : destinationImage(destination)) ??
-    DEFAULT_DEST_IMAGE;
+    image !== undefined
+      ? image
+      : (destinationImage(destination) ?? DEFAULT_DEST_IMAGE);
 
   // Mode vitrine accueil : photo 70% / texte 30%.
   if (teaser) {

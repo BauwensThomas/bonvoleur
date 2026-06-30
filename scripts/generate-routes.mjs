@@ -86,11 +86,12 @@ for (const d of deals) {
   if (o && dd) addRoute(o.iata, o.city, dd.iata, dd.city);
 }
 
-// Fiches déjà en base (slug -> { intro, image_url }) pour sauter le connu.
-const existing = await fetch(`${SB}/rest/v1/routes?select=slug,intro,image_url`, { headers: sbHeaders })
+// Fiches déjà en base (slug -> { intro, image_url, tips, region }) pour sauter le connu.
+const existing = await fetch(`${SB}/rest/v1/routes?select=slug,intro,image_url,tips,region`, { headers: sbHeaders })
   .then((r) => (r.ok ? r.json() : []))
   .catch(() => []);
 const bySlug = new Map(existing.map((r) => [r.slug, r]));
+const AFFILIATE_MARKER = "Hébergement : [Booking.com]";
 
 const client = env.ANTHROPIC_API_KEY ? new Anthropic({ apiKey: env.ANTHROPIC_API_KEY }) : null;
 // Haiku 4.5 : 5x moins cher qu'Opus, suffisant pour des fiches factuelles courtes.
@@ -173,8 +174,29 @@ for (const dest of Object.values(dests)) {
   );
   const knownImg = dest.origins.map((o) => bySlug.get(o.slug)?.image_url).find(Boolean) || null;
 
-  // Déjà connue (contenu + photo) et pas de --force -> on saute (zéro token).
+  // Déjà connue (contenu + photo) et pas de --force -> vérifie juste les tips affiliés.
   if (!FORCE && hasContent && knownImg) {
+    for (const o of dest.origins) {
+      const existing = bySlug.get(o.slug);
+      const tips = Array.isArray(existing?.tips) ? existing.tips : [];
+      if (tips.length > 0 && !tips.some((t) => t.includes(AFFILIATE_MARKER))) {
+        const city = dest.dc;
+        const cityEnc = encodeURIComponent(city);
+        const isEurope = (existing?.region ?? "") === "Europe";
+        const affiliateTips = [
+          `Hébergement : [Booking.com](https://www.booking.com/searchresults.fr.html?ss=${cityEnc}&selected_currency=EUR) centralise les hôtels, appartements et gîtes à ${city} à tous les prix. Réserve tôt pour les meilleures options.`,
+          `Activités sur place : [GetYourGuide](https://www.getyourguide.com/fr-fr/s/?q=${cityEnc}) regroupe les visites guidées, musées et excursions à ${city} avec réservation immédiate.`,
+          ...(!isEurope ? [`Connectivité : achète une [carte eSIM Airalo](https://www.airalo.com/fr) avant de partir pour rester connecté à ${city} sans frais de roaming. Quelques euros pour une semaine de data locale.`] : []),
+          `Protection vol : avec les compagnies low cost, les retards arrivent. Si ton vol est retardé de plus de 3 heures, [AirHelp](https://www.airhelp.com/fr/) réclame jusqu'à 600 € d'indemnisation pour toi.`,
+        ];
+        await fetch(`${SB}/rest/v1/routes?slug=eq.${o.slug}`, {
+          method: "PATCH",
+          headers: { ...sbHeaders, Prefer: "return=minimal" },
+          body: JSON.stringify({ tips: [...tips, ...affiliateTips], updated_at: new Date().toISOString() }),
+        });
+        console.log(`${o.slug} — tips affiliés ajoutés`);
+      }
+    }
     skipped++;
     continue;
   }
@@ -215,7 +237,17 @@ for (const dest of Object.values(dests)) {
       row.airlines = Array.isArray(content.airlines) ? content.airlines.map(stripTags) : [];
       row.duration = stripTags(content.duration);
       row.best_period = stripTags(content.bestPeriod);
-      row.tips = Array.isArray(content.tips) ? content.tips.map(stripTags) : [];
+      const aiTips = Array.isArray(content.tips) ? content.tips.map(stripTags) : [];
+      const city = dest.dc;
+      const cityEnc = encodeURIComponent(city);
+      const isEurope = (content.region ?? "") === "Europe";
+      row.tips = [
+        ...aiTips,
+        `Hébergement : [Booking.com](https://www.booking.com/searchresults.fr.html?ss=${cityEnc}&selected_currency=EUR) centralise les hôtels, appartements et gîtes à ${city} à tous les prix. Réserve tôt pour les meilleures options.`,
+        `Activités sur place : [GetYourGuide](https://www.getyourguide.com/fr-fr/s/?q=${cityEnc}) regroupe les visites guidées, musées et excursions à ${city} avec réservation immédiate.`,
+        ...(!isEurope ? [`Connectivité : achète une [carte eSIM Airalo](https://www.airalo.com/fr) avant de partir pour rester connecté à ${city} sans frais de roaming. Quelques euros pour une semaine de data locale.`] : []),
+        `Protection vol : avec les compagnies low cost, les retards arrivent. Si ton vol est retardé de plus de 3 heures, [AirHelp](https://www.airhelp.com/fr/) réclame jusqu'à 600 € d'indemnisation pour toi.`,
+      ];
     }
     if (content?.region) row.region = stripTags(content.region);
     if (photo?.url) { row.image_url = photo.url; if (photo.credit) row.image_credit = photo.credit; }

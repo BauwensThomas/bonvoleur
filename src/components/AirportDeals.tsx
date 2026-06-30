@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import DealCard from "./DealCard";
 
 interface PastDeal {
   origin: string;
@@ -97,58 +96,7 @@ export default function AirportDeals({
         </div>
       )}
 
-      {a.past.length > 0 ? (
-        <>
-          <p className="mt-6 text-sm text-slate-500">
-            Ce qu&apos;on a déniché récemment depuis {a.originCity}. Les offres
-            en cours sont réservées aux inscrits.
-          </p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Première card : visible, sans image */}
-            <DealCard
-              origin={a.past[0].origin}
-              destination={a.past[0].destination}
-              price={a.past[0].price}
-              normal_price={a.past[0].normal_price}
-              dates={a.past[0].dates}
-              airline={a.past[0].airline}
-              postedAt={a.past[0].postedAt}
-              image={null}
-            />
-            {/* Reste : flouté avec CTA inscription (3 colonnes) */}
-            {a.past.length > 1 && (
-              <div className="relative sm:col-span-1 lg:col-span-3">
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 pointer-events-none select-none blur-sm opacity-60">
-                  {a.past.slice(1, 4).map((d, i) => (
-                    <DealCard
-                      key={i}
-                      origin={d.origin}
-                      destination={d.destination}
-                      price={d.price}
-                      normal_price={d.normal_price}
-                      dates={d.dates}
-                      airline={d.airline}
-                      postedAt={d.postedAt}
-                      image={null}
-                    />
-                  ))}
-                </div>
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/70 backdrop-blur-xs">
-                  <p className="text-center font-semibold text-slate-800">
-                    +{a.past.length - 1} bon{a.past.length > 2 ? "s plans" : " plan"} récent{a.past.length > 2 ? "s" : ""}
-                  </p>
-                  <a
-                    href="/#inscription"
-                    className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark"
-                  >
-                    S&apos;inscrire gratuitement →
-                  </a>
-                </div>
-              </div>
-            )}
-          </div>
-        </>
-      ) : a.weekCount === 0 ? (
+      {a.weekCount === 0 && a.past.length === 0 ? (
         <p className="mt-6 rounded-2xl border border-dashed border-slate-300 p-6 text-slate-500">
           {`Pas encore de bon plan ${a.originCity} - ${destCity} à afficher. Inscris-toi pour les recevoir par email dès qu'on en déniche.`}
         </p>
