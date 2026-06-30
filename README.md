@@ -1,4 +1,4 @@
-# BonVoleur.be
+# BonVoleur.com
 
 Newsletter et plateforme d'alertes de vols pas chers depuis la Belgique et la France.
 
