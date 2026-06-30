@@ -160,7 +160,7 @@ function DestPartners({ dest }: { dest: { destCity: string; destIata: string; re
     },
     {
       name: "Hostelworld",
-      url: `https://www.hostelworld.com/fr/auberges-de-jeunesse/${encodeURIComponent(dest.destCity)}/`,
+      url: "https://www.hostelworld.com/fr",
       desc: `Auberges et hébergements budget à ${dest.destCity}`,
     },
     {
