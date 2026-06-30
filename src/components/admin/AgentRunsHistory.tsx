@@ -116,6 +116,16 @@ export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
                 </td>
                 <td className="px-4 py-2 text-slate-600">
                   {r.summary}
+                  {r.agent_name === "seo-route" && r.output_ref && (() => {
+                    try {
+                      const slugs = JSON.parse(r.output_ref) as string[];
+                      return (
+                        <span className="block text-xs text-red-600 mt-1">
+                          {slugs.join(", ")}
+                        </span>
+                      );
+                    } catch { return null; }
+                  })()}
                   {r.error && (
                     <span className="block text-xs text-red-600">{r.error}</span>
                   )}

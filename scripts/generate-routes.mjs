@@ -166,6 +166,7 @@ async function unsplashPhoto(city) {
 }
 
 let generated = 0, skipped = 0, deferred = 0, contentCalls = 0;
+const generatedSlugs = [];
 for (const dest of Object.values(dests)) {
   const hasContent = dest.origins.some(
     (o) => (bySlug.get(o.slug)?.intro?.length ?? 0) >= (MIN_INTRO || 1)
@@ -229,6 +230,7 @@ for (const dest of Object.values(dests)) {
   }
   console.log(`OK (${ok}/${dest.origins.length}${content?.intro ? " +contenu" : ""}${photo?.url ? " +photo" : ""})`);
   generated++;
+  generatedSlugs.push(...dest.origins.map((o) => o.slug));
 }
 
 console.log(
@@ -249,7 +251,7 @@ try {
       status: generated > 0 ? "success" : "draft",
       trigger: "auto",
       summary: `${generated} fiche(s) générée(s), ${skipped} déjà à jour, ${deferred} reportée(s).`,
-      output_ref: null,
+      output_ref: generatedSlugs.length ? JSON.stringify(generatedSlugs) : null,
       error: null,
     }),
   });
