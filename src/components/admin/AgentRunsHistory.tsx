@@ -19,6 +19,11 @@ const statusLabels: Record<string, string> = {
 
 const PAGE_SIZE = 15;
 
+function parseSeoSlugs(outputRef: string | null): string[] {
+  if (!outputRef) return [];
+  try { return JSON.parse(outputRef) as string[]; } catch { return []; }
+}
+
 export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
   const [agent, setAgent] = useState("");
   const [date, setDate] = useState("");
@@ -116,16 +121,11 @@ export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
                 </td>
                 <td className="px-4 py-2 text-slate-600">
                   {r.summary}
-                  {r.agent_name === "seo-route" && r.output_ref && (() => {
-                    try {
-                      const slugs = JSON.parse(r.output_ref) as string[];
-                      return (
-                        <span className="block text-xs text-red-600 mt-1">
-                          {slugs.join(", ")}
-                        </span>
-                      );
-                    } catch { return null; }
-                  })()}
+                  {r.agent_name === "seo-route" && parseSeoSlugs(r.output_ref).length > 0 && (
+                    <span className="block text-xs text-red-600 mt-1">
+                      {parseSeoSlugs(r.output_ref).join(", ")}
+                    </span>
+                  )}
                   {r.error && (
                     <span className="block text-xs text-red-600">{r.error}</span>
                   )}
