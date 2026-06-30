@@ -101,9 +101,15 @@ export default function Footer() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-slate-100 py-4 text-center text-xs text-slate-500">
-        © {new Date().getFullYear()} {site.name}. Nous ne vendons pas de
-        billets, nous trouvons les bons plans.
+      <div className="border-t border-slate-100 py-4 text-center text-xs text-slate-500 space-y-1">
+        <p>
+          © {new Date().getFullYear()} {site.name}. Nous ne vendons pas de
+          billets, nous trouvons les bons plans.
+        </p>
+        <p>
+          Ce site contient des liens affiliés. Si vous réservez via ces liens,
+          nous percevons une commission, sans coût supplémentaire pour vous.
+        </p>
       </div>
     </footer>
   );
