@@ -101,7 +101,7 @@ export default function SubscribersManager({
                       {s.premium_cancel_at_period_end
                         ? "résilié, fin le "
                         : "renouv. auto le "}
-                      {new Date(s.premium_until).toLocaleDateString("fr-BE")}
+                      {new Date(s.premium_until).toLocaleDateString("fr-BE", { timeZone: "Europe/Brussels" })}
                       {s.premium_interval
                         ? ` (${s.premium_interval === "year" ? "annuel" : "mensuel"})`
                         : ""}
@@ -111,7 +111,7 @@ export default function SubscribersManager({
                   )}
                 </td>
                 <td className="px-4 py-2 text-slate-500">
-                  {new Date(s.created_at).toLocaleDateString("fr-BE")}
+                  {new Date(s.created_at).toLocaleDateString("fr-BE", { timeZone: "Europe/Brussels" })}
                 </td>
                 <td className="px-4 py-2 text-right">
                   <button

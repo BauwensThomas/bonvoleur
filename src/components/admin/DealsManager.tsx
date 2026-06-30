@@ -11,6 +11,7 @@ const fmtDate = (iso: string | null) =>
         day: "numeric",
         month: "short",
         year: "numeric",
+        timeZone: "Europe/Brussels",
       })
     : "-";
 
@@ -460,7 +461,7 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
             </div>
             <p className="mt-1 text-xs text-slate-700">
               Généré le{" "}
-              {new Date(emailDeal.email.generated_at).toLocaleString("fr-BE")}
+              {new Date(emailDeal.email.generated_at).toLocaleString("fr-BE", { timeZone: "Europe/Brussels" })}
             </p>
 
             <div className="mt-4 space-y-3">

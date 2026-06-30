@@ -81,7 +81,7 @@ export default function ScannerRunsTable({ runs }: { runs: WorkflowRun[] }) {
                     #{r.runNumber}
                   </td>
                   <td className="px-4 py-2 text-slate-600">
-                    {new Date(r.createdAt).toLocaleString("fr-BE")}
+                    {new Date(r.createdAt).toLocaleString("fr-BE", { timeZone: "Europe/Brussels" })}
                   </td>
                   <td className="px-4 py-2 text-slate-500">
                     {r.event === "schedule" ? "Planifié" : "Manuel"}

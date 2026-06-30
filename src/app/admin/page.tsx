@@ -62,7 +62,7 @@ export default async function AdminDashboard() {
               <li key={r.id} className="py-2 flex items-center justify-between">
                 <span className="font-medium">{r.agent_name}</span>
                 <span className="text-slate-500">
-                  {new Date(r.started_at).toLocaleString("fr-BE")} · {r.status}
+                  {new Date(r.started_at).toLocaleString("fr-BE", { timeZone: "Europe/Brussels" })} · {r.status}
                 </span>
               </li>
             ))}
