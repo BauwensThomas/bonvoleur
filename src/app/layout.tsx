@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { site } from "@/lib/site";
 import CookieBanner from "@/components/CookieBanner";
+import TravelPayoutsScript from "@/components/TravelPayoutsScript";
 
 // Rubik : titres (du caractère). Nunito Sans : corps (lisible).
 const rubik = Rubik({
@@ -52,25 +53,8 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${rubik.variable} ${nunito.variable} h-full antialiased`}
     >
-      <head>
-        {/* Travelpayouts Drive — doit être dans le HTML statique pour la vérification */}
-        <script
-          {...{ nowprocket: "", "seraph-accel-crit": "1" }}
-          data-noptimize="1"
-          data-cfasync="false"
-          data-wpfc-render="false"
-          data-no-defer="1"
-          dangerouslySetInnerHTML={{
-            __html: `(function () {
-      var script = document.createElement("script");
-      script.async = 1;
-      script.src = 'https://emrldtp.com/NTQ0NTQ4.js?t=544548';
-      document.head.appendChild(script);
-  })();`,
-          }}
-        />
-      </head>
       <body className="min-h-full flex flex-col">
+        <TravelPayoutsScript />
         {children}
         <CookieBanner />
         <Analytics />
