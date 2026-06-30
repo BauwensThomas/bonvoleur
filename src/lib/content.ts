@@ -355,7 +355,8 @@ Contraintes impératives :
 - Article TRES LONG et fouillé : viser 1800 à 2500 mots. C'est important pour le SEO : développe vraiment chaque section, donne des exemples concrets, des chiffres d'ordre de grandeur, des listes, des conseils actionnables.
 - Structure Markdown claire : plusieurs sections "## " et sous-sections "### ", des listes à puces, du **gras** sur les points clés. NE PAS mettre de titre H1 dans "content" (le H1 est géré à part).
 - Couvre le sujet en profondeur : contexte, conseils pratiques, exemples de routes réelles depuis BRU (Bruxelles), CRL (Charleroi), CDG (Paris), LYS (Lyon), erreurs à éviter, astuces de réservation, bagages, périodes idéales.
-- Inclure au moins 2 liens internes en Markdown vers des pages du site : la page d'inscription [inscris-toi gratuitement](/#inscription) ET un lien vers nos fiches destinations. Pour ce dernier : si l'article porte sur une ville d'arrivée précise, lie vers SA fiche (URL = la ville uniquement, ex. un article sur Tirana -> [vols vers Tirana](/vols-pas-chers/tirana) ; notre système redirige automatiquement vers le hub si cette fiche n'existe pas encore). Sinon, lie simplement vers [toutes nos destinations](/vols-pas-chers). NE lie JAMAIS vers une ville SANS RAPPORT avec le sujet juste parce qu'elle sert d'exemple, et n'utilise JAMAIS d'URL du type /vols-pas-chers/ville-depart-ville-arrivee.
+- Inclure au moins 2 liens internes en Markdown vers des pages du site : la page d'inscription [inscris-toi gratuitement](/#inscription) ET un lien vers nos fiches destinations.
+- Intègre 2 à 3 liens affiliés naturellement dans le texte (jamais dans les 2 premiers paragraphes, jamais en bloc, toujours avec une ancre de texte naturelle). Choisis selon le sujet : [Booking.com](https://www.booking.com/index.fr.html?selected_currency=EUR) pour l'hébergement, [GetYourGuide](https://www.getyourguide.com/fr-fr/) pour les activités, [Kiwi.com](https://www.kiwi.com/fr/) pour comparer les vols, [AirHelp](https://www.airhelp.com/fr/) si les retards ou annulations sont évoqués, [DiscoverCars](https://www.discovercars.com/fr) si la voiture est mentionnée, [Kiwitaxi](https://kiwitaxi.com/fr?cur=EUR&refmeta=20260630&refcc=be) pour les transferts aéroport. Pour ce dernier : si l'article porte sur une ville d'arrivée précise, lie vers SA fiche (URL = la ville uniquement, ex. un article sur Tirana -> [vols vers Tirana](/vols-pas-chers/tirana) ; notre système redirige automatiquement vers le hub si cette fiche n'existe pas encore). Sinon, lie simplement vers [toutes nos destinations](/vols-pas-chers). NE lie JAMAIS vers une ville SANS RAPPORT avec le sujet juste parce qu'elle sert d'exemple, et n'utilise JAMAIS d'URL du type /vols-pas-chers/ville-depart-ville-arrivee.
 - Termine le corps par un appel clair à s'inscrire à la newsletter.
 - Rubrique FAQ : 5 à 6 questions/réponses utiles et recherchées (réponses de 2 à 4 phrases). NE PAS l'inclure dans "content" : elle va dans le champ "faq".
 - "meta_title" : max 60 caractères, accrocheur, avec le mot-clé. "meta_description" : max 155 caractères.
@@ -386,6 +387,13 @@ RAPPEL FINAL CRITIQUE : TOUT le texte (title, excerpt, content, meta_title, meta
   const data = JSON.parse(textBlock.text) as GeneratedArticle;
   data.slug = slugify(data.slug || data.title);
   if (!Array.isArray(data.faq)) data.faq = [];
+
+  // Filet de sécurité : si l'IA a oublié les liens affiliés, on en injecte 2.
+  const AFFILIATE_DOMAINS = ["booking.com", "getyourguide.com", "kiwi.com", "airhelp.com", "discovercars.com", "kiwitaxi.com", "hostelworld.com", "viator.com", "airalo.com"];
+  const affiliateCount = AFFILIATE_DOMAINS.filter((d) => data.content.includes(d)).length;
+  if (affiliateCount < 2) {
+    data.content += `\n\n## Pour préparer ton voyage\n\nPour comparer et réserver, deux outils incontournables : [Kiwi.com](https://www.kiwi.com/fr/) pour trouver les meilleures combinaisons de vols, et [Booking.com](https://www.booking.com/index.fr.html?selected_currency=EUR) pour l'hébergement à tous les prix. Et si ton vol est retardé de plus de 3h, [AirHelp](https://www.airhelp.com/fr/) réclame jusqu'à 600 € d'indemnisation pour toi.`;
+  }
 
   // Filet de securite : si le modele a rendu l'article SANS accents (observe
   // avec la sortie structuree json_schema), on reaccentue avant publication.
