@@ -287,7 +287,7 @@ try {
       summary: generatedCities.length
         ? `${generated} fiche(s) générée(s) : ${generatedCities.join(", ")}. ${skipped} déjà à jour, ${deferred} reportée(s).`
         : `${generated} fiche(s) générée(s), ${skipped} déjà à jour, ${deferred} reportée(s).`,
-      output_ref: generatedCities.length ? JSON.stringify(generatedCities) : null,
+      output_ref: generatedCities.length ? generatedCities.join(", ") : null,
       error: null,
     }),
   });
