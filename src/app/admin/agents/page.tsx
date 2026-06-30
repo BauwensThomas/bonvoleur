@@ -1,4 +1,4 @@
-import { getAll } from "@/lib/db";
+import { getAll, getRouteSlugTimestamps } from "@/lib/db";
 import { agents } from "@/lib/agents";
 import RunAgentButton from "@/components/admin/RunAgentButton";
 import AgentRunsHistory from "@/components/admin/AgentRunsHistory";
@@ -15,6 +15,23 @@ export default async function AgentsAdmin() {
   const history = [...runs].sort((a, b) =>
     b.started_at.localeCompare(a.started_at)
   );
+
+  // Pour les anciens runs seo-route sans output_ref, on infère les slugs générés
+  // en cherchant les routes dont updated_at tombe dans la fenêtre [started_at, finished_at].
+  const seoSlugs: Record<string, string[]> = {};
+  const oldSeoRuns = history.filter(
+    (r) => r.agent_name === "seo-route" && r.status === "success" && !r.output_ref
+  );
+  if (oldSeoRuns.length > 0) {
+    const routeTs = await getRouteSlugTimestamps();
+    for (const run of oldSeoRuns) {
+      const end = run.finished_at ?? run.started_at;
+      const slugs = routeTs
+        .filter((rt) => rt.updated_at >= run.started_at && rt.updated_at <= end)
+        .map((rt) => rt.slug);
+      if (slugs.length > 0) seoSlugs[run.id] = slugs;
+    }
+  }
 
   function lastRun(name: string) {
     return history.find((r) => r.agent_name === name);
@@ -76,7 +93,7 @@ export default async function AgentsAdmin() {
         Filtre par agent, par date ou par un mot du résumé.
       </p>
       <div className="mt-3">
-        <AgentRunsHistory runs={history} />
+        <AgentRunsHistory runs={history} seoSlugs={seoSlugs} />
       </div>
     </div>
   );

@@ -24,7 +24,19 @@ function parseSeoSlugs(outputRef: string | null): string[] {
   try { return JSON.parse(outputRef) as string[]; } catch { return []; }
 }
 
-export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
+function getSeoRunSlugs(r: AgentRun, seoSlugs: Record<string, string[]>): string[] {
+  if (r.agent_name !== "seo-route") return [];
+  const fromRef = parseSeoSlugs(r.output_ref);
+  return fromRef.length > 0 ? fromRef : (seoSlugs[r.id] ?? []);
+}
+
+export default function AgentRunsHistory({
+  runs,
+  seoSlugs = {},
+}: {
+  runs: AgentRun[];
+  seoSlugs?: Record<string, string[]>;
+}) {
   const [agent, setAgent] = useState("");
   const [date, setDate] = useState("");
   const [query, setQuery] = useState("");
@@ -121,9 +133,9 @@ export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
                 </td>
                 <td className="px-4 py-2 text-slate-600">
                   {r.summary}
-                  {r.agent_name === "seo-route" && parseSeoSlugs(r.output_ref).length > 0 && (
+                  {getSeoRunSlugs(r, seoSlugs).length > 0 && (
                     <span className="block text-xs text-red-600 mt-1">
-                      {parseSeoSlugs(r.output_ref).join(", ")}
+                      {getSeoRunSlugs(r, seoSlugs).join(", ")}
                     </span>
                   )}
                   {r.error && (

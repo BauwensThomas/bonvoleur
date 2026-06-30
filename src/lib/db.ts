@@ -108,6 +108,12 @@ export async function update<T extends TableName>(
   return (data as Tables[T]) ?? null;
 }
 
+export async function getRouteSlugTimestamps(): Promise<{ slug: string; updated_at: string }[]> {
+  const { data, error } = await sb().from("routes").select("slug, updated_at");
+  if (error) throw new Error(`Supabase getRouteSlugTimestamps: ${error.message}`);
+  return (data ?? []) as { slug: string; updated_at: string }[];
+}
+
 export async function remove<T extends TableName>(
   table: T,
   id: string
