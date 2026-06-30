@@ -392,7 +392,7 @@ RAPPEL FINAL CRITIQUE : TOUT le texte (title, excerpt, content, meta_title, meta
   const AFFILIATE_DOMAINS = ["booking.com", "getyourguide.com", "kiwi.com", "airhelp.com", "discovercars.com", "kiwitaxi.com", "hostelworld.com", "viator.com", "airalo.com"];
   const affiliateCount = AFFILIATE_DOMAINS.filter((d) => data.content.includes(d)).length;
   if (affiliateCount < 2) {
-    data.content += `\n\n## Pour préparer ton voyage\n\nPour comparer et réserver, deux outils incontournables : [Kiwi.com](https://www.kiwi.com/fr/) pour trouver les meilleures combinaisons de vols, et [Booking.com](https://www.booking.com/index.fr.html?selected_currency=EUR) pour l'hébergement à tous les prix. Et si ton vol est retardé de plus de 3h, [AirHelp](https://www.airhelp.com/fr/) réclame jusqu'à 600 € d'indemnisation pour toi.`;
+    data.content += `\n\n## Pour préparer ton voyage\n\nPour comparer et réserver, quelques outils incontournables : [Kiwi.com](https://www.kiwi.com/fr/) pour trouver les meilleures combinaisons de vols, [Booking.com](https://www.booking.com/index.fr.html?selected_currency=EUR) pour l'hébergement à tous les prix, et [DiscoverCars](https://www.discovercars.com/fr) pour louer une voiture sans frais cachés sur place. Et si ton vol est retardé de plus de 3h, [AirHelp](https://www.airhelp.com/fr/) réclame jusqu'à 600 € d'indemnisation pour toi.`;
   }
 
   // Filet de securite : si le modele a rendu l'article SANS accents (observe
