@@ -147,6 +147,61 @@ function faqFor(city: string, originCities: string[]) {
   ];
 }
 
+function DestPartners({ dest }: { dest: { destCity: string; destIata: string; region: string } }) {
+  const city = encodeURIComponent(dest.destCity);
+  const partners = [
+    {
+      name: "Booking.com",
+      url: `https://www.booking.com/searchresults.fr.html?ss=${city}`,
+      desc: `Hôtels et hébergements à ${dest.destCity}`,
+      show: true,
+    },
+    {
+      name: "GetYourGuide",
+      url: `https://www.getyourguide.com/s/?q=${city}`,
+      desc: `Activités et visites guidées à ${dest.destCity}`,
+      show: true,
+    },
+    {
+      name: "DiscoverCars",
+      url: `https://www.discovercars.com/?iata=${dest.destIata}`,
+      desc: `Location de voiture à ${dest.destCity} au meilleur prix`,
+      show: dest.region === "Europe",
+    },
+    {
+      name: "Airalo",
+      url: "https://www.airalo.com/",
+      desc: "eSIM locale, reste connecté sans frais de roaming",
+      show: dest.region !== "Europe",
+    },
+    {
+      name: "AirHelp",
+      url: "https://www.airhelp.com/fr/",
+      desc: "Jusqu'à 600 € si ton vol est retardé ou annulé",
+      show: true,
+    },
+  ].filter((p) => p.show);
+  return (
+    <section className="mt-12">
+      <h2 className="text-xl font-bold">Préparer ton séjour à {dest.destCity}</h2>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {partners.map((p) => (
+          <a
+            key={p.name}
+            href={p.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand/40 hover:shadow-md"
+          >
+            <p className="font-semibold text-slate-800">{p.name}</p>
+            <p className="mt-1 text-sm text-slate-500">{p.desc}</p>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default async function DestinationPage({
   params,
 }: {
@@ -315,60 +370,7 @@ export default async function DestinationPage({
         )}
 
         {/* Partenaires thématiques destination */}
-        {(() => {
-          const city = encodeURIComponent(dest.destCity);
-          const partners = [
-            {
-              name: "Booking.com",
-              url: `https://www.booking.com/searchresults.fr.html?ss=${city}`,
-              desc: `Hôtels et hébergements à ${dest.destCity}`,
-              show: true,
-            },
-            {
-              name: "GetYourGuide",
-              url: `https://www.getyourguide.com/s/?q=${city}`,
-              desc: `Activités et visites guidées à ${dest.destCity}`,
-              show: true,
-            },
-            {
-              name: "DiscoverCars",
-              url: `https://www.discovercars.com/?iata=${dest.destIata}`,
-              desc: `Location de voiture à ${dest.destCity} au meilleur prix`,
-              show: dest.region === "Europe",
-            },
-            {
-              name: "Airalo",
-              url: "https://www.airalo.com/",
-              desc: "eSIM locale, reste connecté sans frais de roaming",
-              show: dest.region !== "Europe",
-            },
-            {
-              name: "AirHelp",
-              url: "https://www.airhelp.com/fr/",
-              desc: "Jusqu'à 600 € si ton vol est retardé ou annulé",
-              show: true,
-            },
-          ].filter((p) => p.show);
-          return (
-            <section className="mt-12">
-              <h2 className="text-xl font-bold">Préparer ton séjour à {dest.destCity}</h2>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {partners.map((p) => (
-                  <a
-                    key={p.name}
-                    href={p.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand/40 hover:shadow-md"
-                  >
-                    <p className="font-semibold text-slate-800">{p.name}</p>
-                    <p className="mt-1 text-sm text-slate-500">{p.desc}</p>
-                  </a>
-                ))}
-              </div>
-            </section>
-          );
-        })()}
+        <DestPartners dest={dest} />
 
         {/* FAQ */}
         <section className="mt-12">
