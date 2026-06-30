@@ -17,10 +17,13 @@ const statusLabels: Record<string, string> = {
   error: "échec",
 };
 
+const PAGE_SIZE = 15;
+
 export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
   const [agent, setAgent] = useState("");
   const [date, setDate] = useState("");
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(0);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
@@ -31,6 +34,10 @@ export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
       return true;
     });
   }, [runs, agent, date, query]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const paginated = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
   return (
     <div>
@@ -65,6 +72,7 @@ export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
               setAgent("");
               setDate("");
               setQuery("");
+              setPage(0);
             }}
             className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
           >
@@ -76,6 +84,7 @@ export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
       <p className="mt-2 text-xs text-slate-500">
         {filtered.length} exécution(s)
       </p>
+
 
       <div className="mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="w-full text-sm">
@@ -89,13 +98,13 @@ export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filtered.map((r) => (
+            {paginated.map((r) => (
               <tr key={r.id}>
                 <td className="px-4 py-2 font-medium">{r.agent_name}</td>
                 <td className="px-4 py-2 text-slate-600">{r.trigger}</td>
                 <td className="px-4 py-2">
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                    className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${
                       statusStyles[r.status] ?? "bg-slate-100 text-slate-500"
                     }`}
                   >
@@ -123,6 +132,28 @@ export default function AgentRunsHistory({ runs }: { runs: AgentRun[] }) {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="mt-3 flex items-center justify-between text-sm">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={safePage === 0}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+          >
+            Précédent
+          </button>
+          <span className="text-slate-500">
+            Page {safePage + 1} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={safePage === totalPages - 1}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+          >
+            Suivant
+          </button>
+        </div>
+      )}
     </div>
   );
 }
