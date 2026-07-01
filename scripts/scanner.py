@@ -52,9 +52,10 @@ WEEKLY_WEEKDAY = int(os.environ.get("WEEKLY_WEEKDAY", "0"))
 # Noms d'aéroports (code IATA -> ville) pour un affichage clair.
 AIRPORT_NAMES = {
     "BRU": "Bruxelles", "CRL": "Charleroi", "LGG": "Liège", "ANR": "Anvers",
-    "OST": "Ostende", "CDG": "Paris", "ORY": "Paris", "BVA": "Paris Beauvais",
+    "OST": "Ostende", "CDG": "Paris", "ORY": "Paris Orly", "BVA": "Paris Beauvais",
     "LYS": "Lyon", "NCE": "Nice", "MRS": "Marseille", "BOD": "Bordeaux",
     "TLS": "Toulouse", "NTE": "Nantes", "LIL": "Lille", "SXB": "Strasbourg",
+    "MPL": "Montpellier",
     "LIS": "Lisbonne", "BCN": "Barcelone", "RAK": "Marrakech", "FCO": "Rome",
     "JFK": "New York", "BKK": "Bangkok", "AGP": "Malaga", "OPO": "Porto",
     "KRK": "Cracovie", "ALC": "Alicante", "ATH": "Athènes", "MAD": "Madrid",
@@ -91,9 +92,11 @@ TRAVELPAYOUTS_WATCH = {
 # directement l'API de Ryanair pour DECOUVRIR les allers-retours les moins chers
 # depuis nos aeroports Ryanair, sous un plafond. Lien de resa = Ryanair direct
 # (prix exact). Les nouvelles villes creent leur fiche automatiquement.
+# Aéroports où Ryanair opère en BE/FR (source #2). On interroge l'API Ryanair
+# pour tous — si un aéroport n'a aucune route, l'API renvoie juste zéro résultat.
 RYANAIR_ORIGINS = [
     o.strip().upper()
-    for o in os.environ.get("RYANAIR_ORIGINS", "CRL,BRU,LYS").split(",")
+    for o in os.environ.get("RYANAIR_ORIGINS", "CRL,BRU,LYS,BVA,NCE,MRS,BOD,TLS,NTE,MPL,LGG,LIL").split(",")
     if o.strip()
 ]
 RYANAIR_MAX_EUR = int(os.environ.get("RYANAIR_MAX_EUR", "150"))  # plafond AR "bon plan"
@@ -114,9 +117,13 @@ _UA = {
 # (toutes compagnies, court + long-courrier) : elargit la base au-dela des routes
 # surveillees. Lien de resa = Aviasales (affiliation). Les noms de villes viennent
 # de la base Travelpayouts (cities.json FR), pour creer des fiches propres.
+# Tous les aéroports BE/FR pour la découverte large (source #3).
+# Les deals entrent en base silencieusement — aucun email ne part tant qu'aucun
+# abonné n'a ces aéroports en préférence. Sert à construire un historique réel
+# avant d'ouvrir ces aéroports à l'inscription.
 DISCOVERY_ORIGINS = [
     o.strip().upper()
-    for o in os.environ.get("DISCOVERY_ORIGINS", "BRU,CRL,CDG,LYS").split(",")
+    for o in os.environ.get("DISCOVERY_ORIGINS", "BRU,CRL,LGG,ANR,OST,CDG,ORY,BVA,LYS,NCE,MRS,BOD,TLS,NTE,LIL,MPL,SXB").split(",")
     if o.strip()
 ]
 # Plafond genereux pour attraper aussi le long-courrier abordable (NYC, etc.).
