@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
@@ -13,10 +14,11 @@ const securityHeaders = [
       "font-src 'self' fonts.gstatic.com",
       "img-src 'self' data: blob: *.supabase.co *.brandfetch.io *.bing.com *.bing.net th.bing.com *.avs.io *.travelpayouts.com",
       // blob: requis pour Three.js (textures GLB chargées via createObjectURL)
-      "connect-src 'self' blob: *.supabase.co va.vercel-scripts.com emrldtp.com *.emrldtp.com *.travelpayouts.com tp.media sentry.avs.io",
+      "connect-src 'self' blob: *.supabase.co va.vercel-scripts.com emrldtp.com *.emrldtp.com *.travelpayouts.com tp.media sentry.avs.io app.glitchtip.com",
       // worker-src blob: pour le décodeur Draco de GLTFLoader (Three.js)
       "worker-src 'self' blob:",
       "frame-ancestors 'self'",
+      "report-uri https://app.glitchtip.com/api/25318/security/?glitchtip_key=8752fa9253c74ca4952ccc58128734d7",
     ].join("; "),
   },
 ];
@@ -32,4 +34,10 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  sentryUrl: "https://app.glitchtip.com",
+  org: "bonvoleur",
+  project: "bonvoleur-com",
+  silent: true,
+  telemetry: false,
+});
