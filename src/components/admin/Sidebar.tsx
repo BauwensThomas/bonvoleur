@@ -12,6 +12,7 @@ const links = [
   { href: "/admin/blog", label: "Blog" },
   { href: "/admin/subscribers", label: "Abonnés" },
   { href: "/admin/agents", label: "Agents" },
+  { href: "/admin/airports", label: "Aéroports" },
 ];
 
 export default function Sidebar({
