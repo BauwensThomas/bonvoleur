@@ -2,7 +2,6 @@
 // public "photos"), en version allégée, et renvoie l'URL publique. En cas
 // d'échec, renvoie l'URL d'origine (jamais de casse).
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import sharp from "sharp";
 
 let _sb: SupabaseClient | null = null;
 let _bucketReady = false;
@@ -55,6 +54,7 @@ export async function rehostImage(
     const raw = Buffer.from(await r.arrayBuffer());
     if (raw.byteLength === 0) return sourceUrl;
 
+    const sharp = (await import("sharp")).default;
     let jpeg = await sharp(raw).resize({ width: 900, withoutEnlargement: true }).jpeg({ quality: 85 }).toBuffer();
     if (jpeg.byteLength > 150 * 1024) {
       jpeg = await sharp(raw).resize({ width: 700, withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer();

@@ -54,29 +54,35 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const unauth = await requireAdmin();
-  if (unauth) return unauth;
-  const b = await req.json();
-  if (!b.id) return NextResponse.json({ error: "id requis." }, { status: 400 });
-  const { id, ...patch } = b;
-  patch.updated_at = new Date().toISOString();
-  if (patch.slug) patch.slug = slugify(patch.slug);
-  if (patch.status === "published" && !patch.published_at) {
-    patch.published_at = new Date().toISOString();
-  }
-  // Ré-héberge l'image sur Supabase si c'est une URL externe (Unsplash, etc.)
-  if (patch.cover_image && !String(patch.cover_image).includes("/storage/v1/object/public/photos/")) {
-    try {
-      const existing = await findOne("posts", (p) => p.id === id);
-      const name = patch.slug ?? existing?.slug ?? id;
-      patch.cover_image = (await rehostImage(patch.cover_image, "articles", name)) ?? patch.cover_image;
-    } catch (e) {
-      console.error("[admin/posts] rehostImage échoué, URL conservée :", e);
+  try {
+    const unauth = await requireAdmin();
+    if (unauth) return unauth;
+    const b = await req.json();
+    if (!b.id) return NextResponse.json({ error: "id requis." }, { status: 400 });
+    const { id, ...patch } = b;
+    patch.updated_at = new Date().toISOString();
+    if (patch.slug) patch.slug = slugify(patch.slug);
+    if (patch.status === "published" && !patch.published_at) {
+      patch.published_at = new Date().toISOString();
     }
+    // Ré-héberge l'image sur Supabase si c'est une URL externe (Unsplash, etc.)
+    if (patch.cover_image && !String(patch.cover_image).includes("/storage/v1/object/public/photos/")) {
+      try {
+        const existing = await findOne("posts", (p) => p.id === id);
+        const name = patch.slug ?? existing?.slug ?? id;
+        patch.cover_image = (await rehostImage(patch.cover_image, "articles", name)) ?? patch.cover_image;
+      } catch (e) {
+        console.error("[admin/posts] rehostImage échoué, URL conservée :", e);
+      }
+    }
+    const row = await update("posts", id, patch);
+    if (!row) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+    return NextResponse.json(row);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[admin/posts PUT] Erreur non gérée :", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
-  const row = await update("posts", id, patch);
-  if (!row) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
-  return NextResponse.json(row);
 }
 
 export async function DELETE(req: Request) {
