@@ -112,7 +112,7 @@ function slugify(s: string): string {
 // Anti-doublon de CONTENU : si un nouvel article partage trop de mots avec un
 // article existant, c'est probablement le même sujet -> on régénère.
 // Seuil de similarité (Jaccard sur les mots significatifs de 6+ lettres).
-const SIMILARITY_THRESHOLD = 0.22;
+const SIMILARITY_THRESHOLD = 0.28;
 
 function wordSet(text: string): Set<string> {
   return new Set(
@@ -303,18 +303,20 @@ async function unsplashImage(query: string): Promise<string | null> {
   }
   try {
     const res = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&orientation=landscape&per_page=1&content_filter=high`,
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&orientation=landscape&per_page=10&content_filter=high`,
       { headers: { Authorization: `Client-ID ${key}` } }
     );
     if (!res.ok) {
       console.warn(`[unsplash] API ${res.status} pour "${query}"`);
       return null;
     }
-    const p = (await res.json())?.results?.[0];
-    if (!p) {
+    const results = (await res.json())?.results ?? [];
+    if (!results.length) {
       console.warn(`[unsplash] aucun résultat pour "${query}"`);
       return null;
     }
+    // Choisit aléatoirement parmi les résultats pour éviter les photos répétées
+    const p = results[Math.floor(Math.random() * results.length)];
     if (p.links?.download_location) {
       fetch(p.links.download_location, {
         headers: { Authorization: `Client-ID ${key}` },
@@ -371,7 +373,7 @@ Contraintes impératives :
 - "meta_title" : max 60 caractères, accrocheur, avec le mot-clé. "meta_description" : max 155 caractères.
 - "excerpt" : 1 à 2 phrases d'accroche.
 - "slug" : court, minuscules, mots séparés par des tirets.
-- "image_query" : 2 à 4 mots EN ANGLAIS décrivant une photo d'illustration qui colle à l'article (ex. "Lisbon tram", "airplane window view", "Barcelona skyline"). Vise une image qui représente vraiment le sujet de l'article.
+- "image_query" : 2 à 4 mots EN ANGLAIS très spécifiques au sujet (ville, monument, paysage précis). Obligatoire : la requête doit nommer un lieu, une activité ou un objet concret (ex. "Lisbon yellow tram", "Tirana Albania castle", "Lyon France river"). INTERDIT : requêtes génériques comme "airplane travel", "vacation beach", "flight airport".
 - N'invente pas de prix présentés comme garantis : reste sur des fourchettes ou des ordres de grandeur ("aux alentours de", "à partir d'environ").
 - Si le pays de la destination utilise une monnaie autre que l'euro, donne un ordre de grandeur du taux de change : environ combien vaut 1 € dans cette monnaie, ET environ combien vaut 1 unité de cette monnaie en euros. Précise que c'est approximatif et variable (ex. "environ 1 € = X, soit 1 X = Y €, à titre indicatif").
 
@@ -458,9 +460,9 @@ export async function runContentPublisher(
 
   try {
     // Génère, et si le contenu ressemble trop à un article existant, régénère
-    // (jusqu'à 3 essais) pour éviter les doublons.
+    // (jusqu'à 5 essais) pour éviter les doublons.
     let article = await generateArticle();
-    for (let attempt = 1; attempt < 3; attempt += 1) {
+    for (let attempt = 1; attempt < 5; attempt += 1) {
       if ((await maxSimilarity(article.content)) <= SIMILARITY_THRESHOLD) break;
       article = await generateArticle();
     }
