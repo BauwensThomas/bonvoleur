@@ -92,7 +92,7 @@ export async function notifySocial(
   let ok = false;
   let detail = "";
   try {
-    const url = `${site.url}/blog/${post.slug}`;
+    const url = `${site.canonicalBase}/blog/${post.slug}`;
     const { caption, comment } = await generateCaption(post, url);
     const payload: SocialPayload = {
       title: post.title,
