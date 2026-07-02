@@ -11,7 +11,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' va.vercel-scripts.com emrldtp.com *.emrldtp.com",
       "style-src 'self' 'unsafe-inline' fonts.googleapis.com emrldtp.com *.emrldtp.com",
       "font-src 'self' fonts.gstatic.com",
-      "img-src 'self' data: blob: *.supabase.co *.brandfetch.io *.bing.com *.bing.net th.bing.com *.avs.io *.travelpayouts.com images.unsplash.com",
+      "img-src 'self' data: blob: *.supabase.co *.brandfetch.io *.bing.com *.bing.net th.bing.com *.avs.io *.travelpayouts.com *.unsplash.com",
       // blob: requis pour Three.js (textures GLB chargées via createObjectURL)
       "connect-src 'self' blob: *.supabase.co va.vercel-scripts.com emrldtp.com *.emrldtp.com *.travelpayouts.com tp.media sentry.avs.io app.glitchtip.com",
       // worker-src blob: pour le décodeur Draco de GLTFLoader (Three.js)
