@@ -23,7 +23,7 @@ const AFFILIATE_SUFFIX = (city) => {
   return [
     `Hébergement : [Booking.com](https://www.booking.com/searchresults.fr.html?ss=${enc}) centralise les hôtels, appartements et gîtes à ${city} à tous les prix. Réserve tôt pour les meilleures options.`,
     `Activités sur place : [GetYourGuide](https://www.getyourguide.com/fr-fr/s/?q=${enc}) regroupe les visites guidées, musées et excursions à ${city} avec réservation immédiate.`,
-    `Protection vol : avec les compagnies low cost, les retards arrivent. Si ton vol est retardé de plus de 3 heures, [AirHelp](https://www.airhelp.com/fr/) réclame jusqu'à 600 € d'indemnisation pour toi.`,
+    `Protection vol : avec les compagnies low cost, les retards arrivent. Si ton vol est retardé de plus de 3 heures, [AirHelp](https://airhelp.tp.st/nZiaMXbN) réclame jusqu'à 600 € d'indemnisation pour toi.`,
   ];
 };
 

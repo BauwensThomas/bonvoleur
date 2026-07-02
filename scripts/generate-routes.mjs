@@ -196,8 +196,8 @@ for (const dest of Object.values(dests)) {
         const affiliateTips = [
           `Hébergement : [Booking.com](https://www.booking.com/searchresults.fr.html?ss=${cityEnc}&selected_currency=EUR) centralise les hôtels, appartements et gîtes à ${city} à tous les prix. Réserve tôt pour les meilleures options.`,
           `Activités sur place : [GetYourGuide](https://www.getyourguide.com/fr-fr/s/?q=${cityEnc}) regroupe les visites guidées, musées et excursions à ${city} avec réservation immédiate.`,
-          ...(!isEurope ? [`Connectivité : achète une [carte eSIM Airalo](https://www.airalo.com/fr) avant de partir pour rester connecté à ${city} sans frais de roaming. Quelques euros pour une semaine de data locale.`] : []),
-          `Protection vol : avec les compagnies low cost, les retards arrivent. Si ton vol est retardé de plus de 3 heures, [AirHelp](https://www.airhelp.com/fr/) réclame jusqu'à 600 € d'indemnisation pour toi.`,
+          ...(!isEurope ? [`Connectivité : achète une [carte eSIM Airalo](https://airalo.tp.st/EoUAdgZb) avant de partir pour rester connecté à ${city} sans frais de roaming. Quelques euros pour une semaine de data locale.`] : []),
+          `Protection vol : avec les compagnies low cost, les retards arrivent. Si ton vol est retardé de plus de 3 heures, [AirHelp](https://airhelp.tp.st/nZiaMXbN) réclame jusqu'à 600 € d'indemnisation pour toi.`,
         ];
         await fetch(`${SB}/rest/v1/routes?slug=eq.${o.slug}`, {
           method: "PATCH",
@@ -255,8 +255,8 @@ for (const dest of Object.values(dests)) {
         ...aiTips,
         `Hébergement : [Booking.com](https://www.booking.com/searchresults.fr.html?ss=${cityEnc}&selected_currency=EUR) centralise les hôtels, appartements et gîtes à ${city} à tous les prix. Réserve tôt pour les meilleures options.`,
         `Activités sur place : [GetYourGuide](https://www.getyourguide.com/fr-fr/s/?q=${cityEnc}) regroupe les visites guidées, musées et excursions à ${city} avec réservation immédiate.`,
-        ...(!isEurope ? [`Connectivité : achète une [carte eSIM Airalo](https://www.airalo.com/fr) avant de partir pour rester connecté à ${city} sans frais de roaming. Quelques euros pour une semaine de data locale.`] : []),
-        `Protection vol : avec les compagnies low cost, les retards arrivent. Si ton vol est retardé de plus de 3 heures, [AirHelp](https://www.airhelp.com/fr/) réclame jusqu'à 600 € d'indemnisation pour toi.`,
+        ...(!isEurope ? [`Connectivité : achète une [carte eSIM Airalo](https://airalo.tp.st/EoUAdgZb) avant de partir pour rester connecté à ${city} sans frais de roaming. Quelques euros pour une semaine de data locale.`] : []),
+        `Protection vol : avec les compagnies low cost, les retards arrivent. Si ton vol est retardé de plus de 3 heures, [AirHelp](https://airhelp.tp.st/nZiaMXbN) réclame jusqu'à 600 € d'indemnisation pour toi.`,
       ];
     }
     if (content?.region) row.region = stripTags(content.region);
