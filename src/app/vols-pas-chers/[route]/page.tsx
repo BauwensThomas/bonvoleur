@@ -136,7 +136,7 @@ function faqFor(city: string, originCities: string[]) {
     },
     {
       q: `Depuis quels aéroports peut-on rejoindre ${city} ?`,
-      a: `On surveille les départs depuis ${depuis}. Choisis ton aéroport ci-dessus pour voir les bons plans correspondants.`,
+      a: `On surveille les départs depuis ${depuis}. Inscris-toi gratuitement pour recevoir une alerte dès qu'on repère un bon plan vers ${city}.`,
     },
     {
       q: `Quand réserver un vol vers ${city} pas cher ?`,
@@ -240,8 +240,6 @@ export default async function DestinationPage({
   const image = dest.image ?? DEFAULT_DEST_IMAGE;
   const onSite = await getActiveAirportCodes();
   const siteRoutes = dest.routes.filter((r) => onSite.has(r.originIata));
-  const originCities = siteRoutes.map((r) => r.originCity);
-  const faq = faqFor(dest.destCity, originCities);
 
   // Bouton CTA : si connecté → espace membre filtré sur cette destination.
   const member = await getMemberState();
@@ -253,6 +251,8 @@ export default async function DestinationPage({
   const uniqueRoutes = siteRoutes.filter(
     (r, i, arr) => arr.findIndex((x) => x.originIata === r.originIata) === i
   );
+  const originCities = uniqueRoutes.map((r) => r.originCity);
+  const faq = faqFor(dest.destCity, originCities);
   const isMember = member.status !== "anonymous";
   const airports: AirportProof[] = await Promise.all(
     uniqueRoutes.map(async (r) => {
