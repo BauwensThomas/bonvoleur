@@ -11,6 +11,7 @@
 import { getAll } from "./db";
 import { FRESH_MAX_MS } from "./deal-freshness";
 import { destinationRegion } from "./destinations";
+import { getActiveAirportCodes } from "./airports";
 import type { Deal, Tier } from "./types";
 
 export const FREE_DELAY_HOURS = 96; // 4 jours de retard pour le gratuit
@@ -53,7 +54,11 @@ export async function getMemberDeals(
   filters: MemberFilters = {},
 ): Promise<MemberDealsResult> {
   const now = Date.now();
-  let all = (await getAll("deals")).filter((d) => d.is_hot !== false);
+  const onSite = await getActiveAirportCodes();
+  const iataOf = (s: string) => s.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
+  let all = (await getAll("deals")).filter(
+    (d) => d.is_hot !== false && onSite.has(iataOf(d.origin)),
+  );
 
   // Date réelle du dernier scan : le plus récent "vu" de tous les deals
   // (calculé AVANT le filtre de fraîcheur, pour refléter le vrai dernier scan).

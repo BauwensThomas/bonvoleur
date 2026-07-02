@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { airports } from "@/lib/site";
+import { getActiveAirports } from "@/lib/airports";
 import { getMemberState } from "@/lib/member-auth";
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default async function Finaliser({
   searchParams: Promise<{ error?: string }>;
 }) {
   const { error } = await searchParams;
-  const member = await getMemberState();
+  const [member, airports] = await Promise.all([getMemberState(), getActiveAirports()]);
 
   // Déjà membre, ou pas connecté : /compte gère (dashboard ou connexion).
   if (member.status !== "no-account") {

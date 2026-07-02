@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
@@ -34,10 +33,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  sentryUrl: "https://app.glitchtip.com",
-  org: "bonvoleur",
-  project: "bonvoleur-com",
-  silent: true,
-  telemetry: false,
-});
+export default nextConfig;

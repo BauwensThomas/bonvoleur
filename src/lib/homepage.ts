@@ -5,6 +5,7 @@
 // donc on peut montrer des deals récents sans casser l'incitation à s'inscrire.
 import { getAll } from "./db";
 import { FRESH_MAX_MS } from "./deal-freshness";
+import { getActiveAirportCodes } from "./airports";
 
 export interface TeaserDeal {
   origin: string;
@@ -17,18 +18,20 @@ export async function getHomepageDeals(): Promise<{
   liveCount: number; // bons plans frais en ce moment (preuve sociale)
   destinationCount: number; // destinations distinctes parmi ces deals
 }> {
-  const all = await getAll("deals");
+  const [all, onSite] = await Promise.all([getAll("deals"), getActiveAirportCodes()]);
   const now = Date.now();
   const today = new Date(now).toISOString().slice(0, 10);
+  const iataOf = (s: string) => s.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
 
-  // Vitrine : vrais bons plans (is_hot), encore frais (vus < fenêtre) et dont la
-  // date de départ n'est PAS passée.
+  // Vitrine : vrais bons plans (is_hot), encore frais (vus < fenêtre), dont la
+  // date de départ n'est PAS passée, et depuis un aéroport actif sur le site.
   const found = all.filter((d) => {
     if (!d.created_at || d.is_hot === false) return false;
     const seen = d.published_at ?? d.created_at;
     if (now - new Date(seen).getTime() > FRESH_MAX_MS) return false;
     const dep = (d.dates ?? "").match(/\d{4}-\d{2}-\d{2}/)?.[0];
     if (dep && dep < today) return false;
+    if (!onSite.has(iataOf(d.origin))) return false;
     return true;
   });
 

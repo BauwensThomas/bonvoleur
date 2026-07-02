@@ -4,9 +4,10 @@ import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LoginForm from "@/components/LoginForm";
-import { site, airports, discountPct } from "@/lib/site";
+import { site, discountPct } from "@/lib/site";
 import { getMemberDeals, FREE_DELAY_HOURS } from "@/lib/member-deals";
 import { getMemberState } from "@/lib/member-auth";
+import { getActiveAirports, getAirportName } from "@/lib/airports";
 import { destinationSlug } from "@/lib/routes";
 import { destinationRegion, REGION_ORDER } from "@/lib/destinations";
 import CompteControls from "@/components/CompteControls";
@@ -152,14 +153,19 @@ export default async function Compte({
   const from = tier === "premium" ? sp.from ?? "" : "";
   const to = tier === "premium" ? sp.to ?? "" : "";
 
-  const { deals, total, liveLockedForFree, lastRefresh } = await getMemberDeals(tier, {
-    origin: origin || undefined,
-    destination: destination || undefined,
-    region: region || undefined,
-    maxPrice: maxPriceNum,
-    dateFrom: from || undefined,
-    dateTo: to || undefined,
-  });
+  const [{ deals, total, liveLockedForFree, lastRefresh }, pool, activeAirports] =
+    await Promise.all([
+      getMemberDeals(tier, {
+        origin: origin || undefined,
+        destination: destination || undefined,
+        region: region || undefined,
+        maxPrice: maxPriceNum,
+        dateFrom: from || undefined,
+        dateTo: to || undefined,
+      }),
+      getMemberDeals(tier, {}),
+      getActiveAirports(),
+    ]);
 
   // Tri demande (le defaut "recent" est deja applique par getMemberDeals).
   if (sort === "price-asc") deals.sort((a, b) => a.price - b.price);
@@ -167,7 +173,6 @@ export default async function Compte({
 
   // Régions réellement présentes parmi les deals visibles (sans filtre région),
   // pour ne proposer que des filtres utiles - comme le hub /vols-pas-chers.
-  const pool = await getMemberDeals(tier, {});
   const availableRegions = REGION_ORDER.filter((r) =>
     pool.deals.some((d) => destinationRegion(d.destination) === r)
   );
@@ -319,10 +324,19 @@ export default async function Compte({
 
         {/* Filtres + tri + vue (auto, sans bouton ; vue memorisee) */}
         <CompteControls
-          airports={airports}
+          airports={activeAirports}
+          homeAirports={member.subscriber.home_airports ?? []}
           tier={tier}
           availableRegions={availableRegions}
         />
+        {tier === "free" && (member.subscriber.home_airports ?? []).length > 0 && (
+          <p className="mt-3 text-xs text-slate-500">
+            Tes alertes email couvrent{" "}
+            <strong>{getAirportName((member.subscriber.home_airports ?? [])[0])}</strong>.
+            {" "}Tu vois ici tous les bons plans disponibles — passe premium pour recevoir
+            toutes les alertes par email.
+          </p>
+        )}
 
         {deals.length > 0 && (
           <p className="mt-6 text-sm text-slate-500">

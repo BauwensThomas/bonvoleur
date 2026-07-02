@@ -39,7 +39,16 @@ if (!SB || !SK) throw new Error("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY manqua
 const sbHeaders = { apikey: SK, Authorization: `Bearer ${SK}`, "Content-Type": "application/json" };
 const startedAt = new Date().toISOString();
 
-const ORIGIN = { BRU: "Bruxelles", CRL: "Charleroi", CDG: "Paris", LYS: "Lyon" };
+// Aéroports actifs : lus depuis Supabase pour être cohérents avec le site.
+const activeAirports = await fetch(
+  `${SB}/rest/v1/airports?select=iata,city&active=eq.true`,
+  { headers: sbHeaders },
+).then((r) => (r.ok ? r.json() : [])).catch(() => []);
+const ORIGIN = Object.fromEntries(
+  activeAirports.length
+    ? activeAirports.map((a) => [a.iata, a.city])
+    : [["BRU","Bruxelles"],["CRL","Charleroi"],["CDG","Paris"],["LYS","Lyon"]],
+);
 const DEST = {
   LIS: "Lisbonne", BCN: "Barcelone", RAK: "Marrakech", FCO: "Rome", JFK: "New York",
   BKK: "Bangkok", AGP: "Malaga", OPO: "Porto", KRK: "Cracovie", ALC: "Alicante",
@@ -116,7 +125,7 @@ async function genCityContent(city, origins) {
 {
  "intro": "3 à 4 phrases RICHES et concretes sur ${city} : ce qui en fait une destination (atouts, ambiance), puis l'acces en avion depuis la Belgique et la France (aeroports concernes, vols directs ou avec escale, et si tu la connais la frequence ou le nombre de vols par semaine, la distance ou le decalage horaire). Ne commence pas par 'La liaison'.",
  "airlines": ["principales compagnies qui desservent ${city} depuis la Belgique/France (4 a 6 si possible)"],
- "duration": "durée de vol typique vers ${city} depuis la Belgique/France (direct, et avec escale si pertinent)",
+ "duration": "durée de vol vers ${city} exprimée en fourchette générale (ex. '2h30 à 4h selon l'aéroport de départ' ou 'environ 3h en direct, 8 à 12h avec escale') — ne pas mentionner un aéroport précis, rester valable quel que soit le point de départ",
  "bestPeriod": "meilleure période pour visiter ${city} : météo ET prix (mois les moins chers, et combien de temps a l'avance reserver)",
  "tips": ["4 à 5 conseils concrets et actionnables pour un voyage à ${city} (transfert aeroport vers le centre, bagages low cost, decalage horaire, formalites/visa si besoin, meilleur jour pour reserver...), dont OBLIGATOIREMENT un sur la MONNAIE : si ${city} est dans la zone euro, indique qu'on paie en euros (aucun change à prévoir) ; sinon donne un ordre de grandeur du taux de change (environ 1 euro = X en monnaie locale, et environ 1 unité de cette monnaie = Y euros), en précisant que c'est approximatif et variable"],
  "region": "la région de ${city} : exactement l'une de ces valeurs -> Europe, Afrique, Océan Indien, Moyen-Orient, Asie, Amérique du Nord, Amérique du Sud, Caraïbes, Océanie. Repères : Maurice/Réunion/Seychelles/Maldives/Madagascar = Océan Indien ; Golfe (Dubaï, Doha, Abu Dhabi, Riyad) + Jordanie = Moyen-Orient ; USA/Canada/Mexique = Amérique du Nord ; Brésil/Argentine/Pérou/Colombie/Chili = Amérique du Sud ; Rép. dominicaine/Cuba/Antilles = Caraïbes ; Maghreb et reste de l'Afrique = Afrique"

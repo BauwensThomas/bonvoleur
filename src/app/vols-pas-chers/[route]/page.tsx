@@ -16,6 +16,7 @@ import {
   getRoute,
   destinationSlug,
 } from "@/lib/routes";
+import { getActiveAirportCodes } from "@/lib/airports";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const DAY5_MS = 5 * 24 * 60 * 60 * 1000;
@@ -237,7 +238,9 @@ export default async function DestinationPage({
 
   const content = dest.content;
   const image = dest.image ?? DEFAULT_DEST_IMAGE;
-  const originCities = dest.routes.map((r) => r.originCity);
+  const onSite = await getActiveAirportCodes();
+  const siteRoutes = dest.routes.filter((r) => onSite.has(r.originIata));
+  const originCities = siteRoutes.map((r) => r.originCity);
   const faq = faqFor(dest.destCity, originCities);
 
   // Bouton CTA : si connecté → espace membre filtré sur cette destination.
@@ -247,7 +250,7 @@ export default async function DestinationPage({
     : "/#inscription";
 
   // Preuve par aéroport de départ (dédoublonnage par originIata).
-  const uniqueRoutes = dest.routes.filter(
+  const uniqueRoutes = siteRoutes.filter(
     (r, i, arr) => arr.findIndex((x) => x.originIata === r.originIata) === i
   );
   const isMember = member.status !== "anonymous";

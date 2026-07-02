@@ -79,6 +79,7 @@ export interface Airport {
   name: string;
   city: string;
   country: "BE" | "FR";
+  active: boolean;
   created_at: string;
 }
 

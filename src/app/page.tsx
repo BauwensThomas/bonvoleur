@@ -10,6 +10,7 @@ import DestinationsGrid from "@/components/DestinationsGrid";
 import NeedsSignupBanner from "@/components/NeedsSignupBanner";
 import { site } from "@/lib/site";
 import { getHomepageDeals } from "@/lib/homepage";
+import { getActiveAirports } from "@/lib/airports";
 import { getDestinations, destinationSlug } from "@/lib/routes";
 import { getAll } from "@/lib/db";
 
@@ -29,7 +30,7 @@ export const revalidate = 60;
 const steps = [
   {
     title: "Inscris-toi gratuitement",
-    text: "Choisis tes aéroports de départ (Bruxelles, Charleroi, Paris, Lyon). Trente secondes, sans carte bancaire.",
+    text: "Choisis tes aéroports de départ depuis la Belgique et la France. Trente secondes, sans carte bancaire.",
   },
   {
     title: "On surveille les prix",
@@ -48,7 +49,7 @@ const features = [
   },
   {
     title: "Aéroports belges et français",
-    text: "Bruxelles, Charleroi, Paris et Lyon. On part de chez toi.",
+    text: "Depuis la Belgique et la France. On part de chez toi.",
   },
   {
     title: "Des alertes au bon moment",
@@ -58,7 +59,10 @@ const features = [
 
 export default async function Home() {
   // Vitrine "teaser" : route + prix uniquement (aucune info actionnable).
-  const { teaserDeals, liveCount } = await getHomepageDeals();
+  const [{ teaserDeals, liveCount }, airports] = await Promise.all([
+    getHomepageDeals(),
+    getActiveAirports(),
+  ]);
 
   // Destinations populaires : par ville, avec ses aéroports de départ.
   const destGroups = await getDestinations();
@@ -206,7 +210,7 @@ export default async function Home() {
                 plans qui te concernent.
               </p>
               <div className="mt-4">
-                <SignupForm />
+                <SignupForm airports={airports} />
               </div>
             </div>
           </div>

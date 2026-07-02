@@ -10,10 +10,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 //   visites.
 export default function CompteControls({
   airports,
+  homeAirports = [],
   tier,
   availableRegions,
 }: {
   airports: readonly { iata: string; city: string }[];
+  homeAirports?: string[];
   tier: "free" | "premium";
   availableRegions: string[];
 }) {
@@ -75,11 +77,14 @@ export default function CompteControls({
             className="w-full rounded-lg border border-slate-300 px-3 py-2"
           >
             <option value="">Tous</option>
-            {airports.map((a) => (
-              <option key={a.iata} value={a.iata}>
-                {a.city} ({a.iata})
-              </option>
-            ))}
+            {airports.map((a) => {
+              const isHome = homeAirports.map((h) => h.toUpperCase()).includes(a.iata);
+              return (
+                <option key={a.iata} value={a.iata}>
+                  {isHome ? `★ ${a.city} (${a.iata})` : `${a.city} (${a.iata})`}
+                </option>
+              );
+            })}
           </select>
         </label>
         <label className="text-sm">

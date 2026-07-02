@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Vols pas chers depuis la Belgique et la France",
   description:
-    "Toutes nos destinations : vols pas chers depuis Bruxelles, Charleroi, Paris et Lyon. Choisis ta destination, on te prévient par email.",
+    "Toutes nos destinations : vols pas chers depuis la Belgique et la France. Choisis ta destination, on te prévient par email.",
   alternates: { canonical: `${site.canonicalBase}/vols-pas-chers` },
 };
 
@@ -67,8 +67,8 @@ export default async function VolsPasChersIndex() {
             Comment trouver un vol pas cher depuis la Belgique ou la France ?
           </h2>
           <p className="mt-4 text-slate-600">
-            BonVoleur surveille en continu les prix depuis Bruxelles (BRU),
-            Charleroi (CRL), Paris (CDG) et Lyon (LYS). Dès qu&apos;un tarif
+            BonVoleur surveille en continu les prix depuis nos aéroports en
+            Belgique et en France. Dès qu&apos;un tarif
             chute sous les prix habituels, on t&apos;envoie une alerte par
             email avec tous les détails pour réserver.
           </p>

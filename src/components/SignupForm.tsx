@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, type ComponentType } from "react";
-import { airports } from "@/lib/site";
 
 type Status = "idle" | "loading" | "success" | "error";
 type GoogleBtnProps = { next: string; label: string };
+type AirportOption = { iata: string; city: string };
 
-export default function SignupForm() {
+export default function SignupForm({ airports }: { airports: AirportOption[] }) {
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
   const [showLogin, setShowLogin] = useState(false);

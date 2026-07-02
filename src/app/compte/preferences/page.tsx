@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import PreferencesForm from "@/components/PreferencesForm";
 import DeleteAccountButton from "@/components/DeleteAccountButton";
 import { getMemberState } from "@/lib/member-auth";
+import { getActiveAirports, getAirportName } from "@/lib/airports";
 import type { EmailFrequency } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -16,12 +17,25 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function Preferences() {
-  const member = await getMemberState();
-  // Réservé aux abonnés confirmés. Sinon, /compte gère l'état (connexion,
-  // inscription, confirmation).
+  const [member, airports] = await Promise.all([getMemberState(), getActiveAirports()]);
   if (member.status !== "member") {
     redirect("/compte");
   }
+
+  // Inclure les aéroports désactivés que le membre a déjà choisis :
+  // sans ça, sauvegarder les préférences efface silencieusement ces aéroports.
+  const activeCodes = new Set(airports.map((a) => a.iata));
+  const inactiveInPrefs = (member.subscriber.home_airports ?? [])
+    .filter((iata) => !activeCodes.has(iata.toUpperCase()))
+    .map((iata) => ({
+      iata: iata.toUpperCase(),
+      city: getAirportName(iata.toUpperCase()),
+      disabled: true,
+    }));
+  const allAirports = [
+    ...airports.map((a) => ({ ...a, disabled: false })),
+    ...inactiveInPrefs,
+  ];
 
   // Si l'abonné s'est désinscrit (emails coupés), les préférences reflètent
   // l'état réel : tout en « pause » / décoché. Réenregistrer réactive les emails.
@@ -52,6 +66,7 @@ export default async function Preferences() {
         <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <PreferencesForm
             tier={member.tier}
+            airports={allAirports}
             initialAirports={member.subscriber.home_airports ?? []}
             initialFrequency={initialFrequency}
             initialNewsletter={!unsubscribed && member.subscriber.newsletter !== false}

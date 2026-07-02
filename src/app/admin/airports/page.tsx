@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import PeriodSelector from "@/components/admin/PeriodSelector";
+import AirportToggleBtn from "@/components/admin/AirportToggleBtn";
 
 const AIRPORTS: Record<string, string> = {
   BRU: "Bruxelles",
@@ -20,8 +21,6 @@ const AIRPORTS: Record<string, string> = {
   MPL: "Montpellier",
   SXB: "Strasbourg",
 };
-
-const ON_SITE = new Set(["BRU", "CRL", "CDG", "LYS"]);
 
 function iataFrom(origin: string): string | null {
   const m = origin.match(/\(([A-Z]{3})\)/);
@@ -45,6 +44,8 @@ function calendarDays(days: number): string[] {
   return result;
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function AirportsPage({
   searchParams,
 }: {
@@ -60,25 +61,36 @@ export default async function AirportsPage({
   const sb = createClient(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } }
+    { auth: { persistSession: false } },
   );
 
-  const all: { origin: string; created_at: string }[] = [];
-  let offset = 0;
-  while (true) {
-    const { data } = await sb
-      .from("deals")
-      .select("origin,created_at")
-      .gte("created_at", cutoff)
-      .range(offset, offset + 999);
-    if (!data?.length) break;
-    all.push(...data);
-    if (data.length < 1000) break;
-    offset += 1000;
-  }
+  // Deals + statut actif des aéroports en parallèle
+  const [dealsResult, airportsResult] = await Promise.all([
+    (async () => {
+      const all: { origin: string; created_at: string }[] = [];
+      let offset = 0;
+      while (true) {
+        const { data } = await sb
+          .from("deals")
+          .select("origin,created_at")
+          .gte("created_at", cutoff)
+          .range(offset, offset + 999);
+        if (!data?.length) break;
+        all.push(...data);
+        if (data.length < 1000) break;
+        offset += 1000;
+      }
+      return all;
+    })(),
+    sb.from("airports").select("iata,active"),
+  ]);
+
+  const activeMap = new Map<string, boolean>(
+    (airportsResult.data ?? []).map((a: { iata: string; active: boolean }) => [a.iata, a.active]),
+  );
 
   const byAirport = new Map<string, Map<string, number>>();
-  for (const d of all) {
+  for (const d of dealsResult) {
     const iata = iataFrom(d.origin);
     if (!iata) continue;
     const day = d.created_at.slice(0, 10);
@@ -94,7 +106,8 @@ export default async function AirportsPage({
     const daysWithDeal = perDay.size;
     const pct          = Math.round((daysWithDeal / days) * 100);
     const avg          = total > 0 ? (total / days).toFixed(1) : "0";
-    return { iata, city, total, daysWithDeal, pct, avg, perDay };
+    const active       = activeMap.get(iata) ?? false;
+    return { iata, city, total, daysWithDeal, pct, avg, perDay, active };
   });
   rows.sort((a, b) => b.pct - a.pct || b.total - a.total);
 
@@ -104,24 +117,20 @@ export default async function AirportsPage({
         <div>
           <h1 className="text-2xl font-bold">Couverture aéroports</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Données exactes du scanner - deals réellement collectés par aéroport.
-            Quand un aéroport atteint <strong>Fiable</strong>, il peut être ouvert à l&apos;inscription.
-            <span className="ml-1 text-slate-400">(point bleu = déjà actif)</span>
+            Données exactes du scanner. Active un aéroport quand il atteint{" "}
+            <strong>Fiable</strong>{" "}- il apparaît alors dans les formulaires
+            d&apos;inscription, le compte et les pages de destination.
           </p>
         </div>
         <PeriodSelector days={days} />
       </div>
-
-      <p className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-        Les aéroports hors BRU / CRL / CDG / LYS sont scannés depuis le 01/07/2026.
-        Reviens dans quelques semaines pour avoir des données significatives.
-      </p>
 
       <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
               <th className="px-4 py-3">Aéroport</th>
+              <th className="px-4 py-3 text-center">Actif</th>
               <th className="px-4 py-3 text-right">Deals</th>
               <th className="px-4 py-3 text-right">Jours couverts / {days}</th>
               <th className="px-4 py-3 text-right">Couverture</th>
@@ -131,20 +140,22 @@ export default async function AirportsPage({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {rows.map(({ iata, city, total, daysWithDeal, pct, avg, perDay }) => {
+            {rows.map(({ iata, city, total, daysWithDeal, pct, avg, perDay, active }) => {
               const { label, cls } = statusLabel(pct);
-              const onSite  = ON_SITE.has(iata);
-              const maxDay  = Math.max(...recentDays.map((d) => perDay.get(d) ?? 0), 1);
+              const maxDay = Math.max(...recentDays.map((d) => perDay.get(d) ?? 0), 1);
               return (
-                <tr key={iata} className={`hover:bg-slate-50 ${onSite ? "bg-blue-50/30" : ""}`}>
+                <tr key={iata} className={`hover:bg-slate-50 ${active ? "bg-blue-50/30" : ""}`}>
                   <td className="px-4 py-3 font-medium text-slate-800">
                     <span className="flex items-center gap-2">
-                      {onSite && <span className="w-2 h-2 rounded-full bg-brand shrink-0" title="Actif sur le site" />}
-                      <span>
-                        {city}
-                        <span className="ml-1.5 text-xs text-slate-400 font-normal">{iata}</span>
-                      </span>
+                      {active && (
+                        <span className="w-2 h-2 rounded-full bg-brand shrink-0" />
+                      )}
+                      {city}
+                      <span className="text-xs text-slate-400 font-normal">{iata}</span>
                     </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <AirportToggleBtn iata={iata} active={active} />
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums text-slate-700">{total}</td>
                   <td className="px-4 py-3 text-right tabular-nums text-slate-500">{daysWithDeal}</td>
@@ -179,15 +190,19 @@ export default async function AirportsPage({
       <div className="mt-4 flex flex-wrap gap-4 text-xs text-slate-500">
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-green-400 inline-block" />
-          Fiable = 80%+ des jours - ouvrir à l&apos;inscription
+          Fiable = 80%+ des jours
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
-          À surveiller = 40-80% - attendre
+          À surveiller = 40-80%
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block" />
-          Insuffisant = moins de 40% - pas encore
+          Insuffisant = moins de 40%
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-brand inline-block" />
+          Point bleu = actif sur le site
         </span>
       </div>
     </div>

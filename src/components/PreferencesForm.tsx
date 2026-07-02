@@ -1,18 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { airports } from "@/lib/site";
 import type { EmailFrequency, Tier } from "@/lib/types";
+
+type AirportOption = { iata: string; city: string; disabled?: boolean };
 
 type Status = "idle" | "saving" | "saved" | "error";
 
 export default function PreferencesForm({
   tier,
+  airports,
   initialAirports,
   initialFrequency,
   initialNewsletter,
 }: {
   tier: Tier;
+  airports: AirportOption[];
   initialAirports: string[];
   initialFrequency: EmailFrequency;
   initialNewsletter: boolean;
@@ -84,6 +87,26 @@ export default function PreferencesForm({
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {airports.map((a) => {
             const on = selected.includes(a.iata);
+            if (a.disabled) {
+              return (
+                <div
+                  key={a.iata}
+                  className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
+                >
+                  <input
+                    type={isPremium ? "checkbox" : "radio"}
+                    checked={on}
+                    disabled
+                    readOnly
+                    className="h-4 w-4 opacity-40"
+                  />
+                  <span className="text-slate-400">
+                    {a.city} ({a.iata})
+                    <span className="ml-1.5 text-xs">(désactivé)</span>
+                  </span>
+                </div>
+              );
+            }
             return (
               <label
                 key={a.iata}
@@ -105,6 +128,12 @@ export default function PreferencesForm({
             );
           })}
         </div>
+        {airports.some((a) => a.disabled && selected.includes(a.iata)) && (
+          <p className="mt-2 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            Un de tes aéroports est temporairement désactivé. Tes alertes email
+            restent actives et reprendront dès qu&apos;il sera réactivé.
+          </p>
+        )}
       </div>
 
       <div>
