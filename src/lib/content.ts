@@ -415,10 +415,38 @@ RAPPEL FINAL CRITIQUE : TOUT le texte (title, excerpt, content, meta_title, meta
 
 // Exécute l'agent content-publisher : génère un article, le PUBLIE directement
 // et journalise l'exécution. Utilisé par le cron et le bouton admin.
+const PUBLISH_INTERVAL_DAYS = 3;
+
 export async function runContentPublisher(
   trigger: "cron" | "manuel"
 ): Promise<AgentRun> {
   const startedAt = new Date().toISOString();
+
+  // Pour le cron quotidien : skip si le dernier article date de moins de 3 jours.
+  // Permet de rattraper un raté Vercel le lendemain sans surpublier.
+  if (trigger === "cron") {
+    const posts = await getAll("posts");
+    const last = posts
+      .filter((p) => p.published_at)
+      .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))[0];
+    if (last?.published_at) {
+      const daysSince =
+        (Date.now() - new Date(last.published_at).getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSince < PUBLISH_INTERVAL_DAYS) {
+        return insert("agent_runs", {
+          agent_name: "content-publisher",
+          started_at: startedAt,
+          finished_at: new Date().toISOString(),
+          status: "skip",
+          trigger,
+          summary: `Dernier article il y a ${daysSince.toFixed(1)}j - prochain dans ${(PUBLISH_INTERVAL_DAYS - daysSince).toFixed(1)}j.`,
+          output_ref: null,
+          error: null,
+        });
+      }
+    }
+  }
+
   try {
     // Génère, et si le contenu ressemble trop à un article existant, régénère
     // (jusqu'à 3 essais) pour éviter les doublons.

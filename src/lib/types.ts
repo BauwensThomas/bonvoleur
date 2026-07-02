@@ -7,7 +7,7 @@ export type Tier = "free" | "premium";
 // (consulte seulement le dashboard). Defaut selon le tier (premium=daily, free=weekly).
 export type EmailFrequency = "daily" | "weekly" | "none";
 export type PostStatus = "draft" | "published";
-export type AgentRunStatus = "success" | "error" | "draft";
+export type AgentRunStatus = "success" | "error" | "draft" | "skip";
 export type AgentTrigger = "cron" | "manuel" | "auto";
 export type ReferralStatus = "pending" | "confirmed";
 
