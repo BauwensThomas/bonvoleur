@@ -84,6 +84,10 @@ export async function notifySocial(
 ): Promise<void> {
   const hook = process.env.MAKE_WEBHOOK_URL;
   if (!hook) return;
+  if (!post.cover_image) {
+    console.warn(`[social] pas d'image pour "${post.title}", webhook Make ignoré`);
+    return;
+  }
   const startedAt = new Date().toISOString();
   let ok = false;
   let detail = "";

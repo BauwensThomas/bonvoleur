@@ -297,15 +297,24 @@ async function gatherFacts(topic: string): Promise<string> {
 // sans clé ou en cas d'échec (l'article reste publiable sans image).
 async function unsplashImage(query: string): Promise<string | null> {
   const key = process.env.UNSPLASH_ACCESS_KEY;
-  if (!key || !query) return null;
+  if (!key || !query) {
+    console.warn("[unsplash] clé manquante ou query vide");
+    return null;
+  }
   try {
     const res = await fetch(
       `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&orientation=landscape&per_page=1&content_filter=high`,
       { headers: { Authorization: `Client-ID ${key}` } }
     );
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.warn(`[unsplash] API ${res.status} pour "${query}"`);
+      return null;
+    }
     const p = (await res.json())?.results?.[0];
-    if (!p) return null;
+    if (!p) {
+      console.warn(`[unsplash] aucun résultat pour "${query}"`);
+      return null;
+    }
     if (p.links?.download_location) {
       fetch(p.links.download_location, {
         headers: { Authorization: `Client-ID ${key}` },
