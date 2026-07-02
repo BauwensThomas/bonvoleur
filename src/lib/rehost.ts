@@ -69,7 +69,8 @@ export async function rehostImage(
       .from("photos")
       .upload(path, jpeg, { contentType: "image/jpeg", upsert: true, cacheControl: "31536000" });
     if (error) return sourceUrl;
-    return client.storage.from("photos").getPublicUrl(path).data.publicUrl;
+    const publicUrl = client.storage.from("photos").getPublicUrl(path).data.publicUrl;
+    return `${publicUrl}?v=${Date.now()}`;
   } catch {
     return sourceUrl;
   }
