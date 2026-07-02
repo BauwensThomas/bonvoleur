@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAll, insert, update, remove, findOne } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { rehostImage } from "@/lib/rehost";
 
 function slugify(s: string): string {
   return s
@@ -59,6 +60,12 @@ export async function PUT(req: Request) {
   if (patch.slug) patch.slug = slugify(patch.slug);
   if (patch.status === "published" && !patch.published_at) {
     patch.published_at = new Date().toISOString();
+  }
+  // Ré-héberge l'image sur Supabase si c'est une URL externe (Unsplash, etc.)
+  if (patch.cover_image && !String(patch.cover_image).includes("/storage/v1/object/public/photos/")) {
+    const existing = await findOne("posts", (p) => p.id === id);
+    const name = patch.slug ?? existing?.slug ?? id;
+    patch.cover_image = (await rehostImage(patch.cover_image, "articles", name)) ?? patch.cover_image;
   }
   const row = await update("posts", id, patch);
   if (!row) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
