@@ -3,6 +3,9 @@ import { getAll, insert, update, remove, findOne } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { rehostImage } from "@/lib/rehost";
 
+// rehostImage fait un fetch + sharp + upload Supabase -> peut dépasser 10s
+export const maxDuration = 60;
+
 function slugify(s: string): string {
   return s
     .toLowerCase()
@@ -63,9 +66,13 @@ export async function PUT(req: Request) {
   }
   // Ré-héberge l'image sur Supabase si c'est une URL externe (Unsplash, etc.)
   if (patch.cover_image && !String(patch.cover_image).includes("/storage/v1/object/public/photos/")) {
-    const existing = await findOne("posts", (p) => p.id === id);
-    const name = patch.slug ?? existing?.slug ?? id;
-    patch.cover_image = (await rehostImage(patch.cover_image, "articles", name)) ?? patch.cover_image;
+    try {
+      const existing = await findOne("posts", (p) => p.id === id);
+      const name = patch.slug ?? existing?.slug ?? id;
+      patch.cover_image = (await rehostImage(patch.cover_image, "articles", name)) ?? patch.cover_image;
+    } catch (e) {
+      console.error("[admin/posts] rehostImage échoué, URL conservée :", e);
+    }
   }
   const row = await update("posts", id, patch);
   if (!row) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
