@@ -7,6 +7,7 @@ import { sendEmail, sendBatch, type EmailMessage } from "./email";
 import { emailLayout } from "./email-templates";
 import { site, discountPct } from "./site";
 import { unsubscribeUrl as unsubUrl } from "./unsubscribe";
+import { getActiveAirportCodes, getAirportName } from "./airports";
 import type { Deal, EmailFrequency, Subscriber, Tier } from "./types";
 
 // Fréquence effective d'un abonné : sa préférence, ou le défaut selon son tier
@@ -102,21 +103,37 @@ export function teaserDigestHtml(
   groups: { origin: string; deals: Deal[] }[],
   accountUrl: string,
   unsubscribeUrl: string,
-  trackingToken?: string
+  trackingToken?: string,
+  deactivatedAirports?: { iata: string; city: string }[],
 ): string {
-  const intro = `<tr><td style="padding:22px 28px 0;font-size:15px;color:#334155;">Voici un aperçu de tes meilleurs bons plans. Retrouve-les tous (et plus) sur ton compte.</td></tr>`;
+  const hasDeals = groups.length > 0;
+  const intro = hasDeals
+    ? `<tr><td style="padding:22px 28px 0;font-size:15px;color:#334155;">Voici un aperçu de tes meilleurs bons plans. Retrouve-les tous (et plus) sur ton compte.</td></tr>`
+    : `<tr><td style="padding:22px 28px 0;font-size:15px;color:#334155;">Un ou plusieurs de tes aéroports de départ ont été temporairement désactivés. Mets à jour tes préférences pour continuer à recevoir des bons plans.</td></tr>`;
   const sections = groups
     .map((g) => {
       const header = `<tr><td style="padding:18px 28px 2px;font-size:16px;font-weight:800;color:#0f172a;">Depuis ${escapeHtml(g.origin)}</td></tr>`;
       return header + g.deals.map(dealCard).join("");
     })
     .join("");
-  return emailLayout(
-    "Tes bons plans",
-    intro + hurryLine + sections + accountCta(accountUrl) + spacer(),
-    unsubscribeUrl,
-    trackingToken
-  );
+  const prefsUrl = `${site.url}/compte/preferences`;
+  const deactivatedSection = (deactivatedAirports ?? [])
+    .map(
+      (a) =>
+        `<tr><td style="padding:14px 20px 0;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fef9c3;border:1px solid #fde047;border-radius:10px;">
+            <tr><td style="padding:14px 16px;">
+              <div style="font-size:14px;font-weight:700;color:#854d0e;">${escapeHtml(a.city)} (${a.iata}) - aéroport temporairement désactivé</div>
+              <div style="margin-top:6px;font-size:13px;color:#713f12;">Pas assez de bons plans disponibles pour cet aéroport en ce moment. <a href="${prefsUrl}" style="color:#0369a1;font-weight:600;text-decoration:underline;">Mets à jour tes préférences</a> pour choisir un autre aéroport de départ.</div>
+            </td></tr>
+          </table>
+        </td></tr>`
+    )
+    .join("");
+  const body = hasDeals
+    ? intro + hurryLine + sections + deactivatedSection + accountCta(accountUrl) + spacer()
+    : intro + deactivatedSection + accountCta(accountUrl) + spacer();
+  return emailLayout("Tes bons plans", body, unsubscribeUrl, trackingToken);
 }
 
 function escapeHtml(s: string): string {
@@ -308,6 +325,7 @@ export async function sendScheduledDigest(
   const todayWeekday = new Date().getUTCDay();
   const since = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
   const periodMs = periodDays * 24 * 60 * 60 * 1000;
+  const activeIatas = await getActiveAirportCodes();
   const allDeals = await getAll("deals");
   const recent = allDeals.filter((d) => {
     if (new Date(d.created_at).getTime() < since) return false;
@@ -371,15 +389,22 @@ export async function sendScheduledDigest(
     // date non passée, 1 par route, les moins chers). Le freemium n'a qu'un seul
     // aéroport, le premium plusieurs -> on incite à venir voir TOUT sur le compte.
     const groups: { origin: string; deals: Deal[] }[] = [];
+    const deactivatedInSub: { iata: string; city: string }[] = [];
+    let usedFallback = false;
     for (const ap of (sub.home_airports ?? []).map((a) => a.toUpperCase())) {
+      if (!activeIatas.has(ap)) {
+        deactivatedInSub.push({ iata: ap, city: getAirportName(ap) });
+        continue;
+      }
+      const candidateFilter = (d: Deal) => {
+        if (originIata(d.origin) !== ap) return false;
+        if (alreadySent.has(`${d.id}|${sub.id}`)) return false;
+        const dep = (d.dates ?? "").match(/\d{4}-\d{2}-\d{2}/)?.[0];
+        return !dep || dep >= todayStr;
+      };
       const seenRoutes = new Set<string>();
       const apDeals = recent
-        .filter((d) => {
-          if (originIata(d.origin) !== ap) return false;
-          if (alreadySent.has(`${d.id}|${sub.id}`)) return false;
-          const dep = (d.dates ?? "").match(/\d{4}-\d{2}-\d{2}/)?.[0];
-          return !dep || dep >= todayStr;
-        })
+        .filter(candidateFilter)
         .sort((a, b) => a.price - b.price)
         .filter((d) => {
           const key = `${d.origin}||${d.destination}`;
@@ -388,20 +413,46 @@ export async function sendScheduledDigest(
           return true;
         })
         .slice(0, 3);
-      if (apDeals.length) groups.push({ origin: apDeals[0].origin, deals: apDeals });
+      if (apDeals.length) {
+        groups.push({ origin: apDeals[0].origin, deals: apDeals });
+        continue;
+      }
+      // Fallback : 3 deals les plus récents non encore envoyés (hors fenêtre récente)
+      seenRoutes.clear();
+      const fallbackDeals = allDeals
+        .filter((d) => (hotOnly ? d.is_hot !== false : true))
+        .filter(candidateFilter)
+        .sort((a, b) => b.created_at.localeCompare(a.created_at))
+        .filter((d) => {
+          const key = `${d.origin}||${d.destination}`;
+          if (seenRoutes.has(key)) return false;
+          seenRoutes.add(key);
+          return true;
+        })
+        .slice(0, 3);
+      if (fallbackDeals.length) {
+        groups.push({ origin: fallbackDeals[0].origin, deals: fallbackDeals });
+        usedFallback = true;
+      }
     }
 
     const shown = groups.flatMap((g) => g.deals);
-    if (shown.length === 0) continue;
+    if (shown.length === 0 && deactivatedInSub.length === 0) continue;
 
     const unsubscribeUrl = unsubUrl(sub.email, sub.unsubscribe_token ?? "");
+    const subject =
+      shown.length > 0
+        ? usedFallback
+          ? "Tes derniers bons plans disponibles"
+          : "Tes bons plans de vols"
+        : "Ton aéroport de départ a été désactivé";
     entries.push({
       sub,
       shown,
       msg: {
         to: sub.email,
-        subject: "Tes bons plans de vols",
-        html: teaserDigestHtml(groups, accountUrl, unsubscribeUrl, sub.unsubscribe_token ?? undefined),
+        subject,
+        html: teaserDigestHtml(groups, accountUrl, unsubscribeUrl, sub.unsubscribe_token ?? undefined, deactivatedInSub),
         text:
           groups
             .map(
