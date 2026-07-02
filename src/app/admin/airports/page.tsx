@@ -52,7 +52,7 @@ export default async function AirportsPage({
   searchParams: Promise<Record<string, string>>;
 }) {
   const params     = await searchParams;
-  const days       = Math.min(Math.max(Number(params?.days ?? 30), 7), 90);
+  const days       = Math.min(Math.max(Number(params?.days ?? 7), 7), 90);
   const allDays    = calendarDays(days);
   const validDays  = new Set(allDays);
   const cutoff     = allDays[0] + "T00:00:00.000Z";

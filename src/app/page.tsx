@@ -74,13 +74,16 @@ export default async function Home() {
       .filter((d) => d.is_hot !== false)
       .map((d) => d.destination.match(/\(([A-Z]{3})\)/)?.[1] ?? "")
   );
+  const activeIatas = new Set(airports.map((a) => a.iata));
   const totalDest = destGroups.length;
   const destinations = [...destGroups]
-    // "Populaires" = desservies depuis le plus d'aéroports (pertinent pour le
+    .filter((d) => d.routes.some((r) => activeIatas.has(r.originIata)))
+    // "Populaires" = desservies depuis le plus d'aéroports ACTIFS (pertinent pour le
     // plus de visiteurs). Départage : un deal en cours, puis ordre alphabétique.
     .sort(
       (a, b) =>
-        b.routes.length - a.routes.length ||
+        b.routes.filter((r) => activeIatas.has(r.originIata)).length -
+          a.routes.filter((r) => activeIatas.has(r.originIata)).length ||
         Number(dealDestIatas.has(b.destIata)) -
           Number(dealDestIatas.has(a.destIata)) ||
         a.destCity.localeCompare(b.destCity)
@@ -90,11 +93,13 @@ export default async function Home() {
       city: d.destCity,
       slug: d.slug,
       image: d.image,
-      origins: d.routes.map((r) => ({
-        city: r.originCity,
-        iata: r.originIata,
-        routeSlug: r.slug,
-      })),
+      origins: d.routes
+        .filter((r) => activeIatas.has(r.originIata))
+        .map((r) => ({
+          city: r.originCity,
+          iata: r.originIata,
+          routeSlug: r.slug,
+        })),
     }));
   // Photo de chaque destination (par code IATA) pour les cartes deals.
   const imgByDestIata = new Map(destGroups.map((d) => [d.destIata, d.image]));

@@ -18,8 +18,6 @@ import {
 } from "@/lib/routes";
 import { getActiveAirportCodes } from "@/lib/airports";
 
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-const DAY5_MS = 5 * 24 * 60 * 60 * 1000;
 
 function parseTip(tip: string): React.ReactNode {
   const parts = tip.split(/(\[[^\]]+\]\([^)]+\))/g);
@@ -72,55 +70,28 @@ export async function generateMetadata({
 // Preuve sociale par aéroport. Non-membres : deals > 5 jours. Membres : tous.
 async function proofFor(
   originIata: string,
-  destIata: string,
-  isMember = false
-): Promise<{ past: AirportProof["past"]; weekCount: number }> {
+  destIata: string
+): Promise<{ weekCount: number }> {
   try {
     const todayStr = new Date().toISOString().slice(0, 10);
     const all = (await getAll("deals")).filter((d) => {
       if (d.is_hot === false) return false;
       if (!d.origin.toUpperCase().includes(`(${originIata})`)) return false;
       if (!d.destination.toUpperCase().includes(`(${destIata})`)) return false;
-      // Date de départ passée -> on ne montre plus le deal (archivé).
       const dep = (d.dates ?? "").match(/\d{4}-\d{2}-\d{2}/)?.[0];
       if (dep && dep < todayStr) return false;
       return true;
     });
     const now = Date.now();
     const seenAt = (d: (typeof all)[number]) => d.published_at ?? d.created_at;
-    // Deal "en cours" = il existe un deal encore frais sur la route (ce que voit
-    // le premium : un seul par route). Donc 0 ou 1, jamais plus.
     const weekCount = all.some(
       (d) => now - new Date(seenAt(d)).getTime() <= FRESH_MAX_MS
     )
       ? 1
       : 0;
-    // Historique (preuve) : deals decouverts il y a plus d'une semaine,
-    // Dédoublonnés par prix : même prix sur la même route = même niveau de bon
-    // plan, inutile d'afficher deux cartes identiques avec des dates différentes.
-    const seen = new Set<string>();
-    const past = all
-      .filter((d) => isMember || now - new Date(d.created_at).getTime() >= DAY5_MS)
-      .sort((a, b) => b.created_at.localeCompare(a.created_at))
-      .filter((d) => {
-        const k = `${d.price}`;
-        if (seen.has(k)) return false;
-        seen.add(k);
-        return true;
-      })
-      .slice(0, 6)
-      .map((d) => ({
-        origin: d.origin,
-        destination: d.destination,
-        price: d.price,
-        normal_price: d.normal_price,
-        dates: d.dates,
-        airline: d.airline,
-        postedAt: d.published_at ?? d.created_at,
-      }));
-    return { past, weekCount };
+    return { weekCount };
   } catch {
-    return { past: [], weekCount: 0 };
+    return { weekCount: 0 };
   }
 }
 
@@ -253,11 +224,11 @@ export default async function DestinationPage({
   );
   const originCities = uniqueRoutes.map((r) => r.originCity);
   const faq = faqFor(dest.destCity, originCities);
-  const isMember = member.status !== "anonymous";
+  const isMember = member.status === "member";
   const airports: AirportProof[] = await Promise.all(
     uniqueRoutes.map(async (r) => {
-      const { past, weekCount } = await proofFor(r.originIata, dest.destIata, isMember);
-      return { originCity: r.originCity, originIata: r.originIata, past, weekCount };
+      const { weekCount } = await proofFor(r.originIata, dest.destIata);
+      return { originCity: r.originCity, originIata: r.originIata, weekCount };
     })
   );
 
@@ -336,6 +307,8 @@ export default async function DestinationPage({
           airports={airports}
           destCity={dest.destCity}
           destImage={image}
+          isMember={isMember}
+          ctaHref={ctaHref}
         />
 
         {/* Infos pratiques sur la destination (si disponibles) */}

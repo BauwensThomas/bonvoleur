@@ -2,19 +2,9 @@
 
 import { useState } from "react";
 
-interface PastDeal {
-  origin: string;
-  destination: string;
-  price: number;
-  normal_price: number | null;
-  dates: string;
-  airline: string | null;
-  postedAt: string;
-}
 export interface AirportProof {
   originCity: string;
   originIata: string;
-  past: PastDeal[];
   weekCount: number;
 }
 
@@ -24,14 +14,17 @@ export default function AirportDeals({
   airports,
   destCity,
   destImage,
+  isMember = false,
+  ctaHref = "/#inscription",
 }: {
   airports: AirportProof[];
   destCity: string;
   destImage?: string | null;
+  isMember?: boolean;
+  ctaHref?: string;
 }) {
-  // On n'affiche QUE les aéroports qui ont un bon plan (en cours ou historique).
-  // Les aéroports sans rien sont masqués (pas de vue vide / "pas encore de bon plan").
-  const hasDeals = (x: AirportProof) => x.past.length > 0 || x.weekCount > 0;
+  // On n'affiche QUE les aéroports qui ont un bon plan en cours.
+  const hasDeals = (x: AirportProof) => x.weekCount > 0;
   const ordered = airports
     .filter(hasDeals)
     .filter((x, i, arr) => arr.findIndex((a) => a.originIata === x.originIata) === i);
@@ -45,8 +38,8 @@ export default function AirportDeals({
         <h2 className="text-2xl font-bold">Bons plans vers {destCity}</h2>
         <p className="mt-3 rounded-2xl border border-brand/30 bg-brand/5 p-6 text-slate-700">
           On surveille les vols vers {destCity} depuis la Belgique et la France.{" "}
-          <a href="/#inscription" className="font-semibold text-brand hover:underline">
-            Inscris-toi gratuitement
+          <a href={ctaHref} className="font-semibold text-brand hover:underline">
+            {isMember ? "Voir mon espace membre" : "Inscris-toi gratuitement"}
           </a>{" "}
           pour être prévenu dès qu&apos;un bon plan tombe.
         </p>
@@ -88,19 +81,14 @@ export default function AirportDeals({
             moment, réservé aux inscrits.
           </p>
           <a
-            href="/#inscription"
+            href={ctaHref}
             className="shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
           >
-            Recevoir les bons plans
+            {isMember ? "Voir le bon plan" : "Recevoir les bons plans"}
           </a>
         </div>
       )}
 
-      {a.weekCount === 0 && a.past.length === 0 ? (
-        <p className="mt-6 rounded-2xl border border-dashed border-slate-300 p-6 text-slate-500">
-          {`Pas encore de bon plan ${a.originCity} - ${destCity} à afficher. Inscris-toi pour les recevoir par email dès qu'on en déniche.`}
-        </p>
-      ) : null}
     </section>
   );
 }

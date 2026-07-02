@@ -48,7 +48,7 @@ export default async function Preferences() {
   return (
     <>
       <Header />
-      <main className="mx-auto w-full max-w-2xl px-4 py-12">
+      <main className="mx-auto w-full max-w-7xl px-4 py-12">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Mes préférences</h1>
           <Link
