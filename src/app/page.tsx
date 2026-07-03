@@ -201,8 +201,10 @@ export default async function Home() {
                 },
               ].filter(Boolean) as { value: number; label: string; icon: React.ReactNode }[]).map((s) => (
                 <div key={s.label} className="bg-white px-6 py-8 text-center">
-                  {s.icon}
-                  <dt className="text-sm font-normal text-slate-900">{s.label}</dt>
+                  <dt className="text-sm font-normal text-slate-900">
+                    {s.icon}
+                    {s.label}
+                  </dt>
                   <dd className="mt-1 text-4xl font-extrabold text-brand-dark tabular-nums">
                     {s.value}
                   </dd>

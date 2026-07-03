@@ -1,6 +1,7 @@
 // Couche d'accès données : 100% Supabase (Postgres).
 // Requiert SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY. Plus aucun stockage JSON local.
 // Les signatures et types restent identiques : le reste de l'app ne change pas.
+import "server-only";
 
 import { randomUUID } from "crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
