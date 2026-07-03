@@ -12,6 +12,11 @@ import Anthropic from "@anthropic-ai/sdk";
 import { rehostImage } from "./rehost.mjs";
 
 const FORCE = process.argv.includes("--force");
+const FORCE_PHOTOS = process.argv.includes("--force-photos");
+const CITY_FILTER = (() => {
+  const idx = process.argv.indexOf("--city");
+  return idx !== -1 ? process.argv[idx + 1]?.toLowerCase() : null;
+})();
 
 // En CI, les variables viennent de l'environnement (secrets). En local, .env.local.
 const env = { ...process.env };
@@ -96,7 +101,7 @@ for (const d of deals) {
 }
 
 // Fiches déjà en base (slug -> { intro, image_url, tips, region }) pour sauter le connu.
-const existing = await fetch(`${SB}/rest/v1/routes?select=slug,intro,image_url,tips,region`, { headers: sbHeaders })
+const existing = await fetch(`${SB}/rest/v1/routes?select=slug,intro,image_url,tips,region,photos`, { headers: sbHeaders })
   .then((r) => (r.ok ? r.json() : []))
   .catch(() => []);
 const bySlug = new Map(existing.map((r) => [r.slug, r]));
@@ -149,43 +154,53 @@ IMPÉRATIF : français correct avec TOUS les accents (é, è, ê, à, â, ç, ô
   return null;
 }
 
-async function unsplashPhoto(city) {
+// Retourne 5 photos Unsplash en un seul appel : index 0 = bannière, index 1-4 = galerie.
+// Garantit zéro doublon entre bannière et galerie.
+// Lance une erreur RATE_LIMITED quand le quota horaire est épuisé (50 req/h en demo).
+async function unsplashBatch(city) {
   const key = env.UNSPLASH_ACCESS_KEY;
-  if (!key) return null;
-  // Plusieurs requetes de repli pour les villes mal couvertes ; on abandonne
-  // immediatement sur 429 (limite horaire Unsplash atteinte, offre gratuite 50/h).
-  for (const q of [city, `${city} city`, `${city} cityscape`]) {
+  if (!key) return [];
+  const cityAscii = city.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+  const queries = [...new Set([city, cityAscii, `${cityAscii} city`, `${cityAscii} travel`])];
+  for (const q of queries) {
     try {
       const res = await fetch(
-        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&orientation=landscape&per_page=1&content_filter=high`,
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&orientation=landscape&per_page=5&content_filter=high`,
         { headers: { Authorization: `Client-ID ${key}` } }
       );
-      if (res.status === 429) return null; // limite horaire : inutile d'insister
+      if (res.status === 429) throw Object.assign(new Error("Rate limit Unsplash atteint"), { code: "RATE_LIMITED" });
       if (!res.ok) continue;
-      const p = (await res.json()).results?.[0];
-      if (!p) continue;
-      if (p.links?.download_location) {
-        fetch(p.links.download_location, { headers: { Authorization: `Client-ID ${key}` } }).catch(() => {});
+      const results = (await res.json()).results ?? [];
+      if (results.length === 0) continue;
+      for (const p of results) {
+        if (p.links?.download_location) {
+          fetch(p.links.download_location, { headers: { Authorization: `Client-ID ${key}` } }).catch(() => {});
+        }
       }
-      return { url: p.urls?.regular ?? p.urls?.full ?? null, credit: `Photo ${p.user?.name ?? ""} / Unsplash`.trim() };
-    } catch {
+      return results
+        .map((p) => ({ url: p.urls?.regular ?? p.urls?.full ?? null, credit: `${p.user?.name ?? ""} / Unsplash`.trim() }))
+        .filter((p) => p.url);
+    } catch (e) {
+      if (e.code === "RATE_LIMITED") throw e;
       continue;
     }
   }
-  return null;
+  return [];
 }
 
 let generated = 0, skipped = 0, deferred = 0, contentCalls = 0;
 const generatedSlugs = [];
 const generatedCities = [];
 for (const dest of Object.values(dests)) {
+  if (CITY_FILTER && dest.dc.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "") !== CITY_FILTER) { skipped++; continue; }
   const hasContent = dest.origins.some(
     (o) => (bySlug.get(o.slug)?.intro?.length ?? 0) >= (MIN_INTRO || 1)
   );
   const knownImg = dest.origins.map((o) => bySlug.get(o.slug)?.image_url).find(Boolean) || null;
+  const knownPhotos = dest.origins.map((o) => bySlug.get(o.slug)?.photos).find((p) => Array.isArray(p) && p.length > 0) || null;
 
-  // Déjà connue (contenu + photo) et pas de --force -> vérifie juste les tips affiliés.
-  if (!FORCE && hasContent && knownImg) {
+  // Déjà connue (contenu + photo + galerie complete) et pas de --force -> vérifie juste les tips affiliés.
+  if (!FORCE && !FORCE_PHOTOS && hasContent && knownImg && knownPhotos?.length >= 4) {
     for (const o of dest.origins) {
       const existing = bySlug.get(o.slug);
       const tips = Array.isArray(existing?.tips) ? existing.tips : [];
@@ -212,7 +227,7 @@ for (const dest of Object.values(dests)) {
   }
 
   // Plafond de generation par run atteint : on reporte au prochain run.
-  const needsContent = FORCE || !hasContent;
+  const needsContent = FORCE || (!FORCE_PHOTOS && !hasContent);
   if (needsContent && MAX_NEW > 0 && contentCalls >= MAX_NEW) {
     deferred++;
     continue;
@@ -229,9 +244,33 @@ for (const dest of Object.values(dests)) {
     deferred++;
     continue;
   }
-  const photo = knownImg ? { url: knownImg, credit: null } : await unsplashPhoto(dest.dc);
-  // Auto-heberge la photo dans Supabase Storage (allegee) -> URL perenne.
-  if (photo?.url) photo.url = await rehostImage(env, photo.url, "destinations", dest.dc);
+  // Banniere + galerie depuis un seul batch Unsplash => zéro doublon garanti.
+  let photo = knownImg && !FORCE_PHOTOS ? { url: knownImg, credit: null } : null;
+  let gallery = knownPhotos?.length >= 4 && !FORCE_PHOTOS ? knownPhotos : null;
+
+  if (!photo || !gallery) {
+    let batch;
+    try {
+      batch = await unsplashBatch(dest.dc);
+    } catch (e) {
+      if (e.code === "RATE_LIMITED") {
+        console.log(`\nRate limit Unsplash atteint sur ${dest.dc}. Relance le script dans 1h pour continuer.`);
+        break;
+      }
+      batch = [];
+    }
+    if (!photo && batch[0]) {
+      const url = await rehostImage(env, batch[0].url, "destinations", dest.dc);
+      if (url) photo = { url, credit: batch[0].credit };
+    }
+    if (!gallery && batch.length >= 2) {
+      gallery = [];
+      for (let i = 0; i < Math.min(batch.length - 1, 4); i++) {
+        const hosted = await rehostImage(env, batch[i + 1].url, "destinations", `${dest.dc}-gallery-${i + 1}`);
+        if (hosted) gallery.push({ url: hosted, credit: batch[i + 1].credit });
+      }
+    }
+  }
 
   let ok = 0;
   for (const o of dest.origins) {
@@ -261,6 +300,7 @@ for (const dest of Object.values(dests)) {
     }
     if (content?.region) row.region = stripTags(content.region);
     if (photo?.url) { row.image_url = photo.url; if (photo.credit) row.image_credit = photo.credit; }
+    if (gallery?.length) row.photos = gallery;
 
     const res = await fetch(`${SB}/rest/v1/routes?on_conflict=slug`, {
       method: "POST",
@@ -270,7 +310,7 @@ for (const dest of Object.values(dests)) {
     if (res.ok) ok++;
     else console.log(`\n  ERREUR ${o.slug} ${res.status}: ${await res.text()}`);
   }
-  console.log(`OK (${ok}/${dest.origins.length}${content?.intro ? " +contenu" : ""}${photo?.url ? " +photo" : ""})`);
+  console.log(`OK (${ok}/${dest.origins.length}${content?.intro ? " +contenu" : ""}${photo?.url ? " +photo" : ""}${gallery?.length ? " +galerie" : ""})`);
   generated++;
   generatedSlugs.push(...dest.origins.map((o) => o.slug));
   generatedCities.push(dest.dc);

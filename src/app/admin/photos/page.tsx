@@ -1,38 +1,67 @@
-import PhotosManager from "@/components/admin/PhotosManager";
+import PhotosManager, { type DestPhoto } from "@/components/admin/PhotosManager";
 import { getDestinations } from "@/lib/routes";
-import { getDefaultDestImage, getStorageStats } from "@/lib/settings";
+import { getDefaultDestImage, getStorageStats, getStorageDestFiles } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
+function storagePath(url: string | null): string | null {
+  if (!url) return null;
+  const m = url.match(/\/photos\/(.+?)(\?|$)/);
+  return m ? m[1] : null;
+}
+
+function sizeKb(url: string | null, fileSizes: Record<string, number>): number | null {
+  const path = storagePath(url);
+  if (!path) return null;
+  const bytes = fileSizes[path];
+  return bytes ? Math.round(bytes / 1024) : null;
+}
+
 export default async function PhotosAdmin() {
-  // false = images BRUTES (sans repli) pour voir le vrai état de chaque fiche.
-  const destinations = (await getDestinations(false))
-    .map((d) => ({
-      destIata: d.destIata,
-      destCity: d.destCity,
-      image: d.image,
-      hasContent: !!d.content?.intro,
-    }))
+  const [destinations, defaultImage, stats, fileSizes] = await Promise.all([
+    getDestinations(false),
+    getDefaultDestImage(),
+    getStorageStats(),
+    getStorageDestFiles(),
+  ]);
+
+  const mapped: DestPhoto[] = destinations
+    .map((d) => {
+      const rawGallery = (d.photos ?? []).slice(0, 4);
+      const gallery: (DestPhoto["gallery"][0])[] = rawGallery.map((p) => ({
+        url: p.url,
+        credit: p.credit,
+        sizeKb: sizeKb(p.url, fileSizes),
+      }));
+      while (gallery.length < 4) gallery.push(null);
+      return {
+        destIata: d.destIata,
+        destCity: d.destCity,
+        cover: {
+          url: d.image,
+          credit: d.imageCredit ?? "",
+          sizeKb: sizeKb(d.image, fileSizes),
+        },
+        gallery,
+        hasContent: !!d.content?.intro,
+      };
+    })
     .sort((a, b) => a.destCity.localeCompare(b.destCity));
-  const defaultImage = await getDefaultDestImage();
-  const stats = await getStorageStats();
-  const incomplete = destinations.filter((d) => !d.image || !d.hasContent).length;
+
+  const incomplete = mapped.filter((d) => !d.cover.url || !d.hasContent).length;
 
   return (
     <div>
       <h1 className="text-2xl font-bold">Photos</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Photo de chaque destination (bannières de route, vignettes « Destinations
-        populaires », cartes deals). Récupérées automatiquement puis hébergées
-        chez nous (Supabase) ; remplaçables ici en collant une URL. Le badge
-        rouge signale les fiches incomplètes.
+        Bannière + galerie de chaque destination. Générées automatiquement (5 photos Unsplash
+        par batch unique) puis hébergées chez nous. Clique sur une photo pour la remplacer.
       </p>
       <div className="mt-4 flex flex-wrap gap-3 text-sm">
         <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-slate-700">
-          {stats.destinations} photo{stats.destinations > 1 ? "s" : ""} de
-          destinations
+          {stats.destinations} fichier{stats.destinations > 1 ? "s" : ""} dans Storage
           <span className="text-slate-400">
-            {` · ${(stats.bytes / (1024 * 1024)).toFixed(1)} Mo dans le Storage (toutes images du site)`}
+            {` · ${(stats.bytes / (1024 * 1024)).toFixed(1)} Mo total`}
           </span>
         </span>
         <span
@@ -49,7 +78,7 @@ export default async function PhotosAdmin() {
       </div>
 
       <div className="mt-6">
-        <PhotosManager initial={destinations} defaultImage={defaultImage} />
+        <PhotosManager initial={mapped} defaultImage={defaultImage} />
       </div>
     </div>
   );

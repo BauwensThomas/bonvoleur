@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SummerPromoPopup from "@/components/SummerPromoPopup";
 import AirportDeals, { type AirportProof } from "@/components/AirportDeals";
+import GalleryLightbox from "@/components/GalleryLightbox";
 import { getAll } from "@/lib/db";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { DEFAULT_DEST_IMAGE } from "@/lib/destinations";
@@ -246,7 +247,7 @@ export default async function DestinationPage({
     allPosts.filter((p) => p.title?.toLowerCase().includes(cityLower)).length > 0
       ? allPosts.filter((p) => p.title?.toLowerCase().includes(cityLower))
       : allPosts
-  ).slice(0, 2);
+  ).slice(0, 3);
 
   const faqJsonLd = {
     "@context": "https://schema.org",
@@ -363,6 +364,20 @@ export default async function DestinationPage({
         {/* Partenaires thématiques destination */}
         <DestPartners dest={dest} />
 
+        {/* Galerie photos destination : banniere + galerie reunies */}
+        {(dest.image || (dest.photos && dest.photos.length > 0)) && (() => {
+          const allPhotos = [
+            ...(dest.image ? [{ url: dest.image, credit: dest.imageCredit ?? "" }] : []),
+            ...(dest.photos ?? []),
+          ];
+          return allPhotos.length > 0 ? (
+            <section className="mt-12">
+              <h2 className="text-xl font-bold">{dest.destCity} en photos</h2>
+              <GalleryLightbox photos={allPhotos} city={dest.destCity} />
+            </section>
+          ) : null;
+        })()}
+
         {/* FAQ */}
         <section className="mt-12">
           <h2 className="text-2xl font-bold">Questions fréquentes</h2>
@@ -382,17 +397,26 @@ export default async function DestinationPage({
         {relatedPosts.length > 0 && (
           <section className="mt-12">
             <h2 className="text-xl font-bold">À lire aussi</h2>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {relatedPosts.map((p) => (
                 <Link
                   key={p.slug}
                   href={`/blog/${p.slug}`}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand/40 hover:shadow-md"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
                 >
-                  <p className="font-semibold text-slate-800 leading-snug">{p.title}</p>
-                  {p.meta_description && (
-                    <p className="mt-1 text-sm text-slate-500 line-clamp-2">{p.meta_description}</p>
+                  {p.cover_image && (
+                    <div
+                      className="h-36 bg-cover bg-center"
+                      style={{ backgroundImage: `url(${p.cover_image})` }}
+                    />
                   )}
+                  <div className="flex flex-1 flex-col p-4">
+                    <p className="font-semibold text-slate-800 leading-snug line-clamp-2">{p.title}</p>
+                    {p.meta_description && (
+                      <p className="mt-1 text-sm text-slate-500 line-clamp-2">{p.meta_description}</p>
+                    )}
+                    <span className="mt-auto pt-3 text-sm font-medium text-brand">Lire l&apos;article</span>
+                  </div>
                 </Link>
               ))}
             </div>

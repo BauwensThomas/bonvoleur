@@ -14,6 +14,7 @@ export interface FullRoute extends SeoRoute {
   image: string | null;
   imageCredit: string | null;
   region: string;
+  photos: { url: string; credit: string }[] | null;
 }
 
 export function destinationSlug(destCity: string): string {
@@ -26,9 +27,10 @@ function hardcodedBase(): Map<string, FullRoute> {
     m.set(r.slug, {
       ...r,
       content: ROUTE_CONTENT[r.slug] ?? null,
-      image: destinationImage(r.destIata), // /public/destinations/{slug}.jpg si connu
+      image: destinationImage(r.destIata),
       imageCredit: null,
       region: destinationRegion(r.destIata),
+      photos: null,
     });
   }
   return m;
@@ -53,6 +55,7 @@ function fromDbRow(r: Route): FullRoute {
     image: r.image_url ?? null,
     imageCredit: r.image_credit ?? null,
     region: resolveRegion(r.destination_iata, r.region),
+    photos: r.photos ?? null,
   };
 }
 
@@ -91,6 +94,7 @@ export interface DestinationGroup {
   imageCredit: string | null;
   content: RouteContent | null;
   region: string;
+  photos: { url: string; credit: string }[] | null;
   routes: FullRoute[];
 }
 
@@ -114,6 +118,7 @@ export async function getDestinations(
         imageCredit: null,
         content: null,
         region: r.region,
+        photos: null,
         routes: [],
       };
       map.set(slug, g);
@@ -124,6 +129,7 @@ export async function getDestinations(
       g.imageCredit = r.imageCredit;
     }
     if (!g.content && r.content) g.content = r.content;
+    if (!g.photos && r.photos?.length) g.photos = r.photos;
   }
   const list = [...map.values()];
   // Affichage : on ne laisse jamais une destination sans image (repli configuré

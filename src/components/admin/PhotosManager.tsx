@@ -2,16 +2,20 @@
 
 import { useState } from "react";
 
+export interface PhotoSlot {
+  url: string | null;
+  credit: string;
+  sizeKb: number | null;
+}
+
 export interface DestPhoto {
   destIata: string;
   destCity: string;
-  image: string | null;
+  cover: PhotoSlot;
+  gallery: (PhotoSlot | null)[];
   hasContent: boolean;
 }
 
-// Gère les photos de destination du site (bannières route, vignettes accueil,
-// cartes deals). Colle une URL d'image (Unsplash ou autre) pour remplacer la
-// photo auto. Vide le champ + enregistre pour revenir à l'image de secours.
 export default function PhotosManager({
   initial,
   defaultImage,
@@ -20,10 +24,10 @@ export default function PhotosManager({
   defaultImage: string;
 }) {
   const [items, setItems] = useState<DestPhoto[]>(initial);
-  const [draft, setDraft] = useState<Record<string, string>>(
-    Object.fromEntries(initial.map((d) => [d.destIata, d.image ?? ""]))
-  );
-  const [busy, setBusy] = useState<string | null>(null);
+  const [editing, setEditing] = useState<{ iata: string; slot: number } | null>(null);
+  const [draftUrl, setDraftUrl] = useState("");
+  const [draftCredit, setDraftCredit] = useState("");
+  const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [fallback, setFallback] = useState(defaultImage);
   const [fbBusy, setFbBusy] = useState(false);
@@ -31,12 +35,96 @@ export default function PhotosManager({
 
   const shown = items.filter((d) => {
     const q = query.trim().toLowerCase();
-    return (
-      !q ||
-      d.destCity.toLowerCase().includes(q) ||
-      d.destIata.toLowerCase().includes(q)
-    );
+    return !q || d.destCity.toLowerCase().includes(q) || d.destIata.toLowerCase().includes(q);
   });
+
+  function selectSlot(iata: string, slot: number, currentUrl: string | null, currentCredit: string) {
+    if (editing?.iata === iata && editing?.slot === slot) {
+      setEditing(null);
+    } else {
+      setEditing({ iata, slot });
+      setDraftUrl(currentUrl ?? "");
+      setDraftCredit(currentCredit);
+    }
+  }
+
+  function buildCredit(raw: string): string {
+    const c = raw.trim();
+    if (!c) return "";
+    if (c.toLowerCase().includes("unsplash")) return c;
+    return `${c} / Unsplash`;
+  }
+
+  async function rehostIfNeeded(url: string, destCity: string, slot: number): Promise<string> {
+    if (!url || url.includes("/storage/v1/object/public/photos/")) return url;
+    const res = await fetch("/api/admin/rehost-photo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, dest_city: destCity, slot }),
+    });
+    const j = await res.json().catch(() => ({}));
+    return j.url ?? url;
+  }
+
+  async function saveSlot() {
+    if (!editing) return;
+    setBusy(true);
+    setMsg(null);
+    const credit = buildCredit(draftCredit);
+    const item = items.find((d) => d.destIata === editing.iata);
+    if (!item) { setBusy(false); return; }
+    const finalUrl = draftUrl ? await rehostIfNeeded(draftUrl, item.destCity, editing.slot) : "";
+
+    if (editing.slot === 0) {
+      const res = await fetch("/api/admin/routes-image", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ destination_iata: editing.iata, image_url: finalUrl || null, image_credit: credit || null }),
+      });
+      setBusy(false);
+      if (res.ok) {
+        setItems((prev) =>
+          prev.map((d) =>
+            d.destIata === editing.iata
+              ? { ...d, cover: { ...d.cover, url: finalUrl || null, credit, sizeKb: null } }
+              : d
+          )
+        );
+        setMsg(`Bannière ${editing.iata} mise à jour.`);
+        setEditing(null);
+      } else {
+        const j = await res.json().catch(() => ({}));
+        setMsg(`Erreur : ${j.error ?? res.status}`);
+      }
+    } else {
+      const idx = editing.slot - 1;
+      const newGallery = [...item.gallery];
+      newGallery[idx] = finalUrl
+        ? { url: finalUrl, credit: credit || newGallery[idx]?.credit || "", sizeKb: null }
+        : null;
+      const photos = newGallery
+        .filter((p): p is PhotoSlot => p !== null && p.url !== null)
+        .map((p) => ({ url: p.url!, credit: p.credit }));
+      const res = await fetch("/api/admin/routes-photos", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ destination_iata: editing.iata, photos }),
+      });
+      setBusy(false);
+      if (res.ok) {
+        setItems((prev) =>
+          prev.map((d) =>
+            d.destIata === editing.iata ? { ...d, gallery: newGallery } : d
+          )
+        );
+        setMsg(`Galerie ${editing.iata} mise à jour.`);
+        setEditing(null);
+      } else {
+        const j = await res.json().catch(() => ({}));
+        setMsg(`Erreur : ${j.error ?? res.status}`);
+      }
+    }
+  }
 
   async function persistFallback(value: string) {
     const res = await fetch("/api/admin/settings", {
@@ -55,7 +143,6 @@ export default function PhotosManager({
     setMsg(ok ? "Image de secours mise à jour." : "Erreur sur l'image de secours.");
   }
 
-  // Téléverse un fichier depuis l'ordinateur -> Supabase Storage -> enregistre.
   async function uploadFallback(file: File) {
     setFbBusy(true);
     setMsg(null);
@@ -74,44 +161,17 @@ export default function PhotosManager({
     setMsg(ok ? "Image téléversée et enregistrée." : "Téléversée, mais erreur d'enregistrement.");
   }
 
-  async function save(destIata: string) {
-    setBusy(destIata);
-    setMsg(null);
-    const res = await fetch("/api/admin/routes-image", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ destination_iata: destIata, image_url: draft[destIata] || null }),
-    });
-    setBusy(null);
-    if (res.ok) {
-      setItems((prev) =>
-        prev.map((d) =>
-          d.destIata === destIata ? { ...d, image: draft[destIata] || null } : d
-        )
-      );
-      setMsg(`Photo mise à jour (${destIata}).`);
-    } else {
-      const j = await res.json().catch(() => ({}));
-      setMsg(`Erreur ${destIata} : ${j.error ?? res.status}`);
-    }
-  }
-
   return (
     <div>
       {msg && (
-        <p className="mb-4 rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700">
-          {msg}
-        </p>
+        <p className="mb-4 rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700">{msg}</p>
       )}
 
-      {/* Image de secours par défaut (modifiable) */}
+      {/* Image de secours */}
       <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4">
-        <p className="text-sm font-semibold text-slate-700">
-          Image de secours (par défaut)
-        </p>
+        <p className="text-sm font-semibold text-slate-700">Image de secours (par défaut)</p>
         <p className="mt-0.5 text-xs text-slate-500">
-          Affichée quand une destination n&apos;a pas encore de photo. Colle une
-          URL (par ex. une image d&apos;avion).
+          Affichée quand une destination n&apos;a pas encore de photo.
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <div
@@ -132,7 +192,7 @@ export default function PhotosManager({
             {fbBusy ? "..." : "Enregistrer"}
           </button>
           <label className="cursor-pointer rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:border-brand hover:text-brand">
-            Téléverser depuis l&apos;ordi
+            Téléverser
             <input
               type="file"
               accept="image/*"
@@ -152,56 +212,112 @@ export default function PhotosManager({
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Rechercher une ville (ou code aéroport)..."
+        placeholder="Rechercher une ville ou code IATA..."
         className="mb-4 w-full max-w-md rounded-lg border border-slate-300 px-3 py-2 text-sm"
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-        {shown.map((d) => (
-          <div
-            key={d.destIata}
-            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
-          >
+      <div className="flex flex-col gap-3">
+        {shown.map((d) => {
+          const isEditingThis = editing?.iata === d.destIata;
+          const slots = [
+            { label: "Bannière", slot: 0, photo: d.cover },
+            { label: "Galerie 1", slot: 1, photo: d.gallery[0] },
+            { label: "Galerie 2", slot: 2, photo: d.gallery[1] },
+            { label: "Galerie 3", slot: 3, photo: d.gallery[2] },
+            { label: "Galerie 4", slot: 4, photo: d.gallery[3] },
+          ] as const;
+
+          return (
             <div
-              className="relative h-28 bg-cover bg-center"
-              style={{ backgroundImage: `url(${draft[d.destIata] || fallback})` }}
+              key={d.destIata}
+              className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
             >
-              {!draft[d.destIata] && (
-                <span className="absolute left-2 top-2 rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
-                  Sans photo
-                </span>
+              <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-4 py-2">
+                <span className="font-semibold text-slate-900">{d.destCity}</span>
+                <span className="text-xs text-slate-400">{d.destIata}</span>
+                {!d.hasContent && (
+                  <span className="rounded bg-red-100 px-1.5 py-0.5 text-[11px] font-medium text-red-700">
+                    Sans texte
+                  </span>
+                )}
+                {!d.cover.url && (
+                  <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
+                    Sans photo
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-5 gap-2 p-3 pb-0">
+                {slots.map(({ label, slot, photo }) => {
+                  const isActive = isEditingThis && editing?.slot === slot;
+                  const imgUrl = photo?.url ?? (slot === 0 ? fallback : null);
+                  return (
+                    <button
+                      key={slot}
+                      onClick={() => selectSlot(d.destIata, slot, photo?.url ?? null, photo?.credit ?? "")}
+                      className={`group w-full text-left ${isActive ? "opacity-100" : "opacity-90 hover:opacity-100"}`}
+                    >
+                      <div
+                        className={`aspect-video w-full rounded-lg bg-cover bg-center bg-slate-100 transition ${
+                          isActive ? "ring-2 ring-brand ring-offset-1" : "group-hover:ring-2 group-hover:ring-slate-300"
+                        }`}
+                        style={imgUrl ? { backgroundImage: `url(${imgUrl})` } : undefined}
+                      >
+                        {!imgUrl && (
+                          <div className="flex h-full items-center justify-center text-xs text-slate-400">
+                            Vide
+                          </div>
+                        )}
+                      </div>
+                      <p className="mt-1 text-[11px] text-slate-500">{label}</p>
+                      <p className="text-[11px] font-medium text-slate-700">
+                        {photo?.sizeKb != null ? `${photo.sizeKb} KB` : "-"}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {isEditingThis && (
+                <div className="flex flex-wrap items-center gap-2 px-3 pb-3 pt-2">
+                  <span className="text-xs text-slate-500">
+                    Modifier :{" "}
+                    <strong>
+                      {slots.find((s) => s.slot === editing?.slot)?.label}
+                    </strong>
+                  </span>
+                  <input
+                    value={draftUrl}
+                    onChange={(e) => setDraftUrl(e.target.value)}
+                    placeholder="URL de la photo (https://...) ou vide pour supprimer"
+                    className="min-w-64 flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+                    autoFocus
+                  />
+                  <input
+                    value={draftCredit}
+                    onChange={(e) => setDraftCredit(e.target.value)}
+                    placeholder="Nom du photographe (/ Unsplash ajouté auto)"
+                    className="w-56 rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+                  />
+                  <button
+                    onClick={saveSlot}
+                    disabled={busy}
+                    className="rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-60"
+                  >
+                    {busy ? "..." : "Enregistrer"}
+                  </button>
+                  <button
+                    onClick={() => setEditing(null)}
+                    className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:border-slate-300"
+                  >
+                    Annuler
+                  </button>
+                </div>
               )}
-              {!d.hasContent && (
-                <span className="absolute right-2 top-2 rounded bg-red-100 px-1.5 py-0.5 text-[11px] font-medium text-red-700">
-                  Sans texte
-                </span>
-              )}
+              {!isEditingThis && <div className="pb-1" />}
             </div>
-            <div className="p-3">
-              <p className="text-sm font-semibold text-slate-900">
-                {d.destCity}{" "}
-                <span className="text-xs font-normal text-slate-500">
-                  ({d.destIata})
-                </span>
-              </p>
-              <input
-                value={draft[d.destIata] ?? ""}
-                onChange={(e) =>
-                  setDraft((s) => ({ ...s, [d.destIata]: e.target.value }))
-                }
-                placeholder="URL de l'image (https://...)"
-                className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              />
-              <button
-                onClick={() => save(d.destIata)}
-                disabled={busy === d.destIata}
-                className="mt-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:opacity-60"
-              >
-                {busy === d.destIata ? "Enregistrement..." : "Enregistrer"}
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

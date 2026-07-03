@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Mentions légales | BonVoleur.com",
+  title: "Mentions légales",
   description: `Mentions légales de ${site.name} : éditeur, hébergeur, propriété intellectuelle, données personnelles et droit applicable.`,
   alternates: { canonical: "https://www.bonvoleur.com/mentions-legales" },
 };

@@ -61,6 +61,19 @@ export default async function BlogPost({
   const post = await findOne("posts", (p) => p.slug === slug);
   if (!post || post.status !== "published") notFound();
 
+  const allPosts = (await getAll("posts"))
+    .filter((p) => p.status === "published" && p.slug !== slug)
+    .sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at));
+  const titleWords = (post.title ?? "").toLowerCase().split(/\s+/).filter((w) => w.length > 4);
+  const scored = allPosts.map((p) => ({
+    post: p,
+    score: titleWords.filter((w) => p.title?.toLowerCase().includes(w)).length,
+  }));
+  const related = scored
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((s) => s.post);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -178,6 +191,36 @@ export default async function BlogPost({
             S&apos;inscrire gratuitement
           </Link>
         </div>
+
+        {related.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-xl font-bold">A lire aussi</h2>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {related.map((p) => (
+                <Link
+                  key={p.slug}
+                  href={`/blog/${p.slug}`}
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
+                >
+                  {p.cover_image && (
+                    <div
+                      className="h-36 bg-cover bg-center"
+                      style={{ backgroundImage: `url(${p.cover_image})` }}
+                    />
+                  )}
+                  <div className="flex flex-1 flex-col p-4">
+                    <p className="text-xs text-slate-500">
+                      {new Date(p.published_at ?? p.created_at).toLocaleDateString("fr-BE", { day: "numeric", month: "long", year: "numeric" })}
+                    </p>
+                    <h3 className="mt-1 font-semibold leading-snug text-slate-800 line-clamp-2">{p.title}</h3>
+                    <p className="mt-1 text-sm text-slate-500 line-clamp-2">{p.excerpt}</p>
+                    <span className="mt-auto pt-3 text-sm font-medium text-brand">Lire l&apos;article</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
       <Footer />
     </>

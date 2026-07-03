@@ -35,6 +35,20 @@ export async function getDefaultDestImage(): Promise<string> {
   return (await getSetting("default_dest_image")) || DEFAULT_DEST_IMAGE;
 }
 
+// Liste tous les fichiers du dossier destinations/ -> map path -> taille en octets.
+export async function getStorageDestFiles(): Promise<Record<string, number>> {
+  try {
+    const { data } = await sb().storage.from("photos").list("destinations", { limit: 1000 });
+    const map: Record<string, number> = {};
+    for (const f of data ?? []) {
+      map[`destinations/${f.name}`] = (f.metadata as { size?: number } | null)?.size ?? 0;
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
 // Espace utilisé dans le bucket Storage "photos", détaillé par dossier.
 export interface StorageStats {
   destinations: number;

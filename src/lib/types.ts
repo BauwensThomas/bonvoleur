@@ -68,6 +68,7 @@ export interface Route {
   image_url: string | null;
   image_credit: string | null;
   region: string | null;
+  photos: { url: string; credit: string }[] | null;
   status: string;
   created_at: string;
   updated_at: string | null;
