@@ -37,7 +37,9 @@ export default async function BlogIndex() {
       <main className="mx-auto w-full max-w-7xl px-4 py-12">
         <h1 className="text-3xl font-bold">Le blog BonVoleur</h1>
         <p className="mt-2 text-slate-600">
-          Guides, conseils et astuces pour voyager moins cher.
+          Guides destinations, bons plans et astuces pour voyager moins cher depuis la Belgique et la France.
+          On décortique les meilleures destinations, on t&apos;explique comment dénicher un vol pas cher et on partage
+          nos conseils pratiques pour préparer chaque étape de ton voyage - de l&apos;aéroport au logement.
         </p>
 
         {posts.length === 0 ? (
