@@ -78,13 +78,13 @@ export default function SummerPromoPopup() {
             </span>
             <button
               onClick={copy}
-              className="shrink-0 rounded-lg bg-amber-400 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-amber-500 active:scale-95"
+              className="shrink-0 rounded-lg bg-amber-400 px-3 py-1.5 text-sm font-semibold text-amber-900 transition hover:bg-amber-500 active:scale-95"
             >
               {copied ? "Copie !" : "Copier"}
             </button>
           </div>
 
-          <p className="mt-2 text-xs text-slate-400">
+          <p className="mt-2 text-xs text-slate-500">
             -15% sur ton 1er mois (mensuel) ou ta 1re annee (annuel) - puis prix habituel
           </p>
 
@@ -99,7 +99,7 @@ export default function SummerPromoPopup() {
             </a>
             <button
               onClick={close}
-              className="text-sm text-slate-400 hover:text-slate-600"
+              className="text-sm text-slate-500 hover:text-slate-700"
             >
               Non merci, peut-etre une autre fois
             </button>
