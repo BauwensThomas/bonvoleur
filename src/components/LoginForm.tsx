@@ -15,7 +15,7 @@ export default function LoginForm() {
   const supabase = createSupabaseBrowser();
   const redirectTo =
     typeof window !== "undefined"
-      ? `${window.location.origin}/auth/callback?next=/compte`
+      ? `${window.location.origin}/auth/callback`
       : undefined;
 
   async function google() {

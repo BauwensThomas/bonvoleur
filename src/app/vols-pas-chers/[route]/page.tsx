@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SummerPromoPopup from "@/components/SummerPromoPopup";
 import AirportDeals, { type AirportProof } from "@/components/AirportDeals";
 import { getAll } from "@/lib/db";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
@@ -260,6 +261,7 @@ export default async function DestinationPage({
   return (
     <>
       <Header />
+      <SummerPromoPopup />
       <main className="mx-auto w-full max-w-7xl px-4 py-12">
         <script
           type="application/ld+json"

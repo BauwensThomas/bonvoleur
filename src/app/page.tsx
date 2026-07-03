@@ -1,3 +1,4 @@
+import React from "react";
 import { Suspense } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
@@ -6,6 +7,7 @@ import SignupForm from "@/components/SignupForm";
 import DealCard from "@/components/DealCard";
 import Partners from "@/components/Partners";
 import HeroCinematic from "@/components/HeroCinematic";
+import SummerPromoPopup from "@/components/SummerPromoPopup";
 import DestinationsGrid from "@/components/DestinationsGrid";
 import NeedsSignupBanner from "@/components/NeedsSignupBanner";
 import { site } from "@/lib/site";
@@ -59,22 +61,29 @@ const features = [
 
 export default async function Home() {
   // Vitrine "teaser" : route + prix uniquement (aucune info actionnable).
-  const [{ teaserDeals, liveCount }, airports] = await Promise.all([
+  const [{ teaserDeals, liveCount }, airports, allSubscribers] = await Promise.all([
     getHomepageDeals(),
     getActiveAirports(),
+    getAll("subscribers"),
   ]);
+  const premiumCount = allSubscribers.filter((s) => s.tier === "premium").length;
 
   // Destinations populaires : par ville, avec ses aéroports de départ.
   const destGroups = await getDestinations();
   // Met en avant un nombre limité (scalable) : destinations avec des deals
   // d'abord, puis les autres. Le reste est sur le hub /vols-pas-chers.
   const FEATURED = 8;
+  const activeIatas = new Set(airports.map((a) => a.iata));
   const dealDestIatas = new Set(
     (await getAll("deals"))
-      .filter((d) => d.is_hot !== false)
+      .filter((d) => {
+        if (d.is_hot === false) return false;
+        const originIata = d.origin.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
+        return activeIatas.has(originIata);
+      })
       .map((d) => d.destination.match(/\(([A-Z]{3})\)/)?.[1] ?? "")
+      .filter(Boolean)
   );
-  const activeIatas = new Set(airports.map((a) => a.iata));
   const totalDest = destGroups.length;
   const destinations = [...destGroups]
     .filter((d) => d.routes.some((r) => activeIatas.has(r.originIata)))
@@ -142,30 +151,68 @@ export default async function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }} />
       <Header />
+      <SummerPromoPopup />
 
       <main>
         {/* ── Hero cinématique 3D ── */}
         <HeroCinematic />
 
-        {/* ── Preuve sociale : nombre de bons plans en ce moment ── */}
-        {liveCount > 0 && (
-          <section className="border-y border-slate-200 bg-brand/5">
-            <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 px-4 py-6 text-center sm:flex-row sm:justify-center sm:gap-6">
-              <p className="text-lg text-slate-700">
-                <strong className="text-2xl font-extrabold text-brand-dark">
-                  {liveCount}
-                </strong>{" "}
-                bons plans de vols en ce moment, depuis la Belgique et la France.
-              </p>
-              <a
-                href="#inscription"
-                className="shrink-0 rounded-lg bg-brand px-5 py-2.5 font-semibold text-white transition hover:bg-brand-dark"
-              >
-                Reçois-les gratuitement
-              </a>
-            </div>
-          </section>
-        )}
+        {/* ── Stats ── */}
+        <section className="border-y border-slate-200 bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-8">
+            <dl className={`grid gap-px bg-slate-200 overflow-hidden rounded-2xl shadow-sm ${premiumCount >= 50 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
+              {([
+                {
+                  value: liveCount,
+                  label: "Bons plans en ce moment",
+                  icon: (
+                    <svg className="mx-auto mb-2 h-7 w-7 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M7 2v11h3v9l7-12h-4l4-8z" />
+                    </svg>
+                  ),
+                },
+                premiumCount >= 50 ? {
+                  value: premiumCount,
+                  label: "Abonnés premium",
+                  icon: (
+                    <svg className="mx-auto mb-2 h-7 w-7 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                    </svg>
+                  ),
+                } : null,
+                {
+                  value: airports.length,
+                  label: "Aéroports de départ",
+                  icon: (
+                    <svg className="mx-auto mb-2 h-7 w-7 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M2.5 19h19v2h-19zm19.57-9.36c-.21-.8-1.04-1.28-1.84-1.06L14.92 10l-6.9-6.43-1.93.51 4.14 7.17-4.97 1.33-1.97-1.54-1.45.39 2.59 4.49L21 11.5c.81-.23 1.28-1.07 1.07-1.86z" />
+                    </svg>
+                  ),
+                },
+                {
+                  value: dealDestIatas.size,
+                  label: "Destinations avec bons plans",
+                  icon: (
+                    <svg className="mx-auto mb-2 h-7 w-7 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+                      {/* piste au bas */}
+                      <path d="M2.5 19h19v2h-19z"/>
+                      {/* rotation 30° horaire autour du centre -> nez vers bas-droite, ailes vers le haut */}
+                      <path transform="rotate(30,12,11)" d="M22.07 9.64c-.21-.8-1.04-1.28-1.84-1.06L14.92 10l-6.9-6.43-1.93.51 4.14 7.17-4.97 1.33-1.97-1.54-1.45.39 2.59 4.49L21 11.5c.81-.23 1.28-1.07 1.07-1.86z"/>
+                    </svg>
+                  ),
+                },
+              ].filter(Boolean) as { value: number; label: string; icon: React.ReactNode }[]).map((s) => (
+                <div key={s.label} className="bg-white px-6 py-8 text-center">
+                  {s.icon}
+                  <dd className="text-4xl font-extrabold text-brand-dark tabular-nums">
+                    {s.value}
+                  </dd>
+                  <dt className="mt-1 text-sm text-slate-500">{s.label}</dt>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
 
         {/* ── Inscription ── */}
         <section

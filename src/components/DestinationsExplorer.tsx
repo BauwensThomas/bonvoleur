@@ -24,11 +24,13 @@ export default function DestinationsExplorer({
   }, [destinations]);
 
   const filtered = useMemo(() => {
-    const query = q.trim().toLowerCase();
+    const norm = (s: string) =>
+      s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+    const query = norm(q.trim());
     return destinations.filter(
       (d) =>
         (region === "Toutes" || d.region === region) &&
-        (!query || d.city.toLowerCase().includes(query))
+        (!query || norm(d.city).includes(query))
     );
   }, [destinations, q, region]);
 
