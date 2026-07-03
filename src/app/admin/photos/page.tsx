@@ -48,7 +48,9 @@ export default async function PhotosAdmin() {
     })
     .sort((a, b) => a.destCity.localeCompare(b.destCity));
 
-  const incomplete = mapped.filter((d) => !d.cover.url || !d.hasContent).length;
+  const incomplete = mapped.filter(
+    (d) => !d.cover.url || !d.hasContent || d.gallery.filter(Boolean).length < 4
+  ).length;
 
   return (
     <div>
