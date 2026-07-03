@@ -16,7 +16,7 @@ export const maxDuration = 300;
 export async function POST(req: Request) {
   const unauth = await requireAdmin();
   if (unauth) return unauth;
-  const { name } = await req.json();
+  const { name, slug } = await req.json();
   const agent = findAgent(name);
   if (!agent) {
     return NextResponse.json({ error: "Agent inconnu." }, { status: 404 });
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   // Social Clipper : (re)envoie le webhook Make pour le dernier article publié.
   // runSocialClipper -> notifySocial journalise déjà le run (pas de double log).
   if (agent.name === "social-clipper") {
-    const result = await runSocialClipper(undefined, "manuel");
+    const result = await runSocialClipper(slug ?? undefined, "manuel");
     return NextResponse.json(result, { status: 201 });
   }
 

@@ -47,6 +47,20 @@ export default function BlogManager({ initial }: { initial: Post[] }) {
     reload();
   }
 
+  async function shareToSocial(p: Post) {
+    const res = await fetch("/api/admin/agents/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "social-clipper", slug: p.slug }),
+    });
+    const data = await res.json();
+    if (data.ok === false) {
+      alert("Erreur : " + (data.reason ?? "inconnue"));
+    } else {
+      alert("Envoyé sur les réseaux !");
+    }
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -110,6 +124,14 @@ export default function BlogManager({ initial }: { initial: Post[] }) {
                     : "-"}
                 </td>
                 <td className="px-4 py-2 text-right space-x-3">
+                  {p.status === "published" && (
+                    <button
+                      onClick={() => shareToSocial(p)}
+                      className="text-amber-600 hover:underline"
+                    >
+                      Reseaux
+                    </button>
+                  )}
                   <button
                     onClick={() => setDraft(p)}
                     className="text-brand hover:underline"
