@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import AuthStatus from "@/components/AuthStatus";
 
 // Menu hamburger affiché uniquement sur mobile (< sm). En desktop, le Header
 // montre la nav classique. Le panneau se déploie sous la barre du Header.
@@ -59,13 +60,9 @@ export default function MobileMenu() {
               >
                 Blog
               </Link>
-              <Link
-                href="/compte"
-                onClick={close}
-                className="rounded-lg px-2 py-3 text-slate-700 hover:bg-slate-50"
-              >
-                Connexion
-              </Link>
+              <div className="rounded-lg px-2 py-3">
+                <AuthStatus onClick={close} />
+              </div>
               <Link
                 href="/#inscription"
                 onClick={close}

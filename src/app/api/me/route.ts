@@ -5,7 +5,7 @@ import { getMemberState } from "@/lib/member-auth";
 // Utilise par SummerPromoPopup (client) pour savoir si l'affichage est pertinent.
 export async function GET() {
   const state = await getMemberState();
-  const tier =
-    state.status === "member" && state.tier === "premium" ? "premium" : "free";
-  return NextResponse.json({ tier }, { status: 200 });
+  const loggedIn = state.status === "member";
+  const tier = loggedIn && state.tier === "premium" ? "premium" : "free";
+  return NextResponse.json({ loggedIn, tier }, { status: 200 });
 }

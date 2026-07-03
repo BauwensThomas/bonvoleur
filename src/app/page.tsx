@@ -405,7 +405,9 @@ export default async function Home() {
           </section>
         )}
 
-        <Partners />
+        <Suspense fallback={null}>
+          <Partners />
+        </Suspense>
 
         {/* ── CTA final ── */}
         <section className="bg-brand">

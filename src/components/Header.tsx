@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import MobileMenu from "@/components/MobileMenu";
+import AuthStatus from "@/components/AuthStatus";
 
 export default function Header() {
   return (
@@ -12,9 +13,7 @@ export default function Header() {
           <Link href="/blog" className="text-slate-600 hover:text-slate-900">
             Blog
           </Link>
-          <Link href="/compte" className="text-slate-600 hover:text-slate-900">
-            Connexion
-          </Link>
+          <AuthStatus />
           <Link
             href="/#inscription"
             className="rounded-lg bg-brand px-4 py-2 font-semibold text-white hover:bg-brand-dark transition-colors"
