@@ -146,8 +146,6 @@ export default async function Home() {
 
   return (
     <>
-      {/* Précharge l'image hero LCP dès le <head> SSR */}
-      <link rel="preload" as="image" href="/hero/01-nuit.webp" fetchPriority="high" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }} />
       <Header />

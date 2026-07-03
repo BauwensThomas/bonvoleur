@@ -32,6 +32,7 @@ export default async function Partners() {
                     alt={`Logo ${p.name}`}
                     width="150"
                     height="40"
+                    loading="lazy"
                     className="max-h-10 w-auto max-w-37.5 object-contain transition duration-300 [@media(hover:hover)]:opacity-80 [@media(hover:hover)]:grayscale [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-hover:grayscale-0"
                   />
                 </span>
