@@ -36,6 +36,11 @@ export default function SummerPromoPopup() {
     setVisible(false);
   }
 
+  function goToPremium() {
+    localStorage.setItem("promo_code_pending", PROMO_CODE);
+    close();
+  }
+
   function copy() {
     navigator.clipboard.writeText(PROMO_CODE).catch(() => {});
     setCopied(true);
@@ -87,7 +92,7 @@ export default function SummerPromoPopup() {
           <div className="mt-5 flex flex-col gap-2">
             <a
               href="/compte"
-              onClick={close}
+              onClick={goToPremium}
               className="block rounded-xl bg-brand py-3 text-center font-semibold text-white transition hover:bg-brand-dark"
             >
               Passer premium avec le code

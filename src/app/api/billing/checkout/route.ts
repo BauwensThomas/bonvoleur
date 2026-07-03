@@ -25,6 +25,7 @@ export async function POST(req: Request) {
     return NextResponse.redirect(`${origin}/compte`, { status: 303 });
   }
   const plan: Plan = form.get("plan") === "yearly" ? "yearly" : "monthly";
+  const promoCode = (form.get("promo_code") as string | null)?.trim() || null;
   const sb = stripe();
 
   // Client Stripe : réutilise celui de l'abonné, sinon le crée et le stocke.
@@ -41,12 +42,25 @@ export async function POST(req: Request) {
   }
 
   const price = await priceIdFor(plan);
+
+  // Si un code promo a ete transmis, on le resout en ID Stripe pour l'injecter
+  // directement dans la session. Sinon on laisse l'utilisateur en saisir un manuellement.
+  let discounts: { promotion_code: string }[] | undefined;
+  let allowPromoCodes = true;
+  if (promoCode) {
+    const promos = await sb.promotionCodes.list({ code: promoCode, active: true, limit: 1 });
+    if (promos.data.length > 0) {
+      discounts = [{ promotion_code: promos.data[0].id }];
+      allowPromoCodes = false; // mutually exclusive avec discounts
+    }
+  }
+
   const session = await sb.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
     line_items: [{ price, quantity: 1 }],
     client_reference_id: state.subscriber.id,
-    allow_promotion_codes: true,
+    ...(discounts ? { discounts } : { allow_promotion_codes: allowPromoCodes }),
     locale: "fr",
     // Preuve de la renonciation au droit de rétractation, attachée à l'abonnement.
     subscription_data: {

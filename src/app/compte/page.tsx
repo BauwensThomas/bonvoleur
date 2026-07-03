@@ -11,6 +11,7 @@ import { getActiveAirports, getAirportName } from "@/lib/airports";
 import { destinationSlug } from "@/lib/routes";
 import { destinationRegion, REGION_ORDER } from "@/lib/destinations";
 import CompteControls from "@/components/CompteControls";
+import PromoCodeInput from "@/components/PromoCodeInput";
 
 // "Lisbonne (LIS)" -> "lisbonne" (slug de la fiche destination).
 function destSlugOf(label: string): string {
@@ -282,6 +283,7 @@ export default async function Compte({
               )}
             </p>
             <form action="/api/billing/checkout" method="post" className="mt-3">
+              <PromoCodeInput />
               <label className="flex items-start gap-2 text-xs text-slate-600">
                 <input
                   type="checkbox"
@@ -333,7 +335,7 @@ export default async function Compte({
           <p className="mt-3 text-xs text-slate-500">
             Tes alertes email couvrent{" "}
             <strong>{getAirportName((member.subscriber.home_airports ?? [])[0])}</strong>.
-            {" "}Tu vois ici tous les bons plans disponibles — passe premium pour recevoir
+            {" "}Tu vois ici tous les bons plans disponibles - passe premium pour recevoir
             toutes les alertes par email.
           </p>
         )}
