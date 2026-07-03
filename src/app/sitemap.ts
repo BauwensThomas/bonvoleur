@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAll } from "@/lib/db";
 import { site } from "@/lib/site";
-import { getDestinations } from "@/lib/routes";
+import { getDestinations, destinationSlug } from "@/lib/routes";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = site.canonicalBase;
@@ -19,10 +19,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let routePages: MetadataRoute.Sitemap = [];
   try {
     const dests = await getDestinations();
+    const allRoutes = await getAll("routes");
+    const destUpdatedAt: Record<string, string> = {};
+    for (const r of allRoutes) {
+      const slug = destinationSlug(r.destination_city ?? "");
+      const upd = r.updated_at ?? r.created_at;
+      if (upd && (!destUpdatedAt[slug] || upd > destUpdatedAt[slug])) {
+        destUpdatedAt[slug] = upd;
+      }
+    }
     routePages = dests.map((d) => ({
       url: `${base}/vols-pas-chers/${d.slug}`,
-      changeFrequency: "daily",
+      changeFrequency: "daily" as const,
       priority: 0.7,
+      lastModified: destUpdatedAt[d.slug],
     }));
   } catch {
     // DB indispo : on garde au moins les pages statiques.
