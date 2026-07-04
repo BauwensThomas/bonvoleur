@@ -153,7 +153,7 @@ export function confirmEmail(to: string, confirmUrl: string): EmailMessage {
   const body = emailContent(
     `<p style="margin:0 0 8px;color:#475569;">Encore une étape : clique sur le bouton ci-dessous pour confirmer ton inscription à ${site.name} et commencer à recevoir les bons plans de vols.</p>
      ${ctaButton("Confirmer mon inscription", confirmUrl, "#16a34a")}
-     <p style="margin:20px 0 0;font-size:13px;color:#94a3b8;">Si tu n'es pas à l'origine de cette demande, ignore simplement cet email.</p>`,
+     <p style="margin:20px 0 0;font-size:13px;color:#94a3b8;text-align:center;">Si tu n'es pas à l'origine de cette demande, ignore simplement cet email.</p>`,
   );
 
   const text = `Confirme ton inscription à ${site.name}.
@@ -178,7 +178,7 @@ export function unsubscribeLinkEmail(
     `<h1 style="margin:0 0 14px;font-size:22px;font-weight:800;">Tu veux te désinscrire ?</h1>
      <p style="margin:0 0 4px;color:#475569;">Tu as demandé à ne plus recevoir nos emails. Clique sur le bouton ci-dessous pour confirmer.</p>
      ${ctaButton("Confirmer la désinscription", unsubscribeUrl, "#64748b")}
-     <p style="margin:20px 0 0;font-size:13px;color:#94a3b8;">Si tu n'es pas à l'origine de cette demande, ignore simplement cet email.</p>`,
+     <p style="margin:20px 0 0;font-size:13px;color:#94a3b8;text-align:center;">Si tu n'es pas à l'origine de cette demande, ignore simplement cet email.</p>`,
   );
 
   const text = `Tu as demandé à te désinscrire de ${site.name}.
