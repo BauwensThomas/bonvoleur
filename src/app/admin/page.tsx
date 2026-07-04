@@ -44,9 +44,6 @@ export default async function AdminDashboard() {
   const premiumSubCount = subscribers.filter((s: { tier?: string }) => s.tier === "premium").length;
 
   const activeIatas = new Set(activeAirports.map((a: { iata: string }) => a.iata));
-  const visibleDests = destinations.filter((d) =>
-    d.routes.some((r) => activeIatas.has(r.originIata))
-  );
 
   // Destinations avec au moins un deal actif (fenêtre 5 jours, même logique que homepage).
   const allDeals = await getAll("deals");
@@ -130,19 +127,9 @@ export default async function AdminDashboard() {
                 <span className="font-semibold tabular-nums">{destinations.length}</span>
               </div>
               <div className="flex items-center justify-between gap-6">
-                <span className="text-slate-500">Avec aéroport actif</span>
-                <span className="font-semibold tabular-nums text-green-700">{visibleDests.length}</span>
-              </div>
-              <div className="flex items-center justify-between gap-6">
                 <span className="text-slate-500">Avec deals actifs (5j)</span>
-                <span className="font-semibold tabular-nums text-brand">{activeDestCount}</span>
+                <span className="font-semibold tabular-nums text-green-700">{activeDestCount}</span>
               </div>
-              {destinations.length - visibleDests.length > 0 && (
-                <div className="flex items-center justify-between gap-6">
-                  <span className="text-slate-500">Sans aéroport actif</span>
-                  <span className="font-semibold tabular-nums text-amber-600">{destinations.length - visibleDests.length}</span>
-                </div>
-              )}
             </div>
             <Link href="/admin/photos" className="mt-3 inline-block text-sm text-brand hover:underline">
               Voir les fiches
