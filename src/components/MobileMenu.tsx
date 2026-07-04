@@ -54,6 +54,13 @@ export default function MobileMenu() {
           <div className="absolute left-0 right-0 top-full z-50 border-b border-slate-200 bg-white shadow-lg">
             <nav className="mx-auto flex max-w-7xl flex-col px-4 py-2 text-base font-medium">
               <Link
+                href="/vols-pas-chers"
+                onClick={close}
+                className="rounded-lg px-2 py-3 text-slate-700 hover:bg-slate-50"
+              >
+                Destinations
+              </Link>
+              <Link
                 href="/blog"
                 onClick={close}
                 className="rounded-lg px-2 py-3 text-slate-700 hover:bg-slate-50"

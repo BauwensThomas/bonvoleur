@@ -10,6 +10,9 @@ export default function Header() {
         <Logo />
         {/* Desktop : nav classique. Mobile : menu hamburger (MobileMenu). */}
         <nav className="hidden sm:flex items-center gap-6 text-sm font-medium">
+          <Link href="/vols-pas-chers" className="text-slate-600 hover:text-slate-900">
+            Destinations
+          </Link>
           <Link href="/blog" className="text-slate-600 hover:text-slate-900">
             Blog
           </Link>
