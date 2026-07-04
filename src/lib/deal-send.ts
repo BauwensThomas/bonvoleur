@@ -57,7 +57,6 @@ function dealCard(deal: Deal): string {
         <div style="margin-top:6px;"><span style="font-size:13px;color:#64748b;">aux alentours de </span>${priceLine}<span style="font-size:13px;color:#64748b;"> aller-retour</span></div>
         ${notesHtml}
         ${errorHtml}
-        <a href="${deal.booking_url}" style="display:inline-block;margin-top:14px;background:#0ea5e9;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:12px 28px;border-radius:999px;">Réserver ce vol</a>
       </td></tr>
     </table>
   </td></tr>`;
@@ -68,14 +67,14 @@ const hurryLine = `<tr><td style="padding:6px 32px 0;font-size:13px;font-weight:
 // Email d'un seul deal.
 export function dealHtml(deal: Deal, unsubscribeUrl: string): string {
   const intro = `<tr><td style="padding:28px 32px 0;font-size:15px;color:#334155;">Un nouveau bon plan <strong>BonVoleur</strong> pour toi :</td></tr>`;
-  return emailLayout(intro + hurryLine + dealCard(deal) + spacer(), unsubscribeUrl);
+  return emailLayout(intro + hurryLine + dealCard(deal) + accountCta(`${site.url}/compte`) + spacer(), unsubscribeUrl);
 }
 
 // Email digest : plusieurs deals dans un seul email.
 export function digestHtml(deals: Deal[], unsubscribeUrl: string): string {
   const intro = `<tr><td style="padding:28px 32px 0;font-size:18px;font-weight:800;color:#0f172a;">${deals.length} bon${deals.length > 1 ? "s" : ""} plan${deals.length > 1 ? "s" : ""} pour toi</td></tr>`;
   const cards = deals.map(dealCard).join("");
-  return emailLayout(intro + hurryLine + cards + spacer(), unsubscribeUrl);
+  return emailLayout(intro + hurryLine + cards + accountCta(`${site.url}/compte`) + spacer(), unsubscribeUrl);
 }
 
 function spacer(): string {
