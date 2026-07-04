@@ -123,7 +123,6 @@ function faqFor(city: string, originCities: string[]) {
 }
 
 function DestPartners({ dest }: { dest: { destCity: string; destIata: string; region: string } }) {
-  const city = encodeURIComponent(dest.destCity);
   const isEurope = dest.region === "Europe";
   // Booking, GetYourGuide, Airalo et AirHelp sont dans le texte — pas de doublon ici.
   const partners = [
@@ -259,6 +258,16 @@ export default async function DestinationPage({
     })),
   };
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Accueil", item: site.canonicalBase },
+      { "@type": "ListItem", position: 2, name: "Vols pas chers", item: `${site.canonicalBase}/vols-pas-chers` },
+      { "@type": "ListItem", position: 3, name: dest.destCity, item: `${site.canonicalBase}/vols-pas-chers/${dest.slug}` },
+    ],
+  };
+
   return (
     <>
       <Header />
@@ -267,6 +276,10 @@ export default async function DestinationPage({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
         />
 
         <nav className="text-sm text-slate-500">
