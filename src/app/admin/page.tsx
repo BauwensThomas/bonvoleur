@@ -130,6 +130,10 @@ export default async function AdminDashboard() {
                 <span className="text-slate-500">Avec deals actifs (5j)</span>
                 <span className="font-semibold tabular-nums text-green-700">{activeDestCount}</span>
               </div>
+              <div className="flex items-center justify-between gap-6">
+                <span className="text-slate-500">Sans deals actifs</span>
+                <span className="font-semibold tabular-nums text-amber-600">{destinations.length - activeDestCount}</span>
+              </div>
             </div>
             <Link href="/admin/photos" className="mt-3 inline-block text-sm text-brand hover:underline">
               Voir les fiches
