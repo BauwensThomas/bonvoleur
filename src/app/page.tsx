@@ -84,7 +84,7 @@ export default async function Home() {
       .map((d) => d.destination.match(/\(([A-Z]{3})\)/)?.[1] ?? "")
       .filter(Boolean)
   );
-  const totalDest = destGroups.length;
+  const totalDest = destGroups.filter((d) => d.routes.some((r) => activeIatas.has(r.originIata))).length;
   const destinations = [...destGroups]
     .filter((d) => d.routes.some((r) => activeIatas.has(r.originIata)))
     // "Populaires" = desservies depuis le plus d'aéroports ACTIFS (pertinent pour le
