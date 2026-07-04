@@ -127,7 +127,7 @@ export default async function AdminDashboard() {
                 <span className="font-semibold tabular-nums">{destinations.length}</span>
               </div>
               <div className="flex items-center justify-between gap-6">
-                <span className="text-slate-500">Avec deals actifs (5j)</span>
+                <span className="text-slate-500">Avec deals actifs</span>
                 <span className="font-semibold tabular-nums text-green-700">{activeDestCount}</span>
               </div>
               <div className="flex items-center justify-between gap-6">
