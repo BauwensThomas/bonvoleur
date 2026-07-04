@@ -15,8 +15,6 @@ Sources (toutes gratuites) :
      Lien de resa = Aviasales (affiliation).
   5. API officielle Transavia (cle gratuite sur developer.transavia.com) : filiale
      Air France-KLM depuis CDG/ORY/LYS. Lien de resa = transavia.com direct.
-  6. API publique Wizz Air (session simulee, sans cle) : fort sur Charleroi (CRL)
-     et Paris Beauvais (BVA). Lien de resa = wizzair.com direct.
 On verifie que le lien repond, puis on pousse le deal a BonVoleur qui ecrit
 l'email (Deal Writer) et l'envoie aux abonnes du bon aeroport (Deal Sender).
 
@@ -118,18 +116,7 @@ TRANSAVIA_ORIGINS = [
 TRANSAVIA_MAX_EUR = int(os.environ.get("TRANSAVIA_MAX_EUR", "200"))
 TRANSAVIA_LIMIT = int(os.environ.get("TRANSAVIA_LIMIT", "20"))
 
-# --- Source #6 : API publique Wizz Air (session + CSRF, sans cle) ---
-# Wizz Air est fort sur Charleroi (CRL) et Paris Beauvais (BVA) : destinations
-# Europe de l'Est, Méditerranée. Leur API exige une session simulée pour le token
-# CSRF. Plus fragile que Ryanair (se casse si Wizz Air change leur version d'API).
-WIZZAIR_ORIGINS = [
-    o.strip().upper()
-    for o in os.environ.get("WIZZAIR_ORIGINS", "CRL,BVA").split(",")
-    if o.strip()
-]
-WIZZAIR_MAX_EUR = int(os.environ.get("WIZZAIR_MAX_EUR", "150"))
-WIZZAIR_TRIP_MIN = int(os.environ.get("WIZZAIR_TRIP_MIN", "2"))
-WIZZAIR_TRIP_MAX = int(os.environ.get("WIZZAIR_TRIP_MAX", "14"))
+
 RYANAIR_TRIP_MIN = int(os.environ.get("RYANAIR_TRIP_MIN", "2"))  # duree sejour min (jours)
 RYANAIR_TRIP_MAX = int(os.environ.get("RYANAIR_TRIP_MAX", "14"))  # duree sejour max
 
@@ -301,7 +288,7 @@ def link_is_accessible(url: str) -> bool:
     # Liens Ryanair (API) et Aviasales (page de recherche, toujours en ligne) :
     # le prix vient de l'API source, ces URL sont fiables -> on ne les teste pas
     # (gain de temps important quand il y a beaucoup de deals).
-    if any(d in url for d in ("ryanair.com", "aviasales.com", "wizzair.com", "transavia.com")):
+    if any(d in url for d in ("ryanair.com", "aviasales.com", "transavia.com")):
         return True
     try:
         r = requests.head(url, allow_redirects=True, timeout=10, headers=_UA)
@@ -380,10 +367,6 @@ def find_deals() -> list[dict]:
                 }
             )
     deals.extend(find_ryanair_deals())
-    # Wizz Air : bloque les IPs de datacenter (Cloudflare) -> desactive en CI.
-    # A activer uniquement en local (IP residentielle) via WIZZAIR_ENABLED=1.
-    if os.environ.get("WIZZAIR_ENABLED") == "1":
-        deals.extend(find_wizzair_deals())
     deals.extend(find_transavia_deals())
     deals.extend(find_discovery_deals())
     deals.extend(find_longhaul_deals())
@@ -592,137 +575,6 @@ def find_transavia_deals() -> list[dict]:
         ranked = sorted(best.values(), key=lambda d: d["price"])[:TRANSAVIA_LIMIT]
         deals.extend(ranked)
         print(f"Transavia {origin} : {len(ranked)} route(s) sous {TRANSAVIA_MAX_EUR} EUR")
-    return deals
-
-
-def find_wizzair_deals() -> list[dict]:
-    """AR les moins chers depuis nos aeroports Wizz Air (session simulee + CSRF).
-    Gratuit, sans cle. Plus fragile que Ryanair : se casse si Wizz Air change
-    la version de leur API. En cas d'echec, retourne [] sans bloquer le scanner."""
-    today = datetime.date.today()
-    out_from = (today + datetime.timedelta(days=1)).isoformat()
-    out_to = (today + datetime.timedelta(days=180)).isoformat()
-    deals: list[dict] = []
-
-    # Session simulee : recupere les cookies + CSRF token depuis la page d'accueil.
-    session = requests.Session()
-    try:
-        session.get("https://wizzair.com/fr-fr", headers=_UA, timeout=20)
-        csrf = (
-            session.cookies.get("RequestVerificationToken")
-            or session.cookies.get("__RequestVerificationToken")
-            or ""
-        )
-    except requests.RequestException as e:
-        print("Wizz Air session erreur:", e)
-        return []
-
-    wz_headers = {**_UA, "x-requestverificationtoken": csrf, "x-requested-with": "XMLHttpRequest"}
-
-    # Recupere la carte des routes Wizz Air (toutes origines/destinations).
-    try:
-        r = session.get(
-            "https://be.wizzair.com/Api/asset/map",
-            params={"languageCode": "fr"},
-            headers=wz_headers,
-            timeout=20,
-        )
-        route_map = r.json()
-    except (requests.RequestException, ValueError) as e:
-        print("Wizz Air route map erreur:", e)
-        return []
-
-    # Index : origine -> liste de destinations Wizz Air.
-    wz_routes: dict[str, list[str]] = {}
-    for city in route_map.get("cities", []):
-        for route in city.get("routes", []):
-            dep = (route.get("departureStation") or "").upper()
-            arr = (route.get("arrivalStation") or "").upper()
-            if dep and arr:
-                wz_routes.setdefault(dep, []).append(arr)
-
-    for origin in WIZZAIR_ORIGINS:
-        dests = wz_routes.get(origin, [])
-        if not dests:
-            print(f"Wizz Air {origin} : aucune route trouvee")
-            continue
-        best: dict[str, dict] = {}
-        for dest in dests:
-            try:
-                r = session.post(
-                    "https://be.wizzair.com/Api/search/timetable",
-                    json={
-                        "flightList": [
-                            {"departureStation": origin, "arrivalStation": dest,
-                             "from": out_from, "to": out_to}
-                        ],
-                        "priceType": "regular",
-                        "adultCount": 1,
-                        "childCount": 0,
-                        "infantCount": 0,
-                    },
-                    headers=wz_headers,
-                    timeout=15,
-                )
-                flights = r.json().get("outboundFlights", [])
-            except (requests.RequestException, ValueError):
-                continue
-
-            # Trouver le vol aller le moins cher, puis le retour correspondant.
-            cheapest = [f for f in flights if f.get("price") and f["price"].get("amount")]
-            if not cheapest:
-                continue
-            best_out = min(cheapest, key=lambda f: f["price"]["amount"])
-            price_out = float(best_out["price"]["amount"])
-            date_out_str = (best_out.get("departureDate") or "")[:10]
-
-            # Chercher un retour pas cher entre TRIP_MIN et TRIP_MAX jours apres.
-            try:
-                ret_from = (datetime.date.fromisoformat(date_out_str) + datetime.timedelta(days=WIZZAIR_TRIP_MIN)).isoformat()
-                ret_to = (datetime.date.fromisoformat(date_out_str) + datetime.timedelta(days=WIZZAIR_TRIP_MAX)).isoformat()
-                r2 = session.post(
-                    "https://be.wizzair.com/Api/search/timetable",
-                    json={"flightList": [{"departureStation": dest, "arrivalStation": origin, "from": ret_from, "to": ret_to}],
-                          "priceType": "regular", "adultCount": 1, "childCount": 0, "infantCount": 0},
-                    headers=wz_headers,
-                    timeout=15,
-                )
-                ret_flights = [f for f in r2.json().get("outboundFlights", []) if f.get("price") and f["price"].get("amount")]
-            except (requests.RequestException, ValueError):
-                continue
-            if not ret_flights:
-                continue
-            best_in = min(ret_flights, key=lambda f: f["price"]["amount"])
-            price_in = float(best_in["price"]["amount"])
-            date_in_str = (best_in.get("departureDate") or "")[:10]
-
-            total = round(price_out + price_in)
-            if total > WIZZAIR_MAX_EUR:
-                continue
-            city = AIRPORT_NAMES.get(dest) or city_name(dest)
-            if not city:
-                continue
-            if dest not in best or total < best[dest]["_total"]:
-                best[dest] = {
-                    "_total": total,
-                    "origin": label(origin),
-                    "destination": f"{city} ({dest})",
-                    "price": total,
-                    "normal_price": None,
-                    "dates": date_out_str + (f" au {date_in_str}" if date_in_str else ""),
-                    "airline": "Wizz Air",
-                    "booking_url": (
-                        f"https://wizzair.com/fr-fr/flights/timetable/{origin}/{dest}/{date_out_str[:7]}"
-                    ),
-                    "is_error_fare": False,
-                    "is_hot": True,
-                    "autosend": False,
-                }
-        ranked = sorted(best.values(), key=lambda d: d["_total"])
-        for d in ranked:
-            d.pop("_total", None)
-            deals.append(d)
-        print(f"Wizz Air {origin} : {len(ranked)} route(s) sous {WIZZAIR_MAX_EUR} EUR")
     return deals
 
 
