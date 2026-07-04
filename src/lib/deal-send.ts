@@ -57,7 +57,7 @@ function dealCard(deal: Deal): string {
         <div style="margin-top:6px;"><span style="font-size:13px;color:#64748b;">aux alentours de </span>${priceLine}<span style="font-size:13px;color:#64748b;"> aller-retour</span></div>
         ${notesHtml}
         ${errorHtml}
-        <a href="${deal.booking_url}" style="display:inline-block;margin-top:14px;background:#0f172a;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:12px 28px;border-radius:999px;">Réserver ce vol</a>
+        <a href="${deal.booking_url}" style="display:inline-block;margin-top:14px;background:#0ea5e9;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:12px 28px;border-radius:999px;">Réserver ce vol</a>
       </td></tr>
     </table>
   </td></tr>`;
@@ -85,7 +85,7 @@ function spacer(): string {
 // Bouton CTA vers l'espace compte (voir TOUS les bons plans).
 function accountCta(accountUrl: string): string {
   return `<tr><td align="center" style="padding:16px 32px 24px;">
-    <a href="${accountUrl}" style="display:inline-block;background:#0f172a;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 36px;border-radius:999px;">Voir tous mes bons plans</a>
+    <a href="${accountUrl}" style="display:inline-block;background:#0ea5e9;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 36px;border-radius:999px;">Voir tous mes bons plans</a>
   </td></tr>`;
 }
 

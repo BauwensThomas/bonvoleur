@@ -28,7 +28,7 @@ const FAKE_DEAL = {
   discount_pct: 58,
   dates: "2026-09-12 / 2026-09-19",
   airline: "Ryanair",
-  booking_url: site.url,
+  booking_url: "https://www.ryanair.com/fr/fr/",
   is_error_fare: false,
   is_hot: true,
   valid_until: null,
