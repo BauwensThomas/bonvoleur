@@ -38,7 +38,7 @@ export function emailLayout(
     : "";
 
   const footerUnsub = unsubscribeUrl
-    ? `<p style="margin:8px 0 0;"><a href="${unsubscribeUrl}" style="color:#94a3b8;font-size:12px;text-decoration:underline;">Se desinscrire</a></p>`
+    ? `<p style="margin:8px 0 0;"><a href="${unsubscribeUrl}" style="color:#94a3b8;font-size:12px;text-decoration:underline;">Se désinscrire</a></p>`
     : "";
 
   return `<!doctype html>
@@ -68,7 +68,7 @@ export function emailLayout(
             <img src="${LOGO_URL}" width="28" height="28" alt="" style="vertical-align:middle;border-radius:6px;margin-right:6px;" />
             <span style="font-size:15px;font-weight:800;color:#0f172a;vertical-align:middle;">BonVoleur<span style="color:#0ea5e9;">.com</span></span>
           </p>
-          <p style="margin:6px 0 16px;font-size:13px;color:#64748b;">Les meilleurs bons plans de vols, directement dans ta boite mail.</p>
+          <p style="margin:6px 0 16px;font-size:13px;color:#64748b;">Les meilleurs bons plans de vols, directement dans ta boîte mail.</p>
           <p style="margin:0;">
             <a href="${site.social.instagram}" style="${LINK}margin-right:20px;">${IG_LOGO}Instagram</a>
             <a href="${site.social.facebook}" style="${LINK}">${FB_LOGO}Facebook</a>
@@ -88,12 +88,12 @@ export function emailLayout(
 </body></html>`;
 }
 
-// Bloc de contenu standard (padding interieur).
+// Bloc de contenu standard (padding intérieur).
 export function emailContent(html: string): string {
   return `<tr><td style="padding:32px 32px 24px;font-size:15px;line-height:1.7;color:#0f172a;">${html}</td></tr>`;
 }
 
-// Bloc hero colore (comme la zone image Surfshark).
+// Bloc hero coloré (comme la zone image Surfshark).
 export function emailHero(bgColor: string, html: string): string {
   return `<tr><td style="padding:24px 32px 0;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${bgColor};border-radius:12px;overflow:hidden;">
@@ -119,7 +119,7 @@ export function welcomeEmail(to: string, unsubscribeUrl: string): EmailMessage {
   );
 
   const body = emailContent(
-    `<h1 style="margin:0 0 14px;font-size:22px;font-weight:800;">Les bons plans arrivent bientot.</h1>
+    `<h1 style="margin:0 0 14px;font-size:22px;font-weight:800;">Les bons plans arrivent bientôt.</h1>
      <p style="margin:0 0 12px;color:#475569;">${site.promise}</p>
      <p style="margin:0 0 24px;color:#475569;">Tu recevras par email nos meilleures alertes de vols pas chers depuis la Belgique et la France. En attendant, explore nos destinations.</p>
      ${ctaButton("Explorer les destinations", `${site.url}/vols-pas-chers`, "#0ea5e9")}`,
@@ -131,7 +131,7 @@ Tu recevras nos meilleures alertes de vols pas chers depuis la Belgique et la Fr
 
 Explorer les destinations : ${site.url}/vols-pas-chers
 
-Se desinscrire : ${unsubscribeUrl}`;
+Se désinscrire : ${unsubscribeUrl}`;
 
   return {
     to,
@@ -151,19 +151,19 @@ export function confirmEmail(to: string, confirmUrl: string): EmailMessage {
   );
 
   const body = emailContent(
-    `<p style="margin:0 0 8px;color:#475569;">Encore une etape : clique sur le bouton ci-dessous pour confirmer ton inscription a ${site.name} et commencer a recevoir les bons plans de vols.</p>
+    `<p style="margin:0 0 8px;color:#475569;">Encore une étape : clique sur le bouton ci-dessous pour confirmer ton inscription à ${site.name} et commencer à recevoir les bons plans de vols.</p>
      ${ctaButton("Confirmer mon inscription", confirmUrl, "#16a34a")}
-     <p style="margin:20px 0 0;font-size:13px;color:#94a3b8;">Si tu n'es pas a l'origine de cette demande, ignore simplement cet email.</p>`,
+     <p style="margin:20px 0 0;font-size:13px;color:#94a3b8;">Si tu n'es pas à l'origine de cette demande, ignore simplement cet email.</p>`,
   );
 
-  const text = `Confirme ton inscription a ${site.name}.
+  const text = `Confirme ton inscription à ${site.name}.
 Clique sur ce lien pour confirmer : ${confirmUrl}
 
-Si tu n'es pas a l'origine de cette demande, ignore cet email.`;
+Si tu n'es pas à l'origine de cette demande, ignore cet email.`;
 
   return {
     to,
-    subject: `Confirme ton inscription a ${site.name}`,
+    subject: `Confirme ton inscription à ${site.name}`,
     html: emailLayout(hero + body),
     text,
     replyTo: site.email,
@@ -175,20 +175,20 @@ export function unsubscribeLinkEmail(
   unsubscribeUrl: string,
 ): EmailMessage {
   const body = emailContent(
-    `<h1 style="margin:0 0 14px;font-size:22px;font-weight:800;">Tu veux te desinscrire ?</h1>
-     <p style="margin:0 0 4px;color:#475569;">Tu as demande a ne plus recevoir nos emails. Clique sur le bouton ci-dessous pour confirmer.</p>
-     ${ctaButton("Confirmer la desinscription", unsubscribeUrl, "#64748b")}
-     <p style="margin:20px 0 0;font-size:13px;color:#94a3b8;">Si tu n'es pas a l'origine de cette demande, ignore simplement cet email.</p>`,
+    `<h1 style="margin:0 0 14px;font-size:22px;font-weight:800;">Tu veux te désinscrire ?</h1>
+     <p style="margin:0 0 4px;color:#475569;">Tu as demandé à ne plus recevoir nos emails. Clique sur le bouton ci-dessous pour confirmer.</p>
+     ${ctaButton("Confirmer la désinscription", unsubscribeUrl, "#64748b")}
+     <p style="margin:20px 0 0;font-size:13px;color:#94a3b8;">Si tu n'es pas à l'origine de cette demande, ignore simplement cet email.</p>`,
   );
 
-  const text = `Tu as demande a te desinscrire de ${site.name}.
+  const text = `Tu as demandé à te désinscrire de ${site.name}.
 Confirme en ouvrant ce lien : ${unsubscribeUrl}
 
-Si tu n'es pas a l'origine de cette demande, ignore cet email.`;
+Si tu n'es pas à l'origine de cette demande, ignore cet email.`;
 
   return {
     to,
-    subject: `Confirme ta desinscription - ${site.name}`,
+    subject: `Confirme ta désinscription - ${site.name}`,
     html: emailLayout(body),
     text,
     replyTo: site.email,
@@ -197,17 +197,17 @@ Si tu n'es pas a l'origine de cette demande, ignore cet email.`;
 
 export function unsubscribeEmail(to: string): EmailMessage {
   const body = emailContent(
-    `<h1 style="margin:0 0 14px;font-size:22px;font-weight:800;">C'est note.</h1>
-     <p style="margin:0 0 12px;color:#475569;">Tu ne recevras plus nos alertes ni notre newsletter. On espere te revoir un jour.</p>
-     <p style="margin:0;color:#475569;">Tu changes d'avis ? Tu peux te reinscrire a tout moment sur <a href="${site.url}" style="${LINK}">${site.domain}</a>.</p>`,
+    `<h1 style="margin:0 0 14px;font-size:22px;font-weight:800;">C'est noté.</h1>
+     <p style="margin:0 0 12px;color:#475569;">Tu ne recevras plus nos alertes ni notre newsletter. On espère te revoir un jour.</p>
+     <p style="margin:0;color:#475569;">Tu changes d'avis ? Tu peux te réinscrire à tout moment sur <a href="${site.url}" style="${LINK}">${site.domain}</a>.</p>`,
   );
 
   const text = `Tu ne recevras plus nos emails.
-Tu changes d'avis ? Reinscris-toi sur ${site.url}.`;
+Tu changes d'avis ? Réinscris-toi sur ${site.url}.`;
 
   return {
     to,
-    subject: `Desinscription confirmee - ${site.name}`,
+    subject: `Désinscription confirmée - ${site.name}`,
     html: emailLayout(body),
     text,
     replyTo: site.email,
@@ -216,17 +216,17 @@ Tu changes d'avis ? Reinscris-toi sur ${site.url}.`;
 
 export function accountDeletedEmail(to: string): EmailMessage {
   const body = emailContent(
-    `<h1 style="margin:0 0 14px;font-size:22px;font-weight:800;">Ton compte a ete supprime.</h1>
-     <p style="margin:0 0 12px;color:#475569;">Comme demande, ton compte ${site.name} a ete supprime : toutes tes donnees ont ete effacees et ton abonnement premium eventuel a ete resilie. Tu ne seras plus debite.</p>
-     <p style="margin:0;color:#475569;">Tu peux te reinscrire a tout moment sur <a href="${site.url}" style="${LINK}">${site.domain}</a>.</p>`,
+    `<h1 style="margin:0 0 14px;font-size:22px;font-weight:800;">Ton compte a été supprimé.</h1>
+     <p style="margin:0 0 12px;color:#475569;">Comme demandé, ton compte ${site.name} a été supprimé : toutes tes données ont été effacées et ton abonnement premium éventuel a été résilié. Tu ne seras plus débité.</p>
+     <p style="margin:0;color:#475569;">Tu peux te réinscrire à tout moment sur <a href="${site.url}" style="${LINK}">${site.domain}</a>.</p>`,
   );
 
-  const text = `Ton compte ${site.name} a ete supprime : donnees effacees et abonnement resilie.
-Tu peux te reinscrire sur ${site.url}.`;
+  const text = `Ton compte ${site.name} a été supprimé : données effacées et abonnement résilié.
+Tu peux te réinscrire sur ${site.url}.`;
 
   return {
     to,
-    subject: `Ton compte ${site.name} a ete supprime`,
+    subject: `Ton compte ${site.name} a été supprimé`,
     html: emailLayout(body),
     text,
     replyTo: site.email,
@@ -253,7 +253,7 @@ export function dealsAlertEmail(
 
   const body = emailContent(
     `<p style="margin:0 0 12px;color:#475569;">${title}</p>
-     <p style="margin:0;color:#475569;">Verifie le scanner (GitHub Actions) ou relance-le pour realimenter le stock.</p>
+     <p style="margin:0;color:#475569;">Vérifie le scanner (GitHub Actions) ou relance-le pour réalimenter le stock.</p>
      ${ctaButton("Voir GitHub Actions", `https://github.com/BauwensThomas/bonvoleur/actions`, color)}`,
   );
 
@@ -263,7 +263,7 @@ export function dealsAlertEmail(
       ? `URGENCE : moins de 50 bons plans (${count})`
       : `ATTENTION : moins de 100 bons plans (${count})`,
     html: emailLayout(hero + body),
-    text: `${title}\nIl reste ${count} bon(s) plan(s) visible(s) sur ${site.name}. Verifie le scanner.`,
+    text: `${title}\nIl reste ${count} bon(s) plan(s) visible(s) sur ${site.name}. Vérifie le scanner.`,
     replyTo: site.email,
   };
 }
@@ -305,7 +305,7 @@ export function blogNewsletterEmail(
 
 ${posts.map((p) => `${p.title}\n${site.url}/blog/${p.slug}`).join("\n\n")}
 
-Se desinscrire : ${unsubscribeUrl}`;
+Se désinscrire : ${unsubscribeUrl}`;
 
   return {
     to,
