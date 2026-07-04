@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getAll } from "@/lib/db";
 import { getMemberDeals } from "@/lib/member-deals";
 import { getScannerRuns } from "@/lib/github-actions";
+import { getDestinations } from "@/lib/routes";
 
 function Stat({ label, value, href }: { label: string; value: number; href: string }) {
   return (
@@ -16,15 +17,33 @@ function Stat({ label, value, href }: { label: string; value: number; href: stri
 }
 
 export default async function AdminDashboard() {
-  const [subscribers, memberDeals, posts, partners, runs, scanner] =
+  const [subscribers, memberDeals, posts, partners, runs, scanner, airports, destinations] =
     await Promise.all([
       getAll("subscribers"),
-      getMemberDeals("premium"), // ce que voit le premium : 1 deal par route
+      getMemberDeals("premium"),
       getAll("posts"),
       getAll("partners"),
       getAll("agent_runs"),
       getScannerRuns(),
+      getAll("airports"),
+      getDestinations(),
     ]);
+
+  const activeAirports = airports
+    .filter((a: { active: boolean; iata: string; name?: string }) => a.active)
+    .sort((a: { iata: string }, b: { iata: string }) => a.iata.localeCompare(b.iata));
+
+  const AIRPORT_NAMES: Record<string, string> = {
+    BRU: "Bruxelles", CRL: "Charleroi", LGG: "Liège", ANR: "Anvers", OST: "Ostende",
+    CDG: "Paris CDG", ORY: "Paris Orly", BVA: "Paris Beauvais",
+    LYS: "Lyon", NCE: "Nice", MRS: "Marseille", BOD: "Bordeaux",
+    TLS: "Toulouse", NTE: "Nantes", LIL: "Lille", MPL: "Montpellier", SXB: "Strasbourg",
+  };
+
+  const activeIatas = new Set(activeAirports.map((a: { iata: string }) => a.iata));
+  const visibleDests = destinations.filter((d) =>
+    d.routes.some((r) => activeIatas.has(r.originIata))
+  );
 
   const recentRuns = [...runs]
     .sort((a, b) => b.started_at.localeCompare(a.started_at))
@@ -48,6 +67,48 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex items-start justify-between gap-6 flex-wrap">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold">Aéroports actifs</h2>
+              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
+                {activeAirports.length}
+              </span>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {activeAirports.length === 0 ? (
+                <p className="text-sm text-slate-400">Aucun aéroport actif</p>
+              ) : (
+                activeAirports.map((a: { iata: string }) => (
+                  <span
+                    key={a.iata}
+                    className="rounded-full bg-green-50 border border-green-200 px-3 py-1 text-xs font-medium text-green-800"
+                  >
+                    {AIRPORT_NAMES[a.iata] ?? a.iata}
+                    <span className="ml-1 text-green-500 font-normal">{a.iata}</span>
+                  </span>
+                ))
+              )}
+            </div>
+          </div>
+          <div className="shrink-0">
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold">Destinations visibles</h2>
+              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
+                {visibleDests.length}
+              </span>
+            </div>
+            <p className="mt-3 text-sm text-slate-500">
+              sur {destinations.length} destinations au total
+            </p>
+            <Link href="/admin/photos" className="mt-2 inline-block text-sm text-brand hover:underline">
+              Voir les fiches
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">Dernières exécutions d&apos;agents</h2>
           <Link href="/admin/agents" className="text-sm text-brand hover:underline">
