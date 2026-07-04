@@ -1,6 +1,6 @@
-// Templates d'email (HTML + texte). Règles : pas de tiret long, pas d'émoji.
-// Tous les emails partagent le MÊME gabarit (emailLayout) : bannière bleue
-// "BonVoleur.com" en haut, pied avec réseaux + bouton "se désinscrire".
+// Templates d'email (HTML + texte). Regles : pas de tiret long, pas d'emoji.
+// Design inspire de Surfshark : logo minimal en header, hero colore, CTA dark pill,
+// footer 2 tiers (gris marque + legal/desabonnement).
 
 import { site } from "./site";
 import type { EmailMessage } from "./email";
@@ -14,54 +14,73 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-// Petits logos réseaux en PNG hébergé (Supabase Storage) : un email affiche
-// fiablement une image PNG (le SVG inline est ignoré par Gmail et d'autres).
-const ICON_BASE = "https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand";
-export const IG_LOGO = `<img src="${ICON_BASE}/instagram.png" width="14" height="14" alt="" style="vertical-align:middle;margin-right:5px;" />`;
-export const FB_LOGO = `<img src="${ICON_BASE}/facebook.png" width="14" height="14" alt="" style="vertical-align:middle;margin-right:5px;" />`;
+const ICON_BASE =
+  "https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand";
+export const IG_LOGO = `<img src="${ICON_BASE}/instagram.png" width="16" height="16" alt="" style="vertical-align:middle;margin-right:5px;" />`;
+export const FB_LOGO = `<img src="${ICON_BASE}/facebook.png" width="16" height="16" alt="" style="vertical-align:middle;margin-right:5px;" />`;
 
-const LINK = "color:#0369a1;text-decoration:none;";
-
-// Logo hébergé dans Supabase Storage (URL toujours joignable depuis un email,
-// même si le site n'est pas encore déployé).
 const LOGO_URL =
   "https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand/logo.png";
+const HERO_URL =
+  "https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand/hero-email.jpg";
 
-// Gabarit commun à TOUS les emails : bannière + contenu + pied (réseaux +
-// désinscription si unsubscribeUrl fourni). Largeur 640px.
+const LINK = "color:#0369a1;text-decoration:none;";
+const WIDTH = 680;
+
+// Gabarit commun. Plus de "subtitle" : le header est minimal (logo seul).
 export function emailLayout(
-  subtitle: string,
   inner: string,
   unsubscribeUrl?: string,
-  trackingToken?: string
+  trackingToken?: string,
 ): string {
-  const footerUnsub = unsubscribeUrl
-    ? `<a href="${unsubscribeUrl}" style="display:inline-block;border:1px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;color:#64748b;text-decoration:none;">Se désinscrire</a>`
-    : "";
   const pixel = trackingToken
     ? `<img src="${site.url}/api/track/open?t=${encodeURIComponent(trackingToken)}" width="1" height="1" style="border:0;display:block;height:1px;width:1px;max-height:1px;overflow:hidden;" alt="" />`
     : "";
 
+  const footerUnsub = unsubscribeUrl
+    ? `<p style="margin:8px 0 0;"><a href="${unsubscribeUrl}" style="color:#94a3b8;font-size:12px;text-decoration:underline;">Se desinscrire</a></p>`
+    : "";
+
   return `<!doctype html>
-<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>BonVoleur</title></head>
 <body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#0f172a;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 0;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
     <tr><td align="center">
-      <table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;">
-        <tr><td style="background:#0ea5e9;padding:14px 28px;">
-          <img src="${LOGO_URL}" width="40" height="40" alt="" style="vertical-align:middle;background:#ffffff;border-radius:50%;margin-right:10px;" />
-          <span style="font-size:18px;font-weight:800;color:#ffffff;vertical-align:middle;">BonVoleur<span style="color:#bae6fd;">.com</span></span>
-          <span style="float:right;color:#e0f2fe;font-size:13px;line-height:40px;">${subtitle}</span>
+      <table role="presentation" width="${WIDTH}" cellpadding="0" cellspacing="0" style="max-width:${WIDTH}px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;">
+
+        <!-- HEADER : logo minimal, fond blanc -->
+        <tr><td style="padding:20px 32px;border-bottom:1px solid #f1f5f9;">
+          <img src="${LOGO_URL}" width="32" height="32" alt="" style="vertical-align:middle;border-radius:8px;margin-right:8px;" />
+          <span style="font-size:16px;font-weight:800;color:#0f172a;vertical-align:middle;">BonVoleur<span style="color:#0ea5e9;">.com</span></span>
         </td></tr>
+
+        <!-- HERO IMAGE -->
+        <tr><td style="padding:0;">
+          <img src="${HERO_URL}" width="${WIDTH}" alt="Vole plus loin, paye moins." style="display:block;width:100%;max-width:${WIDTH}px;" />
+        </td></tr>
+
+        <!-- CONTENU -->
         ${inner}
-        <tr><td align="center" style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:18px 28px;text-align:center;">
-          <p style="margin:0 0 6px;font-size:14px;"><a href="${site.url}" style="${LINK}font-weight:bold;">${site.domain}</a></p>
-          <p style="margin:0 0 12px;font-size:14px;">
-            <a href="${site.social.instagram}" style="${LINK}margin-right:16px;">${IG_LOGO}Instagram</a>
+
+        <!-- FOOTER 1 : gris, marque + reseaux -->
+        <tr><td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:28px 32px;text-align:center;">
+          <p style="margin:0 0 4px;">
+            <img src="${LOGO_URL}" width="28" height="28" alt="" style="vertical-align:middle;border-radius:6px;margin-right:6px;" />
+            <span style="font-size:15px;font-weight:800;color:#0f172a;vertical-align:middle;">BonVoleur<span style="color:#0ea5e9;">.com</span></span>
+          </p>
+          <p style="margin:6px 0 16px;font-size:13px;color:#64748b;">Les meilleurs bons plans de vols, directement dans ta boite mail.</p>
+          <p style="margin:0;">
+            <a href="${site.social.instagram}" style="${LINK}margin-right:20px;">${IG_LOGO}Instagram</a>
             <a href="${site.social.facebook}" style="${LINK}">${FB_LOGO}Facebook</a>
           </p>
+        </td></tr>
+
+        <!-- FOOTER 2 : legal + desabonnement -->
+        <tr><td style="background:#f1f5f9;padding:14px 32px;text-align:center;font-size:12px;color:#94a3b8;border-top:1px solid #e2e8f0;">
+          <p style="margin:0;">${site.name} - <a href="mailto:${site.email}" style="color:#94a3b8;text-decoration:none;">${site.email}</a></p>
           ${footerUnsub}
         </td></tr>
+
       </table>
       ${pixel}
     </td></tr>
@@ -69,193 +88,229 @@ export function emailLayout(
 </body></html>`;
 }
 
-// Rangée de contenu standard (à passer comme `inner`).
+// Bloc de contenu standard (padding interieur).
 export function emailContent(html: string): string {
-  return `<tr><td style="padding:24px 28px;font-size:15px;line-height:1.6;color:#0f172a;">${html}</td></tr>`;
+  return `<tr><td style="padding:32px 32px 24px;font-size:15px;line-height:1.7;color:#0f172a;">${html}</td></tr>`;
 }
 
+// Bloc hero colore (comme la zone image Surfshark).
+export function emailHero(bgColor: string, html: string): string {
+  return `<tr><td style="padding:24px 32px 0;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${bgColor};border-radius:12px;overflow:hidden;">
+      <tr><td style="padding:36px 28px;text-align:center;">${html}</td></tr>
+    </table>
+  </td></tr>`;
+}
+
+// CTA bouton pill.
+function ctaButton(text: string, href: string, bg = "#0ea5e9"): string {
+  return `<p style="margin:24px 0 0;text-align:center;">
+    <a href="${href}" style="display:inline-block;background:${bg};color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:999px;font-weight:700;font-size:15px;">${text}</a>
+  </p>`;
+}
+
+// ---- EMAILS TRANSACTIONNELS ----
+
 export function welcomeEmail(to: string, unsubscribeUrl: string): EmailMessage {
-  const inner = emailContent(
-    `<h1 style="margin:0 0 12px;font-size:22px;">Bienvenue chez ${site.name}</h1>
-     <p style="margin:0 0 12px;">${site.promise}</p>
-     <p style="margin:0 0 12px;">Tu recevras par email nos meilleures alertes de vols pas chers depuis la Belgique et la France.</p>
-     <p style="margin:0;">En attendant, garde un œil sur ta boîte mail. Les premiers deals arrivent bientôt.</p>`
+  const hero = emailHero(
+    "#e0f2fe",
+    `<p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#0284c7;text-transform:uppercase;letter-spacing:.06em;">Bienvenue</p>
+     <p style="margin:0;font-size:24px;font-weight:800;color:#0c4a6e;line-height:1.2;">Tu es dans le bon vol.</p>`,
+  );
+
+  const body = emailContent(
+    `<h1 style="margin:0 0 14px;font-size:22px;font-weight:800;">Les bons plans arrivent bientot.</h1>
+     <p style="margin:0 0 12px;color:#475569;">${site.promise}</p>
+     <p style="margin:0 0 24px;color:#475569;">Tu recevras par email nos meilleures alertes de vols pas chers depuis la Belgique et la France. En attendant, explore nos destinations.</p>
+     ${ctaButton("Explorer les destinations", `${site.url}/vols-pas-chers`, "#0ea5e9")}`,
   );
 
   const text = `Bienvenue chez ${site.name}.
 ${site.promise}
-Tu recevras par email nos meilleures alertes de vols pas chers depuis la Belgique et la France.
+Tu recevras nos meilleures alertes de vols pas chers depuis la Belgique et la France.
 
-Te desinscrire : ${unsubscribeUrl}`;
+Explorer les destinations : ${site.url}/vols-pas-chers
+
+Se desinscrire : ${unsubscribeUrl}`;
 
   return {
     to,
-    subject: `Bienvenue chez ${site.name}`,
-    html: emailLayout("Bienvenue", inner, unsubscribeUrl),
+    subject: `Bienvenue chez ${site.name} - Les bons plans arrivent`,
+    html: emailLayout(hero + body, unsubscribeUrl),
     text,
     replyTo: site.email,
     listUnsubscribe: unsubscribeUrl,
   };
 }
 
-// Double opt-in : confirmation envoyée juste après l'inscription.
 export function confirmEmail(to: string, confirmUrl: string): EmailMessage {
-  const inner = emailContent(
-    `<h1 style="margin:0 0 12px;font-size:22px;">Confirme ton inscription</h1>
-     <p style="margin:0 0 12px;">Encore une étape : clique sur le bouton ci-dessous pour confirmer ton inscription à ${site.name} et commencer à recevoir les bons plans de vols.</p>
-     <p style="margin:20px 0;"><a href="${confirmUrl}" style="display:inline-block;background:#0ea5e9;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:9px;font-weight:bold;">Confirmer mon inscription</a></p>
-     <p style="margin:0;font-size:13px;color:#64748b;">Si tu n'es pas à l'origine de cette demande, ignore simplement cet email.</p>`
+  const hero = emailHero(
+    "#f0fdf4",
+    `<p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.06em;">Presque fini</p>
+     <p style="margin:0;font-size:24px;font-weight:800;color:#14532d;line-height:1.2;">Confirme ton inscription.</p>`,
   );
 
-  const text = `Confirme ton inscription à ${site.name}.
+  const body = emailContent(
+    `<p style="margin:0 0 8px;color:#475569;">Encore une etape : clique sur le bouton ci-dessous pour confirmer ton inscription a ${site.name} et commencer a recevoir les bons plans de vols.</p>
+     ${ctaButton("Confirmer mon inscription", confirmUrl, "#16a34a")}
+     <p style="margin:20px 0 0;font-size:13px;color:#94a3b8;">Si tu n'es pas a l'origine de cette demande, ignore simplement cet email.</p>`,
+  );
+
+  const text = `Confirme ton inscription a ${site.name}.
 Clique sur ce lien pour confirmer : ${confirmUrl}
 
-Si tu n'es pas à l'origine de cette demande, ignore cet email.`;
+Si tu n'es pas a l'origine de cette demande, ignore cet email.`;
 
   return {
     to,
-    subject: `Confirme ton inscription à ${site.name}`,
-    html: emailLayout("Inscription", inner),
+    subject: `Confirme ton inscription a ${site.name}`,
+    html: emailLayout(hero + body),
     text,
     replyTo: site.email,
   };
 }
 
-// Email envoyé depuis la page publique de désinscription (lien sécurisé).
 export function unsubscribeLinkEmail(
   to: string,
-  unsubscribeUrl: string
+  unsubscribeUrl: string,
 ): EmailMessage {
-  const inner = emailContent(
-    `<h1 style="margin:0 0 12px;font-size:22px;">Confirme ta désinscription</h1>
-     <p style="margin:0 0 12px;">Tu as demandé à ne plus recevoir nos emails. Clique sur le bouton ci-dessous pour confirmer.</p>
-     <p style="margin:20px 0;"><a href="${unsubscribeUrl}" style="display:inline-block;background:#0ea5e9;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:9px;font-weight:bold;">Confirmer</a></p>
-     <p style="margin:0;font-size:13px;color:#64748b;">Si tu n'es pas à l'origine de cette demande, ignore cet email.</p>`
+  const body = emailContent(
+    `<h1 style="margin:0 0 14px;font-size:22px;font-weight:800;">Tu veux te desinscrire ?</h1>
+     <p style="margin:0 0 4px;color:#475569;">Tu as demande a ne plus recevoir nos emails. Clique sur le bouton ci-dessous pour confirmer.</p>
+     ${ctaButton("Confirmer la desinscription", unsubscribeUrl, "#64748b")}
+     <p style="margin:20px 0 0;font-size:13px;color:#94a3b8;">Si tu n'es pas a l'origine de cette demande, ignore simplement cet email.</p>`,
   );
 
-  const text = `Tu as demandé à te désinscrire de ${site.name}.
+  const text = `Tu as demande a te desinscrire de ${site.name}.
 Confirme en ouvrant ce lien : ${unsubscribeUrl}
 
-Si tu n'es pas à l'origine de cette demande, ignore cet email.`;
+Si tu n'es pas a l'origine de cette demande, ignore cet email.`;
 
   return {
     to,
-    subject: `Confirme ta désinscription - ${site.name}`,
-    html: emailLayout("Desinscription", inner),
+    subject: `Confirme ta desinscription - ${site.name}`,
+    html: emailLayout(body),
     text,
     replyTo: site.email,
   };
 }
 
 export function unsubscribeEmail(to: string): EmailMessage {
-  const inner = emailContent(
-    `<h1 style="margin:0 0 12px;font-size:22px;">Tu ne recevras plus d'emails</h1>
-     <p style="margin:0 0 12px;">C'est noté : on ne t'envoie plus d'alertes ni de newsletter.</p>
-     <p style="margin:0;">Tu changes d'avis ? Tu peux te réinscrire à tout moment sur <a href="${site.url}" style="${LINK}">${site.domain}</a>.</p>`
+  const body = emailContent(
+    `<h1 style="margin:0 0 14px;font-size:22px;font-weight:800;">C'est note.</h1>
+     <p style="margin:0 0 12px;color:#475569;">Tu ne recevras plus nos alertes ni notre newsletter. On espere te revoir un jour.</p>
+     <p style="margin:0;color:#475569;">Tu changes d'avis ? Tu peux te reinscrire a tout moment sur <a href="${site.url}" style="${LINK}">${site.domain}</a>.</p>`,
   );
 
   const text = `Tu ne recevras plus nos emails.
-Tu changes d'avis ? Réinscris-toi sur ${site.url}.`;
+Tu changes d'avis ? Reinscris-toi sur ${site.url}.`;
 
   return {
     to,
-    subject: `Désinscription confirmée - ${site.name}`,
-    html: emailLayout("Desinscription", inner),
+    subject: `Desinscription confirmee - ${site.name}`,
+    html: emailLayout(body),
     text,
     replyTo: site.email,
   };
 }
 
-// Confirmation de SUPPRESSION DÉFINITIVE du compte (données + abonnement effacés).
 export function accountDeletedEmail(to: string): EmailMessage {
-  const inner = emailContent(
-    `<h1 style="margin:0 0 12px;font-size:22px;">Ton compte a été supprimé</h1>
-     <p style="margin:0 0 12px;">Comme demandé, ton compte ${site.name} a été supprimé : toutes tes données ont été effacées et ton abonnement premium éventuel a été résilié. Tu ne seras plus débité.</p>
-     <p style="margin:0;">Tu peux te réinscrire à tout moment sur <a href="${site.url}" style="${LINK}">${site.domain}</a>.</p>`
+  const body = emailContent(
+    `<h1 style="margin:0 0 14px;font-size:22px;font-weight:800;">Ton compte a ete supprime.</h1>
+     <p style="margin:0 0 12px;color:#475569;">Comme demande, ton compte ${site.name} a ete supprime : toutes tes donnees ont ete effacees et ton abonnement premium eventuel a ete resilie. Tu ne seras plus debite.</p>
+     <p style="margin:0;color:#475569;">Tu peux te reinscrire a tout moment sur <a href="${site.url}" style="${LINK}">${site.domain}</a>.</p>`,
   );
 
-  const text = `Ton compte ${site.name} a été supprimé : données effacées et abonnement résilié.
-Tu peux te réinscrire sur ${site.url}.`;
+  const text = `Ton compte ${site.name} a ete supprime : donnees effacees et abonnement resilie.
+Tu peux te reinscrire sur ${site.url}.`;
 
   return {
     to,
-    subject: `Ton compte ${site.name} a été supprimé`,
-    html: emailLayout("Compte supprimé", inner),
+    subject: `Ton compte ${site.name} a ete supprime`,
+    html: emailLayout(body),
     text,
     replyTo: site.email,
   };
 }
 
-// Alerte ADMIN (interne) : stock de bons plans visibles trop bas. Envoyée à
-// contact@bonvoleur.com. Pas de pied "se désinscrire" (ce n'est pas marketing).
+// Email ADMIN interne : stock de bons plans trop bas.
 export function dealsAlertEmail(
   count: number,
-  level: "urgence" | "attention"
+  level: "urgence" | "attention",
 ): EmailMessage {
   const urgence = level === "urgence";
   const color = urgence ? "#dc2626" : "#d97706";
+  const bg = urgence ? "#fef2f2" : "#fffbeb";
   const title = urgence
     ? "URGENCE : moins de 50 bons plans aujourd'hui"
     : "ATTENTION : moins de 100 bons plans aujourd'hui";
-  const inner = emailContent(
-    `<h1 style="margin:0 0 12px;font-size:22px;color:${color};">${title}</h1>
-     <p style="margin:0 0 12px;">Il reste actuellement <strong>${count}</strong> bon${count > 1 ? "s" : ""} plan${count > 1 ? "s" : ""} visible${count > 1 ? "s" : ""} sur ${site.name}.</p>
-     <p style="margin:0;">Vérifie le scanner (GitHub Actions) ou relance-le pour réalimenter le stock.</p>`
+
+  const hero = emailHero(
+    bg,
+    `<p style="margin:0 0 6px;font-size:13px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.06em;">${level.toUpperCase()}</p>
+     <p style="margin:0;font-size:22px;font-weight:800;color:${color};line-height:1.2;">${count} bons plans restants</p>`,
+  );
+
+  const body = emailContent(
+    `<p style="margin:0 0 12px;color:#475569;">${title}</p>
+     <p style="margin:0;color:#475569;">Verifie le scanner (GitHub Actions) ou relance-le pour realimenter le stock.</p>
+     ${ctaButton("Voir GitHub Actions", `https://github.com/BauwensThomas/bonvoleur/actions`, color)}`,
   );
 
   return {
     to: site.email,
     subject: urgence
-      ? `URGENCE : moins de 50 bons plans aujourd'hui (${count})`
-      : `ATTENTION : moins de 100 bons plans aujourd'hui (${count})`,
-    html: emailLayout("Alerte stock", inner),
-    text: `${title}\nIl reste ${count} bon(s) plan(s) visible(s) sur ${site.name}. Vérifie le scanner.`,
+      ? `URGENCE : moins de 50 bons plans (${count})`
+      : `ATTENTION : moins de 100 bons plans (${count})`,
+    html: emailLayout(hero + body),
+    text: `${title}\nIl reste ${count} bon(s) plan(s) visible(s) sur ${site.name}. Verifie le scanner.`,
     replyTo: site.email,
   };
 }
 
-// Newsletter blog hebdomadaire (vendredi) : les 3 derniers articles publiés.
+// Newsletter blog hebdomadaire.
 type NewsletterPost = Pick<Post, "slug" | "title" | "excerpt" | "cover_image">;
 
 export function blogNewsletterEmail(
   to: string,
   posts: NewsletterPost[],
   unsubscribeUrl: string,
-  trackingToken?: string
+  trackingToken?: string,
 ): EmailMessage {
   const cards = posts
     .map((p) => {
       const url = `${site.url}/blog/${p.slug}`;
       const cover = p.cover_image
-        ? `<a href="${url}"><img src="${p.cover_image}" alt="" width="100%" style="display:block;border-radius:10px 10px 0 0;max-height:200px;object-fit:cover;"/></a>`
+        ? `<a href="${url}"><img src="${p.cover_image}" alt="" width="100%" style="display:block;border-radius:10px 10px 0 0;max-height:220px;object-fit:cover;" /></a>`
         : "";
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
         <tr><td>${cover}</td></tr>
-        <tr><td style="padding:14px 16px;">
-          <a href="${url}" style="font-size:17px;font-weight:700;color:#0f172a;text-decoration:none;">${escapeHtml(p.title)}</a>
-          <p style="margin:6px 0 10px;font-size:14px;color:#475569;">${escapeHtml(p.excerpt)}</p>
-          <a href="${url}" style="font-size:14px;font-weight:600;${LINK}">Lire l'article</a>
+        <tr><td style="padding:16px 18px;">
+          <a href="${url}" style="font-size:17px;font-weight:700;color:#0f172a;text-decoration:none;line-height:1.3;">${escapeHtml(p.title)}</a>
+          <p style="margin:8px 0 12px;font-size:14px;color:#475569;line-height:1.5;">${escapeHtml(p.excerpt)}</p>
+          <a href="${url}" style="font-size:14px;font-weight:700;${LINK}">Lire l'article &rarr;</a>
         </td></tr>
       </table>`;
     })
     .join("");
 
-  const inner = emailContent(
-    `<h1 style="margin:0 0 4px;font-size:22px;">Le blog de la semaine</h1>
-     <p style="margin:0 0 18px;font-size:14px;color:#475569;">Nos derniers conseils pour voyager moins cher.</p>
-     ${cards}`
-  );
+  const intro = `<tr><td style="padding:32px 32px 20px;">
+    <h1 style="margin:0 0 6px;font-size:22px;font-weight:800;">Le blog de la semaine</h1>
+    <p style="margin:0 0 20px;font-size:14px;color:#475569;">Nos derniers conseils pour voyager moins cher.</p>
+    ${cards}
+    <p style="margin:0;text-align:center;">${ctaButton("Voir tous les articles", `${site.url}/blog`)}</p>
+  </td></tr>`;
 
   const text = `Le blog ${site.name} de la semaine
 
 ${posts.map((p) => `${p.title}\n${site.url}/blog/${p.slug}`).join("\n\n")}
 
-Te desinscrire : ${unsubscribeUrl}`;
+Se desinscrire : ${unsubscribeUrl}`;
 
   return {
     to,
     subject: `Le blog ${site.name} : nos derniers articles`,
-    html: emailLayout("Newsletter", inner, unsubscribeUrl, trackingToken),
+    html: emailLayout(intro, unsubscribeUrl, trackingToken),
     text,
     replyTo: site.email,
     listUnsubscribe: unsubscribeUrl,

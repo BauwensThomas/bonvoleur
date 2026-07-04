@@ -40,15 +40,7 @@ function matches(sub: Subscriber, iata: string | null): boolean {
 
 // Carte d'un deal (réutilisée en email simple et en digest).
 function dealCard(deal: Deal): string {
-  const pct =
-    deal.normal_price && deal.normal_price > 0
-      ? discountPct(deal.price, deal.normal_price)
-      : null;
-  const priceLine = pct
-    ? `<span style="font-size:28px;font-weight:800;color:#0369a1;">${deal.price}€</span>
-       <span style="font-size:14px;color:#94a3b8;text-decoration:line-through;margin-left:8px;">${deal.normal_price}€</span>
-       <span style="display:inline-block;margin-left:8px;background:#dcfce7;color:#166534;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;">-${pct}%</span>`
-    : `<span style="font-size:28px;font-weight:800;color:#0369a1;">${deal.price}€</span>`;
+  const priceLine = `<span style="font-size:28px;font-weight:800;color:#0369a1;">${deal.price}€</span>`;
   const notes: string[] = [];
   if (deal.airline) notes.push(`Compagnie : ${escapeHtml(deal.airline)}`);
   if (deal.dates) notes.push(`Dates : ${escapeHtml(deal.dates)}`);
@@ -58,32 +50,32 @@ function dealCard(deal: Deal): string {
   const errorHtml = deal.is_error_fare
     ? `<div style="margin-top:8px;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;font-size:12px;color:#92400e;">Erreur de prix probable. Le tarif peut être annulé par la compagnie. Réserve vite.</div>`
     : "";
-  return `<tr><td style="padding:8px 20px;">
+  return `<tr><td style="padding:8px 24px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:12px;">
       <tr><td style="padding:16px 18px;">
         <div style="font-size:17px;font-weight:700;color:#0f172a;">${escapeHtml(deal.origin)} &rarr; ${escapeHtml(deal.destination)}</div>
         <div style="margin-top:6px;"><span style="font-size:13px;color:#64748b;">aux alentours de </span>${priceLine}<span style="font-size:13px;color:#64748b;"> aller-retour</span></div>
         ${notesHtml}
         ${errorHtml}
-        <a href="${deal.booking_url}" style="display:inline-block;margin-top:12px;background:#0ea5e9;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:11px 22px;border-radius:9px;">Reserver ce vol</a>
+        <a href="${deal.booking_url}" style="display:inline-block;margin-top:14px;background:#0f172a;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:12px 28px;border-radius:999px;">Reserver ce vol</a>
       </td></tr>
     </table>
   </td></tr>`;
 }
 
-const hurryLine = `<tr><td style="padding:6px 28px 0;font-size:13px;font-weight:700;color:#ea580c;">Les bons prix partent vite, ne traine pas.</td></tr>`;
+const hurryLine = `<tr><td style="padding:6px 32px 0;font-size:13px;font-weight:700;color:#ea580c;">Les bons prix partent vite, ne traine pas.</td></tr>`;
 
 // Email d'un seul deal.
 export function dealHtml(deal: Deal, unsubscribeUrl: string): string {
-  const intro = `<tr><td style="padding:22px 28px 0;font-size:15px;color:#334155;">Un nouveau bon plan pour toi :</td></tr>`;
-  return emailLayout("Bon plan vol", intro + hurryLine + dealCard(deal) + spacer(), unsubscribeUrl);
+  const intro = `<tr><td style="padding:28px 32px 0;font-size:15px;color:#334155;">Un nouveau bon plan <strong>BonVoleur</strong> pour toi :</td></tr>`;
+  return emailLayout(intro + hurryLine + dealCard(deal) + spacer(), unsubscribeUrl);
 }
 
 // Email digest : plusieurs deals dans un seul email.
 export function digestHtml(deals: Deal[], unsubscribeUrl: string): string {
-  const intro = `<tr><td style="padding:22px 28px 0;font-size:16px;font-weight:700;color:#0f172a;">${deals.length} bon${deals.length > 1 ? "s" : ""} plan${deals.length > 1 ? "s" : ""} pour toi</td></tr>`;
+  const intro = `<tr><td style="padding:28px 32px 0;font-size:18px;font-weight:800;color:#0f172a;">${deals.length} bon${deals.length > 1 ? "s" : ""} plan${deals.length > 1 ? "s" : ""} pour toi</td></tr>`;
   const cards = deals.map(dealCard).join("");
-  return emailLayout("Tes bons plans", intro + hurryLine + cards + spacer(), unsubscribeUrl);
+  return emailLayout(intro + hurryLine + cards + spacer(), unsubscribeUrl);
 }
 
 function spacer(): string {
@@ -92,8 +84,8 @@ function spacer(): string {
 
 // Bouton CTA vers l'espace compte (voir TOUS les bons plans).
 function accountCta(accountUrl: string): string {
-  return `<tr><td align="center" style="padding:10px 28px 20px;">
-    <a href="${accountUrl}" style="display:inline-block;background:#0ea5e9;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:12px 24px;border-radius:9px;">Voir tous mes bons plans</a>
+  return `<tr><td align="center" style="padding:16px 32px 24px;">
+    <a href="${accountUrl}" style="display:inline-block;background:#0f172a;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 36px;border-radius:999px;">Voir tous mes bons plans</a>
   </td></tr>`;
 }
 
@@ -108,11 +100,11 @@ export function teaserDigestHtml(
 ): string {
   const hasDeals = groups.length > 0;
   const intro = hasDeals
-    ? `<tr><td style="padding:22px 28px 0;font-size:15px;color:#334155;">Voici un aperçu de tes meilleurs bons plans. Retrouve-les tous (et plus) sur ton compte.</td></tr>`
-    : `<tr><td style="padding:22px 28px 0;font-size:15px;color:#334155;">Un ou plusieurs de tes aéroports de départ ont été temporairement désactivés. Mets à jour tes préférences pour continuer à recevoir des bons plans.</td></tr>`;
+    ? `<tr><td style="padding:28px 32px 0;font-size:15px;color:#334155;">Voici un apercu de tes meilleurs bons plans <strong>BonVoleur</strong>. Retrouve-les tous sur ton compte.</td></tr>`
+    : `<tr><td style="padding:28px 32px 0;font-size:15px;color:#334155;">Un ou plusieurs de tes aeroports de depart ont ete temporairement desactives. Mets a jour tes preferences pour continuer a recevoir des bons plans.</td></tr>`;
   const sections = groups
     .map((g) => {
-      const header = `<tr><td style="padding:18px 28px 2px;font-size:16px;font-weight:800;color:#0f172a;">Depuis ${escapeHtml(g.origin)}</td></tr>`;
+      const header = `<tr><td style="padding:18px 32px 2px;font-size:16px;font-weight:800;color:#0f172a;">Depuis ${escapeHtml(g.origin)}</td></tr>`;
       return header + g.deals.map(dealCard).join("");
     })
     .join("");
@@ -133,7 +125,7 @@ export function teaserDigestHtml(
   const body = hasDeals
     ? intro + hurryLine + sections + deactivatedSection + accountCta(accountUrl) + spacer()
     : intro + deactivatedSection + accountCta(accountUrl) + spacer();
-  return emailLayout("Tes bons plans", body, unsubscribeUrl, trackingToken);
+  return emailLayout(body, unsubscribeUrl, trackingToken);
 }
 
 function escapeHtml(s: string): string {
@@ -440,12 +432,13 @@ export async function sendScheduledDigest(
     if (shown.length === 0 && deactivatedInSub.length === 0) continue;
 
     const unsubscribeUrl = unsubUrl(sub.email, sub.unsubscribe_token ?? "");
+    const tierLabel = sub.tier === "premium" ? "Premium" : "Freemium";
     const subject =
       shown.length > 0
         ? usedFallback
-          ? "Tes derniers bons plans disponibles"
-          : "Tes bons plans de vols"
-        : "Ton aéroport de départ a été désactivé";
+          ? `Tes derniers bons plans disponibles ${tierLabel} - BonVoleur`
+          : `Tes bons plans de vols ${tierLabel} - BonVoleur`
+        : "Ton aéroport de départ a été désactivé - BonVoleur";
     entries.push({
       sub,
       shown,
