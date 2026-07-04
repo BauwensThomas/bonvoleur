@@ -439,8 +439,8 @@ Contraintes impératives :
 - Structure Markdown claire : plusieurs sections "## " et sous-sections "### ", des listes à puces, du **gras** sur les points clés. NE PAS mettre de titre H1 dans "content" (le H1 est géré à part).
 - Couvre le sujet en profondeur : contexte, conseils pratiques, exemples de routes réelles depuis nos aéroports en Belgique et en France, erreurs à éviter, astuces de réservation, bagages, périodes idéales. Aéroports actuellement actifs sur le site (les seuls que tu peux citer) : ${activeAirports.join(", ")}. Un aéroport absent de cette liste n'est pas disponible sur le site : le citer créerait une fausse promesse pour le lecteur.
 - Inclure au moins 2 liens internes en Markdown vers des pages du site : la page d'inscription [inscris-toi gratuitement](/#inscription) ET un lien vers nos fiches destinations.
+- RÈGLE PRIORITAIRE : ne jamais pousser le lecteur vers un comparateur de vols externe (Kiwi, Skyscanner, Google Flights...) pour trouver ses billets. A la place, renvoie-le vers les deals BonVoleur : "consulte les bons plans disponibles sur BonVoleur" avec un lien vers [/#inscription] ou [/vols-pas-chers]. C'est le coeur du business : convertir le lecteur en abonné premium qui utilisera ensuite la recherche intégrée du site.
 - Intègre exactement 2 ou 3 liens affiliés dans le texte. Règles : jamais dans les 2 premiers paragraphes, jamais en bloc, toujours avec une ancre naturelle, jamais deux fois le même partenaire. Choisis UNIQUEMENT les partenaires qui ont un rapport direct avec le contenu du paragraphe où tu les places. Ne force pas un partenaire hors contexte. Partenaires disponibles (n'en cite que 2-3 au maximum, selon ce qui colle vraiment) :
-  * Kiwi.com → comparer des vols, combiner des escales : [Kiwi.com](https://kiwi.tp.st/v3Xycmps)
   * Booking.com → réserver un hôtel : [Booking.com](https://www.booking.com/index.fr.html?selected_currency=EUR)
   * Hostelworld → hébergement budget, auberge de jeunesse : [Hostelworld](https://www.hostelworld.com/fr)
   * GetYourGuide → activités, visites, expériences sur place : [GetYourGuide](https://www.getyourguide.com/fr-fr/)
@@ -485,10 +485,10 @@ RAPPEL FINAL CRITIQUE : TOUT le texte (title, excerpt, content, meta_title, meta
   if (!Array.isArray(data.faq)) data.faq = [];
 
   // Filet de sécurité : si l'IA a oublié les liens affiliés, on en injecte 2.
-  const AFFILIATE_DOMAINS = ["booking.com", "getyourguide.com", "kiwi.com", "airhelp.com", "discovercars.com", "kiwitaxi.com", "hostelworld.com", "viator.com", "airalo.com", "yesim.app", "omio.com", "welcomepickups.com"];
+  const AFFILIATE_DOMAINS = ["booking.com", "getyourguide.com", "airhelp.com", "discovercars.com", "kiwitaxi.com", "hostelworld.com", "viator.com", "airalo.com", "yesim.app", "omio.com", "welcomepickups.com"];
   const affiliateCount = AFFILIATE_DOMAINS.filter((d) => data.content.includes(d)).length;
   if (affiliateCount < 2) {
-    data.content += `\n\n## Pour préparer ton voyage\n\nPour comparer et réserver, quelques outils incontournables : [Kiwi.com](https://kiwi.tp.st/v3Xycmps) pour trouver les meilleures combinaisons de vols, [Booking.com](https://www.booking.com/index.fr.html?selected_currency=EUR) pour l'hébergement à tous les prix, et [DiscoverCars](https://www.discovercars.com/fr) pour louer une voiture sans frais cachés sur place. Et si ton vol est retardé de plus de 3h, [AirHelp](https://airhelp.tp.st/nZiaMXbN) réclame jusqu'à 600 € d'indemnisation pour toi.`;
+    data.content += `\n\n## Pour préparer ton voyage\n\nQuelques outils utiles pour préparer ton séjour : [Booking.com](https://www.booking.com/index.fr.html?selected_currency=EUR) pour l'hébergement à tous les prix, [GetYourGuide](https://www.getyourguide.com/fr-fr/) pour réserver tes activités sur place, et [AirHelp](https://airhelp.tp.st/nZiaMXbN) si ton vol est retardé de plus de 3h (jusqu'à 600 € d'indemnisation).`;
   }
 
   // Filet de securite : si le modele a rendu l'article SANS accents (observe
