@@ -92,16 +92,24 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div className="shrink-0">
-            <div className="flex items-center gap-2">
-              <h2 className="font-semibold">Destinations visibles</h2>
-              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
-                {visibleDests.length}
-              </span>
+            <h2 className="font-semibold">Destinations</h2>
+            <div className="mt-3 space-y-1 text-sm">
+              <div className="flex items-center justify-between gap-6">
+                <span className="text-slate-500">Total en base</span>
+                <span className="font-semibold tabular-nums">{destinations.length}</span>
+              </div>
+              <div className="flex items-center justify-between gap-6">
+                <span className="text-slate-500">Avec aéroport actif</span>
+                <span className="font-semibold tabular-nums text-green-700">{visibleDests.length}</span>
+              </div>
+              {destinations.length - visibleDests.length > 0 && (
+                <div className="flex items-center justify-between gap-6">
+                  <span className="text-slate-500">Sans aéroport actif</span>
+                  <span className="font-semibold tabular-nums text-amber-600">{destinations.length - visibleDests.length}</span>
+                </div>
+              )}
             </div>
-            <p className="mt-3 text-sm text-slate-500">
-              sur {destinations.length} destinations au total
-            </p>
-            <Link href="/admin/photos" className="mt-2 inline-block text-sm text-brand hover:underline">
+            <Link href="/admin/photos" className="mt-3 inline-block text-sm text-brand hover:underline">
               Voir les fiches
             </Link>
           </div>
