@@ -21,6 +21,12 @@ import {
 import { getActiveAirportCodes } from "@/lib/airports";
 
 
+function parseMd(text: string): string {
+  return text
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+}
+
 function parseTip(tip: string): React.ReactNode {
   const parts = tip.split(/(\[[^\]]+\]\([^)]+\))/g);
   return parts.map((part, i) => {
@@ -348,14 +354,15 @@ export default async function DestinationPage({
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
                     Durée de vol
                   </p>
-                  <p className="mt-1 text-slate-700">{content.duration}</p>
+                  <p className="mt-1 text-slate-700" dangerouslySetInnerHTML={{ __html: parseMd(content.duration) }} />
                 </div>
               )}
             </div>
 
             {content.bestPeriod && (
               <p className="mt-4 text-slate-700">
-                <strong>Meilleure période :</strong> {content.bestPeriod}
+                <strong>Meilleure période :</strong>{" "}
+                <span dangerouslySetInnerHTML={{ __html: parseMd(content.bestPeriod) }} />
               </p>
             )}
 
