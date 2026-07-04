@@ -458,7 +458,7 @@ Contraintes impératives :
 - "meta_title" : max 60 caractères, accrocheur, avec le mot-clé. "meta_description" : max 155 caractères.
 - "excerpt" : 1 à 2 phrases d'accroche.
 - "slug" : court, minuscules, mots séparés par des tirets.
-- "image_query" : 2 à 4 mots EN ANGLAIS très spécifiques au sujet (ville, monument, paysage précis). Obligatoire : la requête doit nommer un lieu, une activité ou un objet concret (ex. "Lisbon yellow tram", "Tirana Albania castle", "Lyon France river"). INTERDIT : requêtes génériques comme "airplane travel", "vacation beach", "flight airport".
+- "image_query" : 2 à 4 mots EN ANGLAIS très spécifiques au sujet. Pour un article destination : lieu, monument ou paysage précis (ex. "Lisbon yellow tram", "Tirana Albania castle", "Lyon France river"). Pour un article guide pratique, astuces vols ou comparatif : avion ou aéroport concret (ex. "airplane window seat clouds", "airport departure terminal", "plane wing sunset"). INTERDIT : requêtes abstraites ou sans sujet visuel clair.
 - N'invente pas de prix présentés comme garantis : reste sur des fourchettes ou des ordres de grandeur ("aux alentours de", "à partir d'environ").
 - Si le pays de la destination utilise une monnaie autre que l'euro, donne un ordre de grandeur du taux de change : environ combien vaut 1 € dans cette monnaie, ET environ combien vaut 1 unité de cette monnaie en euros. Précise que c'est approximatif et variable (ex. "environ 1 € = X, soit 1 X = Y €, à titre indicatif").
 
