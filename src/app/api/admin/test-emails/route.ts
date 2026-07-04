@@ -48,7 +48,7 @@ const FAKE_POSTS = [
     slug: "erreurs-de-prix-vols",
     title: "Les erreurs de prix : comment les repérer et en profiter",
     excerpt: "Quand les compagnies font une erreur de tarif, les chanceux qui réservent vite voyagent pour presque rien.",
-    cover_image: "https://images.unsplash.com/photo-1569154941061-e231b4aa8236?w=680&q=80",
+    cover_image: "https://images.unsplash.com/photo-1488085061387-422e29b40080?w=680&q=80",
   },
   {
     slug: "10-destinations-soleil",
