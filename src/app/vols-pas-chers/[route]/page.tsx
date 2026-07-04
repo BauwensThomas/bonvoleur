@@ -242,17 +242,16 @@ export default async function DestinationPage({
   // Maillage interne : toutes les autres destinations.
   const others = (await getDestinations()).filter((x) => x.slug !== dest.slug);
 
-  // Articles de blog pertinents : priorité aux articles qui mentionnent la ville,
-  // sinon les 2 plus récents (tous traitent de vols pas chers = toujours pertinents).
   const allPosts = (await getAll("posts"))
     .filter((p) => p.status === "published")
     .sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at));
   const cityLower = dest.destCity.toLowerCase();
-  const relatedPosts = (
-    allPosts.filter((p) => p.title?.toLowerCase().includes(cityLower)).length > 0
-      ? allPosts.filter((p) => p.title?.toLowerCase().includes(cityLower))
-      : allPosts
-  ).slice(0, 3);
+  const cityPosts = allPosts.filter((p) => p.title?.toLowerCase().includes(cityLower));
+  const cityPostSlugs = new Set(cityPosts.map((p) => p.slug));
+  const relatedPosts = [
+    ...cityPosts,
+    ...allPosts.filter((p) => !cityPostSlugs.has(p.slug)),
+  ].slice(0, 3);
 
   const faqJsonLd = {
     "@context": "https://schema.org",

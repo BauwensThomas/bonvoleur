@@ -86,6 +86,7 @@ export default async function Home() {
   );
   // Compte par ville (pas par IATA) : Rome a FCO+CIA+ROM mais c'est 1 destination.
   const totalDest = destGroups.filter((d) => d.routes.some((r) => activeIatas.has(r.originIata))).length;
+  const allDestCount = destGroups.length;
   const destinations = [...destGroups]
     .filter((d) => d.routes.some((r) => activeIatas.has(r.originIata)))
     // "Populaires" = desservies depuis le plus d'aéroports ACTIFS (pertinent pour le
@@ -111,8 +112,14 @@ export default async function Home() {
           routeSlug: r.slug,
         })),
     }));
-  // Photo de chaque destination (par code IATA) pour les cartes deals.
-  const imgByDestIata = new Map(destGroups.map((d) => [d.destIata, d.image]));
+  // Photo par IATA de destination : on indexe tous les IATAs de chaque groupe
+  // pour éviter le cas où une ville (ex. New York) a plusieurs codes (JFK, EWR).
+  const imgByDestIata = new Map<string, string | null>();
+  for (const d of destGroups) {
+    for (const r of d.routes) {
+      if (!imgByDestIata.has(r.destIata)) imgByDestIata.set(r.destIata, d.image);
+    }
+  }
   const dealImage = (label: string) => {
     const m = label.match(/\(([A-Z]{3})\)/);
     return (m && imgByDestIata.get(m[1])) || null;
@@ -351,7 +358,7 @@ export default async function Home() {
                     href="/vols-pas-chers"
                     className="inline-block rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:border-brand hover:text-brand"
                   >
-                    Voir toutes les destinations ({totalDest})
+                    Voir toutes les destinations ({allDestCount})
                   </a>
                 </div>
               )}
