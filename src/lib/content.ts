@@ -445,13 +445,13 @@ Contraintes impératives :
   * Hostelworld → hébergement budget, auberge de jeunesse : [Hostelworld](https://www.hostelworld.com/fr)
   * GetYourGuide → activités, visites, expériences sur place : [GetYourGuide](https://www.getyourguide.com/fr-fr/)
   * Viator → excursions et visites guidées avec avis : [Viator](https://www.viator.com/fr-FR/)
-  * DiscoverCars → louer une voiture à destination : [DiscoverCars](https://www.discovercars.com/fr)
-  * Kiwitaxi → transfert aéroport, taxi réservé à l'avance : [Kiwitaxi](https://kiwitaxi.tp.st/nEAHNURD)
+  * Discover Cars → louer une voiture à destination : [Discover Cars](https://www.discovercars.com/fr)
+  * Kiwitaxi → transfert aéroport réservé à l'avance : [Kiwitaxi](https://kiwitaxi.tp.st/nEAHNURD)
+  * Welcome Pickups → transfert aéroport avec chauffeur : [Welcome Pickups](https://www.welcomepickups.com/fr/)
   * AirHelp → vol retardé ou annulé, indemnisation : [AirHelp](https://airhelp.tp.st/nZiaMXbN)
   * Airalo → eSIM, internet mobile à l'étranger : [Airalo](https://airalo.tp.st/EoUAdgZb)
+  * Yesim → eSIM alternative : [Yesim](https://yesim.app/fr/)
   * Omio → trains et bus en Europe : [Omio](https://www.omio.fr/)
-  * iVisa → visa ou autorisation de voyage en ligne : [iVisa](https://www.ivisa.com/fr/)
-  * SafetyWing → assurance voyage médicale : [SafetyWing](https://safetywing.com/)
   Si l'article porte sur une ville précise, lie vers sa fiche (ex. [vols vers Tirana](/vols-pas-chers/tirana)). Sinon, vers [toutes nos destinations](/vols-pas-chers). N'utilise JAMAIS d'URL du type /vols-pas-chers/ville-depart-ville-arrivee.
 - Termine le corps par un appel clair à s'inscrire à la newsletter.
 - Rubrique FAQ : 5 à 6 questions/réponses utiles et recherchées (réponses de 2 à 4 phrases). NE PAS l'inclure dans "content" : elle va dans le champ "faq".
@@ -485,7 +485,7 @@ RAPPEL FINAL CRITIQUE : TOUT le texte (title, excerpt, content, meta_title, meta
   if (!Array.isArray(data.faq)) data.faq = [];
 
   // Filet de sécurité : si l'IA a oublié les liens affiliés, on en injecte 2.
-  const AFFILIATE_DOMAINS = ["booking.com", "getyourguide.com", "kiwi.com", "airhelp.com", "discovercars.com", "kiwitaxi.com", "hostelworld.com", "viator.com", "airalo.com", "omio.com", "ivisa.com", "safetywing.com"];
+  const AFFILIATE_DOMAINS = ["booking.com", "getyourguide.com", "kiwi.com", "airhelp.com", "discovercars.com", "kiwitaxi.com", "hostelworld.com", "viator.com", "airalo.com", "yesim.app", "omio.com", "welcomepickups.com"];
   const affiliateCount = AFFILIATE_DOMAINS.filter((d) => data.content.includes(d)).length;
   if (affiliateCount < 2) {
     data.content += `\n\n## Pour préparer ton voyage\n\nPour comparer et réserver, quelques outils incontournables : [Kiwi.com](https://kiwi.tp.st/v3Xycmps) pour trouver les meilleures combinaisons de vols, [Booking.com](https://www.booking.com/index.fr.html?selected_currency=EUR) pour l'hébergement à tous les prix, et [DiscoverCars](https://www.discovercars.com/fr) pour louer une voiture sans frais cachés sur place. Et si ton vol est retardé de plus de 3h, [AirHelp](https://airhelp.tp.st/nZiaMXbN) réclame jusqu'à 600 € d'indemnisation pour toi.`;
