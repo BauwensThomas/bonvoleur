@@ -70,33 +70,45 @@ export default async function Home() {
 
   // Destinations populaires : par ville, avec ses aéroports de départ.
   const destGroups = await getDestinations();
-  // Met en avant un nombre limité (scalable) : destinations avec des deals
-  // d'abord, puis les autres. Le reste est sur le hub /vols-pas-chers.
   const FEATURED = 8;
   const activeIatas = new Set(airports.map((a) => a.iata));
-  const dealDestIatas = new Set(
-    (await getAll("deals"))
-      .filter((d) => {
-        if (d.is_hot === false) return false;
-        const originIata = d.origin.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
-        return activeIatas.has(originIata);
-      })
-      .map((d) => d.destination.match(/\(([A-Z]{3})\)/)?.[1] ?? "")
-      .filter(Boolean)
-  );
-  // Compte par ville (pas par IATA) : Rome a FCO+CIA+ROM mais c'est 1 destination.
-  const totalDest = destGroups.filter((d) => d.routes.some((r) => activeIatas.has(r.originIata))).length;
+
+  // Deals actifs = fenêtre premium (5 jours), aéroport actif, is_hot != false.
+  const PREMIUM_WINDOW_DAYS = 5;
+  const activeSince = new Date(Date.now() - PREMIUM_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const activeDeals = (await getAll("deals")).filter((d) => {
+    if (d.is_hot === false) return false;
+    if (d.created_at < activeSince) return false;
+    const origIata = d.origin.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
+    return activeIatas.has(origIata);
+  });
+
+  // Par destination IATA : ensemble des aéroports de départ avec un deal actif.
+  const originsPerDest = new Map<string, Set<string>>();
+  for (const d of activeDeals) {
+    const destIata = d.destination.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
+    const origIata = d.origin.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
+    if (!destIata || !origIata) continue;
+    if (!originsPerDest.has(destIata)) originsPerDest.set(destIata, new Set());
+    originsPerDest.get(destIata)!.add(origIata);
+  }
+
+  // totalDest = destinations avec au moins un deal actif (vérité premium).
+  const totalDest = destGroups.filter((d) =>
+    d.routes.some((r) => originsPerDest.has(r.destIata))
+  ).length;
   const allDestCount = destGroups.length;
+
   const destinations = [...destGroups]
     .filter((d) => d.routes.some((r) => activeIatas.has(r.originIata)))
-    // "Populaires" = desservies depuis le plus d'aéroports ACTIFS (pertinent pour le
-    // plus de visiteurs). Départage : un deal en cours, puis ordre alphabétique.
+    // Tri : plus d'aéroports de départ avec deals actifs en premier,
+    // puis total aéroports actifs, puis alphabétique.
     .sort(
       (a, b) =>
+        (originsPerDest.get(b.destIata)?.size ?? 0) -
+          (originsPerDest.get(a.destIata)?.size ?? 0) ||
         b.routes.filter((r) => activeIatas.has(r.originIata)).length -
           a.routes.filter((r) => activeIatas.has(r.originIata)).length ||
-        Number(dealDestIatas.has(b.destIata)) -
-          Number(dealDestIatas.has(a.destIata)) ||
         a.destCity.localeCompare(b.destCity)
     )
     .slice(0, FEATURED)
