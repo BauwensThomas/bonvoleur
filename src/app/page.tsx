@@ -86,10 +86,6 @@ export default async function Home() {
   );
   // Compte par ville (pas par IATA) : Rome a FCO+CIA+ROM mais c'est 1 destination.
   const totalDest = destGroups.filter((d) => d.routes.some((r) => activeIatas.has(r.originIata))).length;
-  const dealDestCount = destGroups.filter((d) =>
-    d.routes.some((r) => activeIatas.has(r.originIata)) &&
-    d.routes.some((r) => dealDestIatas.has(r.destIata))
-  ).length;
   const destinations = [...destGroups]
     .filter((d) => d.routes.some((r) => activeIatas.has(r.originIata)))
     // "Populaires" = desservies depuis le plus d'aéroports ACTIFS (pertinent pour le
@@ -193,8 +189,8 @@ export default async function Home() {
                   ),
                 },
                 {
-                  value: dealDestCount,
-                  label: "Destinations avec bons plans",
+                  value: totalDest,
+                  label: "Destinations disponibles",
                   icon: (
                     <svg className="mx-auto mb-2 h-7 w-7 text-red-500" viewBox="0 0 24 24" fill="currentColor">
                       {/* piste au bas */}

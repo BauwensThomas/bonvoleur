@@ -64,8 +64,8 @@ export default async function AirportsPage({
     { auth: { persistSession: false } },
   );
 
-  // Deals + statut actif des aéroports en parallèle
-  const [dealsResult, airportsResult] = await Promise.all([
+  // Deals + statut actif des aéroports + routes en parallèle
+  const [dealsResult, airportsResult, routesResult] = await Promise.all([
     (async () => {
       const all: { origin: string; created_at: string }[] = [];
       let offset = 0;
@@ -83,6 +83,7 @@ export default async function AirportsPage({
       return all;
     })(),
     sb.from("airports").select("iata,active"),
+    sb.from("routes").select("origin_iata,destination_city"),
   ]);
 
   const activeMap = new Map<string, boolean>(
@@ -100,6 +101,12 @@ export default async function AirportsPage({
     m.set(day, (m.get(day) ?? 0) + 1);
   }
 
+  const destsByAirport = new Map<string, Set<string>>();
+  for (const r of (routesResult.data ?? []) as { origin_iata: string; destination_city: string }[]) {
+    if (!destsByAirport.has(r.origin_iata)) destsByAirport.set(r.origin_iata, new Set());
+    destsByAirport.get(r.origin_iata)!.add(r.destination_city);
+  }
+
   const rows = Object.entries(AIRPORTS).map(([iata, city]) => {
     const perDay       = byAirport.get(iata) ?? new Map<string, number>();
     const total        = [...perDay.values()].reduce((a, b) => a + b, 0);
@@ -107,7 +114,8 @@ export default async function AirportsPage({
     const pct          = Math.round((daysWithDeal / days) * 100);
     const avg          = total > 0 ? (total / days).toFixed(1) : "0";
     const active       = activeMap.get(iata) ?? false;
-    return { iata, city, total, daysWithDeal, pct, avg, perDay, active };
+    const destCount    = destsByAirport.get(iata)?.size ?? 0;
+    return { iata, city, total, daysWithDeal, pct, avg, perDay, active, destCount };
   });
   rows.sort((a, b) => b.pct - a.pct || b.total - a.total);
 
@@ -131,6 +139,7 @@ export default async function AirportsPage({
             <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
               <th className="px-4 py-3">Aéroport</th>
               <th className="px-4 py-3 text-center">Actif</th>
+              <th className="px-4 py-3 text-right">Destinations</th>
               <th className="px-4 py-3 text-right">Deals</th>
               <th className="px-4 py-3 text-right">Jours couverts / {days}</th>
               <th className="px-4 py-3 text-right">Couverture</th>
@@ -140,7 +149,7 @@ export default async function AirportsPage({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {rows.map(({ iata, city, total, daysWithDeal, pct, avg, perDay, active }) => {
+            {rows.map(({ iata, city, total, daysWithDeal, pct, avg, perDay, active, destCount }) => {
               const { label, cls } = statusLabel(pct);
               const maxDay = Math.max(...allDays.map((d) => perDay.get(d) ?? 0), 1);
               return (
@@ -157,6 +166,7 @@ export default async function AirportsPage({
                   <td className="px-4 py-3 text-center">
                     <AirportToggleBtn iata={iata} active={active} />
                   </td>
+                  <td className="px-4 py-3 text-right tabular-nums text-slate-700">{destCount > 0 ? destCount : <span className="text-slate-300">-</span>}</td>
                   <td className="px-4 py-3 text-right tabular-nums text-slate-700">{total}</td>
                   <td className="px-4 py-3 text-right tabular-nums text-slate-500">{daysWithDeal}</td>
                   <td className="px-4 py-3 text-right tabular-nums font-semibold text-slate-700">{pct}%</td>

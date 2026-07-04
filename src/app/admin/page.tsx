@@ -40,6 +40,9 @@ export default async function AdminDashboard() {
     TLS: "Toulouse", NTE: "Nantes", LIL: "Lille", MPL: "Montpellier", SXB: "Strasbourg",
   };
 
+  const freemiumCount = subscribers.filter((s: { tier?: string }) => s.tier !== "premium").length;
+  const premiumSubCount = subscribers.filter((s: { tier?: string }) => s.tier === "premium").length;
+
   const activeIatas = new Set(activeAirports.map((a: { iata: string }) => a.iata));
   const visibleDests = destinations.filter((d) =>
     d.routes.some((r) => activeIatas.has(r.originIata))
@@ -55,7 +58,17 @@ export default async function AdminDashboard() {
       <p className="mt-1 text-slate-500">Vue d&apos;ensemble de BonVoleur.</p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <Stat label="Abonnés" value={subscribers.length} href="/admin/subscribers" />
+        <Link
+          href="/admin/subscribers"
+          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
+        >
+          <p className="text-3xl font-bold tabular-nums">{subscribers.length}</p>
+          <p className="mt-1 text-sm text-slate-500">Abonnés</p>
+          <div className="mt-2 flex gap-3 text-xs">
+            <span className="text-slate-400">{freemiumCount} freemium</span>
+            <span className="font-medium text-brand">{premiumSubCount} premium</span>
+          </div>
+        </Link>
         <Stat label="Deals" value={memberDeals.total} href="/admin/deals" />
         <Stat label="Articles" value={posts.length} href="/admin/blog" />
         <Stat label="Partenaires" value={partners.length} href="/admin/partners" />
