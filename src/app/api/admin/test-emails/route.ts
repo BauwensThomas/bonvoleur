@@ -82,21 +82,6 @@ export async function POST(req: Request) {
   await send("7. Alerte stock (urgence)", dealsAlertEmail(31, "urgence"));
   await send("8. Newsletter blog", blogNewsletterEmail(TO, FAKE_POSTS, FAKE_UNSUB));
 
-  // Deal unique
-  try {
-    await sendEmail({
-      to: TO,
-      subject: `Bruxelles (BRU) -> Lisbonne (LIS) aux alentours de 89 EUR A/R`,
-      html: dealHtml(FAKE_DEAL, FAKE_UNSUB),
-      text: "Test deal email",
-      replyTo: site.email,
-      listUnsubscribe: FAKE_UNSUB,
-    });
-    results.push({ name: "9. Deal unique", ok: true });
-  } catch (e) {
-    results.push({ name: "9. Deal unique", ok: false, error: String(e) });
-  }
-
   // Digest teaser PREMIUM
   try {
     await sendEmail({
