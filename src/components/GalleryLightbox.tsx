@@ -34,7 +34,7 @@ export default function GalleryLightbox({ photos, city }: { photos: Photo[]; cit
             <div className="aspect-square w-full overflow-hidden rounded-xl">
               <img
                 src={p.url}
-                alt={`${city} - photo ${i + 1}`}
+                alt={i === 0 ? `Vols pas chers vers ${city}` : `${city} en photos - vue ${i}`}
                 loading="lazy"
                 className="h-full w-full object-cover transition hover:opacity-90 hover:scale-[1.02]"
               />
@@ -54,7 +54,7 @@ export default function GalleryLightbox({ photos, city }: { photos: Photo[]; cit
           >
             <img
               src={photos[open].url}
-              alt={`${city} - photo ${open + 1}`}
+              alt={open === 0 ? `Vols pas chers vers ${city}` : `${city} en photos - vue ${open}`}
               className="max-h-[80vh] w-full rounded-xl object-contain"
             />
             {photos[open].credit && (
