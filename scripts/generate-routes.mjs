@@ -77,12 +77,15 @@ const stripTags = (s) =>
   String(s ?? "").replace(/<\/?[^>]+>/g, "").replace(/ {2,}/g, " ").trim();
 
 // Destinations à considérer : ville d'arrivée -> { dc, origins:[{o,oc,slug}] }.
+// Clé = slug de la ville (pas l'IATA) pour regrouper FCO+CIA = Rome, CDG+ORY = Paris, etc.
 const dests = {};
 function addRoute(oIata, oCity, dIata, dCity) {
-  if (!dests[dIata]) dests[dIata] = { d: dIata, dc: dCity, origins: [] };
+  if (!oCity || !dCity) return;
+  const cityKey = slugify(dCity);
+  if (!dests[cityKey]) dests[cityKey] = { d: dIata, dc: dCity, origins: [] };
   const slug = `${slugify(oCity)}-${slugify(dCity)}`;
-  if (!dests[dIata].origins.some((x) => x.slug === slug)) {
-    dests[dIata].origins.push({ o: oIata, oc: oCity, slug });
+  if (!dests[cityKey].origins.some((x) => x.slug === slug)) {
+    dests[cityKey].origins.push({ o: oIata, oc: oCity, slug });
   }
 }
 
