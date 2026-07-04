@@ -42,7 +42,6 @@ function matches(sub: Subscriber, iata: string | null): boolean {
 function dealCard(deal: Deal): string {
   const priceLine = `<span style="font-size:28px;font-weight:800;color:#0369a1;">${deal.price}€</span>`;
   const notes: string[] = [];
-  if (deal.airline) notes.push(`Compagnie : ${escapeHtml(deal.airline)}`);
   if (deal.dates) notes.push(`Dates : ${escapeHtml(deal.dates)}`);
   const notesHtml = notes.length
     ? `<div style="margin-top:6px;font-size:13px;color:#475569;">${notes.join(" &nbsp;-&nbsp; ")}</div>`
