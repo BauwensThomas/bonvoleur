@@ -48,6 +48,24 @@ export default async function AdminDashboard() {
     d.routes.some((r) => activeIatas.has(r.originIata))
   );
 
+  // Destinations avec au moins un deal actif (fenêtre 5 jours, même logique que homepage).
+  const allDeals = await getAll("deals");
+  const activeSince = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
+  const activeDestIatas = new Set(
+    allDeals
+      .filter((d) => {
+        if (d.is_hot === false) return false;
+        if (d.created_at < activeSince) return false;
+        const orig = d.origin.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
+        return activeIatas.has(orig);
+      })
+      .map((d) => d.destination.match(/\(([A-Z]{3})\)/)?.[1] ?? "")
+      .filter(Boolean)
+  );
+  const activeDestCount = destinations.filter((d) =>
+    d.routes.some((r) => activeDestIatas.has(r.destIata))
+  ).length;
+
   const recentRuns = [...runs]
     .sort((a, b) => b.started_at.localeCompare(a.started_at))
     .slice(0, 5);
@@ -114,6 +132,10 @@ export default async function AdminDashboard() {
               <div className="flex items-center justify-between gap-6">
                 <span className="text-slate-500">Avec aéroport actif</span>
                 <span className="font-semibold tabular-nums text-green-700">{visibleDests.length}</span>
+              </div>
+              <div className="flex items-center justify-between gap-6">
+                <span className="text-slate-500">Avec deals actifs (5j)</span>
+                <span className="font-semibold tabular-nums text-brand">{activeDestCount}</span>
               </div>
               {destinations.length - visibleDests.length > 0 && (
                 <div className="flex items-center justify-between gap-6">
