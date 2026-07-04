@@ -28,6 +28,52 @@ async function getActiveAirportNames(): Promise<string[]> {
   }
 }
 
+// Routes actives : destinations disponibles sur le site avec leurs origines actives.
+async function getActiveRoutes(): Promise<string> {
+  try {
+    const airports = await getAll("airports");
+    const activeIatas = new Set(
+      airports.filter((a: { active: boolean }) => a.active).map((a: { iata: string }) => a.iata)
+    );
+    const routes = await getAll("routes");
+    const byDest = new Map<string, Set<string>>();
+    for (const r of routes) {
+      if (!activeIatas.has(r.origin_iata)) continue;
+      const dest: string = r.destination_city ?? "";
+      if (!dest) continue;
+      if (!byDest.has(dest)) byDest.set(dest, new Set());
+      byDest.get(dest)!.add(r.origin_city ?? r.origin_iata);
+    }
+    return [...byDest.entries()]
+      .map(([dest, origins]) => `${dest} (depuis ${[...origins].join(", ")})`)
+      .join(" | ");
+  } catch {
+    return "";
+  }
+}
+
+// Deals recents : destinations avec activite recente, SANS prix ni dates.
+// Sert a creer du FOMO et pousser a l'inscription premium.
+async function getRecentDealDestinations(): Promise<string[]> {
+  try {
+    const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+    const deals = await getAll("deals");
+    const recent = deals.filter((d: { created_at: string }) => d.created_at >= since);
+    const destCount = new Map<string, number>();
+    for (const d of recent) {
+      const dest: string = d.destination ?? "";
+      if (!dest) continue;
+      destCount.set(dest, (destCount.get(dest) ?? 0) + 1);
+    }
+    return [...destCount.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([dest]) => dest);
+  } catch {
+    return [];
+  }
+}
+
 // Detecte un texte francais sorti SANS accents (bug ponctuel de generation).
 const ACCENT_RE = /[àâäçéèêëîïôöùûüœ]/i;
 function looksUnaccented(text: string): boolean {
@@ -350,15 +396,19 @@ export async function generateArticle(): Promise<GeneratedArticle> {
     return localDraft(await pickTopic());
   }
 
-  // 1) Aéroports actifs (seuls à citer dans l'article).
-  const activeAirports = await getActiveAirportNames();
+  // 1) Données réelles du site (en parallèle pour gagner du temps).
+  const [activeAirports, activeRoutes, recentDealDests] = await Promise.all([
+    getActiveAirportNames(),
+    getActiveRoutes(),
+    getRecentDealDestinations(),
+  ]);
 
   // 2) Sujet : on tente un sujet tendance (recherche web), sinon liste curée.
   //    Dans les deux cas, on évite les sujets traités depuis moins de 30 jours.
   const recent = await recentTitles(30);
   const topic = (await pickTrendingTopic(recent)) ?? (await pickTopic());
 
-  // 2) Faits réels (recherche web) à intégrer dans l'article.
+  // 3) Faits réels (recherche web) à intégrer dans l'article.
   const facts = await gatherFacts(topic);
 
   // 3) Articles déjà publiés : on les donne au modèle pour qu'il choisisse un
@@ -377,6 +427,8 @@ export async function generateArticle(): Promise<GeneratedArticle> {
 Rédige un article de blog complet, riche et optimisé SEO sur le sujet : "${topic}".
 
 ${facts ? `INFORMATIONS FACTUELLES VÉRIFIÉES (issues d'une recherche web) à intégrer quand c'est pertinent, sans rien inventer en plus :\n${facts}\n` : ""}
+${activeRoutes ? `DESTINATIONS RÉELLEMENT DISPONIBLES SUR LE SITE (routes avec aéroport actif) : utilise cette liste pour citer des exemples concrets et vrais. Ne cite que des destinations de cette liste quand tu donnes des exemples de routes.\n${activeRoutes}\n` : ""}
+${recentDealDests.length > 0 ? `DESTINATIONS AVEC DES BONS PLANS RÉCENTS (14 derniers jours) : ${recentDealDests.join(", ")}. Tu peux mentionner ces destinations comme "des destinations qui ont récemment eu des bons plans" ou "des vols en promo repérés ces derniers jours" SANS jamais citer de prix ni de dates précises. L'objectif est de créer de l'envie et du FOMO pour pousser le lecteur à s'inscrire à la newsletter premium. Exemple de formulation : "Des bons plans ont récemment été repérés vers [destination] - exactement le genre d'alerte que nos abonnés reçoivent en premier."\n` : ""}
 ${existing ? `ARTICLES DÉJÀ PUBLIÉS sur le blog. Tu dois écrire un article NETTEMENT DIFFÉRENT et complémentaire : angle distinct, sections et exemples qui ne se recoupent pas avec ceux-ci. Ne réécris pas un "guide complet" générique qui répète ces sujets :\n${existing}\n` : ""}
 Style attendu (identique à nos pages de route) : factuel et concret, avec de vraies compagnies aériennes, des durées de vol réalistes, des meilleures périodes, des fourchettes de prix (jamais de prix garanti), des conseils actionnables.
 
