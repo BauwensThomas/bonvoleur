@@ -114,14 +114,18 @@ for (const [o, ds] of Object.entries(WATCH)) {
   }
 }
 // 3) Deals réellement trouvés : seulement les villes NOUVELLES.
+// Double garde : slug de ville ET IATA (évite "Copenhague" si "Copenhagen/CPH" déjà connu).
+const knownIatas = new Set(Object.values(dests).map((d) => d.d));
 const deals = await fetch(`${SB}/rest/v1/deals?select=origin,destination,is_hot`, { headers: sbHeaders })
   .then((r) => (r.ok ? r.json() : []))
   .catch(() => []);
 for (const d of deals) {
   if (d.is_hot === false) continue;
   const o = parseLabel(d.origin), dd = parseLabel(d.destination);
-  if (o && dd && !knownCitySlugs.has(slugify(dd.city))) {
+  if (o && dd && !knownCitySlugs.has(slugify(dd.city)) && !knownIatas.has(dd.iata)) {
     addRoute(o.iata, o.city, dd.iata, dd.city);
+    knownIatas.add(dd.iata);
+    knownCitySlugs.add(slugify(dd.city));
   }
 }
 const AFFILIATE_MARKER = "Hébergement : [Booking.com]";
