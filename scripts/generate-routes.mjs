@@ -89,31 +89,39 @@ function addRoute(oIata, oCity, dIata, dCity) {
   }
 }
 
-// 1) Liste surveillée (codée en dur).
-for (const [o, ds] of Object.entries(WATCH)) {
-  for (const d of ds) addRoute(o, ORIGIN[o], d, DEST[d]);
-}
-// 2) Deals réellement trouvés (toute nouvelle route auto).
-const deals = await fetch(`${SB}/rest/v1/deals?select=origin,destination,is_hot`, { headers: sbHeaders })
-  .then((r) => (r.ok ? r.json() : []))
-  .catch(() => []);
-for (const d of deals) {
-  if (d.is_hot === false) continue;
-  const o = parseLabel(d.origin), dd = parseLabel(d.destination);
-  if (o && dd) addRoute(o.iata, o.city, dd.iata, dd.city);
-}
-
-// Fiches déjà en base : source principale des routes à générer (toutes, actives ou non).
+// 1) Fiches déjà en base : source principale (toutes les routes, actives ou non).
 const existing = await fetch(
   `${SB}/rest/v1/routes?select=slug,intro,image_url,tips,region,photos,origin_iata,origin_city,destination_iata,destination_city`,
   { headers: sbHeaders },
 ).then((r) => (r.ok ? r.json() : [])).catch(() => []);
 const bySlug = new Map(existing.map((r) => [r.slug, r]));
 
-// Toutes les routes en base -> dests (aéroport actif ou non : la fiche SEO doit exister).
 for (const r of existing) {
   if (r.origin_iata && r.origin_city && r.destination_iata && r.destination_city) {
     addRoute(r.origin_iata, r.origin_city, r.destination_iata, r.destination_city);
+  }
+}
+
+// Villes déjà connues (depuis la table routes) -> ne pas les recréer via WATCH/deals.
+const knownCitySlugs = new Set(Object.keys(dests));
+
+// 2) Liste surveillée : seulement les villes NOUVELLES (pas encore en base).
+for (const [o, ds] of Object.entries(WATCH)) {
+  for (const d of ds) {
+    if (DEST[d] && !knownCitySlugs.has(slugify(DEST[d]))) {
+      addRoute(o, ORIGIN[o], d, DEST[d]);
+    }
+  }
+}
+// 3) Deals réellement trouvés : seulement les villes NOUVELLES.
+const deals = await fetch(`${SB}/rest/v1/deals?select=origin,destination,is_hot`, { headers: sbHeaders })
+  .then((r) => (r.ok ? r.json() : []))
+  .catch(() => []);
+for (const d of deals) {
+  if (d.is_hot === false) continue;
+  const o = parseLabel(d.origin), dd = parseLabel(d.destination);
+  if (o && dd && !knownCitySlugs.has(slugify(dd.city))) {
+    addRoute(o.iata, o.city, dd.iata, dd.city);
   }
 }
 const AFFILIATE_MARKER = "Hébergement : [Booking.com]";
