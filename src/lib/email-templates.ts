@@ -177,7 +177,7 @@ export function unsubscribeLinkEmail(
   const body = emailContent(
     `<h1 style="margin:0 0 14px;font-size:22px;font-weight:800;">Tu veux te désinscrire ?</h1>
      <p style="margin:0 0 4px;color:#475569;">Tu as demandé à ne plus recevoir nos emails. Clique sur le bouton ci-dessous pour confirmer.</p>
-     ${ctaButton("Confirmer la désinscription", unsubscribeUrl, "#64748b")}
+     ${ctaButton("Confirmer la désinscription", unsubscribeUrl)}
      <p style="margin:20px 0 0;font-size:13px;color:#94a3b8;text-align:center;">Si tu n'es pas à l'origine de cette demande, ignore simplement cet email.</p>`,
   );
 
