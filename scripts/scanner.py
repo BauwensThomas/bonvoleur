@@ -380,7 +380,10 @@ def find_deals() -> list[dict]:
                 }
             )
     deals.extend(find_ryanair_deals())
-    deals.extend(find_wizzair_deals())
+    # Wizz Air : bloque les IPs de datacenter (Cloudflare) -> desactive en CI.
+    # A activer uniquement en local (IP residentielle) via WIZZAIR_ENABLED=1.
+    if os.environ.get("WIZZAIR_ENABLED") == "1":
+        deals.extend(find_wizzair_deals())
     deals.extend(find_transavia_deals())
     deals.extend(find_discovery_deals())
     deals.extend(find_longhaul_deals())
@@ -896,20 +899,23 @@ def run_supabase() -> None:
     added = refreshed = skipped = 0
     print(f"{len(deals)} deal(s) candidat(s)")
     for d in deals:
-        if not link_is_accessible(d["booking_url"]):
-            print(f"SKIP lien mort : {d['booking_url']}")
-            skipped += 1
-            continue
-        if deal_exists_in_db(d["booking_url"]):
-            touch_deal(d["booking_url"])  # deal connu : on rafraichit sa date 'vu'
-            refreshed += 1
-            continue
-        ok, info = insert_deal_in_db(d)
-        if ok:
-            print(f"OK  {d['origin']} -> {d['destination']} ({d['price']} EUR)")
-            added += 1
-        else:
-            print(f"ERR insert : {info}")
+        try:
+            if not link_is_accessible(d["booking_url"]):
+                print(f"SKIP lien mort : {d['booking_url']}")
+                skipped += 1
+                continue
+            if deal_exists_in_db(d["booking_url"]):
+                touch_deal(d["booking_url"])  # deal connu : on rafraichit sa date 'vu'
+                refreshed += 1
+                continue
+            ok, info = insert_deal_in_db(d)
+            if ok:
+                print(f"OK  {d['origin']} -> {d['destination']} ({d['price']} EUR)")
+                added += 1
+            else:
+                print(f"ERR insert : {info}")
+        except requests.RequestException as e:
+            print(f"ERR reseau (deal saute) : {d.get('origin')} -> {d.get('destination')} : {e}")
     print(f"Supabase : {added} ajout(s), {refreshed} rafraichi(s), {skipped} lien(s) mort(s)")
 
 
