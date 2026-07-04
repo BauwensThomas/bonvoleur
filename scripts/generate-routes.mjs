@@ -157,6 +157,7 @@ IMPÉRATIF : français correct avec TOUS les accents (é, è, ê, à, â, ç, ô
 // Retourne 5 photos Unsplash en un seul appel : index 0 = bannière, index 1-4 = galerie.
 // Garantit zéro doublon entre bannière et galerie.
 // Lance une erreur RATE_LIMITED quand le quota horaire est épuisé (50 req/h en demo).
+// Se stoppe proprement quand x-ratelimit-remaining <= 2 pour ne pas épuiser le quota.
 async function unsplashBatch(city) {
   const key = env.UNSPLASH_ACCESS_KEY;
   if (!key) return [];
@@ -170,13 +171,12 @@ async function unsplashBatch(city) {
       );
       if (res.status === 429) throw Object.assign(new Error("Rate limit Unsplash atteint"), { code: "RATE_LIMITED" });
       if (!res.ok) continue;
-      const results = (await res.json()).results ?? [];
+      const remaining = parseInt(res.headers.get("x-ratelimit-remaining") ?? "99", 10);
+      if (remaining <= 2) throw Object.assign(new Error("Quota Unsplash presque epuise"), { code: "RATE_LIMITED" });
+      const text = await res.text();
+      if (!text.trimStart().startsWith("{")) throw Object.assign(new Error("Rate limit (reponse non-JSON)"), { code: "RATE_LIMITED" });
+      const results = (JSON.parse(text).results) ?? [];
       if (results.length === 0) continue;
-      for (const p of results) {
-        if (p.links?.download_location) {
-          fetch(p.links.download_location, { headers: { Authorization: `Client-ID ${key}` } }).catch(() => {});
-        }
-      }
       return results
         .map((p) => ({ url: p.urls?.regular ?? p.urls?.full ?? null, credit: `${p.user?.name ?? ""} / Unsplash`.trim() }))
         .filter((p) => p.url);
