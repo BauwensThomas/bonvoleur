@@ -44,14 +44,14 @@ if (!SB || !SK) throw new Error("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY manqua
 const sbHeaders = { apikey: SK, Authorization: `Bearer ${SK}`, "Content-Type": "application/json" };
 const startedAt = new Date().toISOString();
 
-// Aéroports actifs : lus depuis Supabase pour être cohérents avec le site.
-const activeAirports = await fetch(
-  `${SB}/rest/v1/airports?select=iata,city&active=eq.true`,
+// Tous les aéroports (actifs et inactifs) : pour les noms de villes dans WATCH.
+const allAirports = await fetch(
+  `${SB}/rest/v1/airports?select=iata,city`,
   { headers: sbHeaders },
 ).then((r) => (r.ok ? r.json() : [])).catch(() => []);
 const ORIGIN = Object.fromEntries(
-  activeAirports.length
-    ? activeAirports.map((a) => [a.iata, a.city])
+  allAirports.length
+    ? allAirports.map((a) => [a.iata, a.city])
     : [["BRU","Bruxelles"],["CRL","Charleroi"],["CDG","Paris"],["LYS","Lyon"]],
 );
 const DEST = {
@@ -100,11 +100,19 @@ for (const d of deals) {
   if (o && dd) addRoute(o.iata, o.city, dd.iata, dd.city);
 }
 
-// Fiches déjà en base (slug -> { intro, image_url, tips, region }) pour sauter le connu.
-const existing = await fetch(`${SB}/rest/v1/routes?select=slug,intro,image_url,tips,region,photos`, { headers: sbHeaders })
-  .then((r) => (r.ok ? r.json() : []))
-  .catch(() => []);
+// Fiches déjà en base : source principale des routes à générer (toutes, actives ou non).
+const existing = await fetch(
+  `${SB}/rest/v1/routes?select=slug,intro,image_url,tips,region,photos,origin_iata,origin_city,destination_iata,destination_city`,
+  { headers: sbHeaders },
+).then((r) => (r.ok ? r.json() : [])).catch(() => []);
 const bySlug = new Map(existing.map((r) => [r.slug, r]));
+
+// Toutes les routes en base -> dests (aéroport actif ou non : la fiche SEO doit exister).
+for (const r of existing) {
+  if (r.origin_iata && r.origin_city && r.destination_iata && r.destination_city) {
+    addRoute(r.origin_iata, r.origin_city, r.destination_iata, r.destination_city);
+  }
+}
 const AFFILIATE_MARKER = "Hébergement : [Booking.com]";
 
 const client = env.ANTHROPIC_API_KEY ? new Anthropic({ apiKey: env.ANTHROPIC_API_KEY }) : null;
