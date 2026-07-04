@@ -11,6 +11,23 @@ import { rehostImage } from "./rehost";
 import { notifySocial } from "./social";
 import type { AgentRun, FaqItem } from "./types";
 
+async function getActiveAirportNames(): Promise<string[]> {
+  try {
+    const rows = await getAll("airports");
+    const NAMES: Record<string, string> = {
+      BRU: "Bruxelles", CRL: "Charleroi", LGG: "Liège", ANR: "Anvers", OST: "Ostende",
+      CDG: "Paris CDG", ORY: "Paris Orly", BVA: "Paris Beauvais",
+      LYS: "Lyon", NCE: "Nice", MRS: "Marseille", BOD: "Bordeaux",
+      TLS: "Toulouse", NTE: "Nantes", LIL: "Lille", MPL: "Montpellier", SXB: "Strasbourg",
+    };
+    return rows
+      .filter((r: { active: boolean }) => r.active)
+      .map((r: { iata: string }) => NAMES[r.iata] ?? r.iata);
+  } catch {
+    return ["Bruxelles", "Charleroi", "Paris CDG", "Lyon"];
+  }
+}
+
 // Detecte un texte francais sorti SANS accents (bug ponctuel de generation).
 const ACCENT_RE = /[àâäçéèêëîïôöùûüœ]/i;
 function looksUnaccented(text: string): boolean {
@@ -333,7 +350,10 @@ export async function generateArticle(): Promise<GeneratedArticle> {
     return localDraft(await pickTopic());
   }
 
-  // 1) Sujet : on tente un sujet tendance (recherche web), sinon liste curée.
+  // 1) Aéroports actifs (seuls à citer dans l'article).
+  const activeAirports = await getActiveAirportNames();
+
+  // 2) Sujet : on tente un sujet tendance (recherche web), sinon liste curée.
   //    Dans les deux cas, on évite les sujets traités depuis moins de 30 jours.
   const recent = await recentTitles(30);
   const topic = (await pickTrendingTopic(recent)) ?? (await pickTopic());
@@ -365,7 +385,7 @@ Contraintes impératives :
 - INTERDIT : tiret long (em dash) et émoji, partout. OBLIGATOIRE : français correct avec TOUS les accents (é, è, ê, à, â, ç, ô, î, ù...), jamais de texte sans accents.
 - Article TRES LONG et fouillé : viser 1800 à 2500 mots. C'est important pour le SEO : développe vraiment chaque section, donne des exemples concrets, des chiffres d'ordre de grandeur, des listes, des conseils actionnables.
 - Structure Markdown claire : plusieurs sections "## " et sous-sections "### ", des listes à puces, du **gras** sur les points clés. NE PAS mettre de titre H1 dans "content" (le H1 est géré à part).
-- Couvre le sujet en profondeur : contexte, conseils pratiques, exemples de routes réelles depuis nos aéroports en Belgique et en France, erreurs à éviter, astuces de réservation, bagages, périodes idéales. Si tu cites des aéroports précis, fais-le dans le cadre du sujet (ex. article spécifique à Charleroi) - jamais pour décrire la couverture du service BonVoleur (toujours formuler "depuis la Belgique et la France" ou "depuis nos aéroports").
+- Couvre le sujet en profondeur : contexte, conseils pratiques, exemples de routes réelles depuis nos aéroports en Belgique et en France, erreurs à éviter, astuces de réservation, bagages, périodes idéales. Aéroports actuellement actifs sur le site (les seuls que tu peux citer) : ${activeAirports.join(", ")}. Un aéroport absent de cette liste n'est pas disponible sur le site : le citer créerait une fausse promesse pour le lecteur.
 - Inclure au moins 2 liens internes en Markdown vers des pages du site : la page d'inscription [inscris-toi gratuitement](/#inscription) ET un lien vers nos fiches destinations.
 - Intègre 2 à 3 liens affiliés naturellement dans le texte (jamais dans les 2 premiers paragraphes, jamais en bloc, toujours avec une ancre de texte naturelle). Choisis selon le sujet : [Booking.com](https://www.booking.com/index.fr.html?selected_currency=EUR) pour l'hébergement, [GetYourGuide](https://www.getyourguide.com/fr-fr/) pour les activités, [Kiwi.com](https://kiwi.tp.st/v3Xycmps) pour comparer les vols, [AirHelp](https://airhelp.tp.st/nZiaMXbN) si les retards ou annulations sont évoqués, [DiscoverCars](https://www.discovercars.com/fr) si la voiture est mentionnée, [Kiwitaxi](https://kiwitaxi.tp.st/nEAHNURD) pour les transferts aéroport. Pour ce dernier : si l'article porte sur une ville d'arrivée précise, lie vers SA fiche (URL = la ville uniquement, ex. un article sur Tirana -> [vols vers Tirana](/vols-pas-chers/tirana) ; notre système redirige automatiquement vers le hub si cette fiche n'existe pas encore). Sinon, lie simplement vers [toutes nos destinations](/vols-pas-chers). NE lie JAMAIS vers une ville SANS RAPPORT avec le sujet juste parce qu'elle sert d'exemple, et n'utilise JAMAIS d'URL du type /vols-pas-chers/ville-depart-ville-arrivee.
 - Termine le corps par un appel clair à s'inscrire à la newsletter.
