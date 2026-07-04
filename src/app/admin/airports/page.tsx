@@ -56,7 +56,7 @@ export default async function AirportsPage({
   const allDays    = calendarDays(days);
   const validDays  = new Set(allDays);
   const cutoff     = allDays[0] + "T00:00:00.000Z";
-  const recentDays = allDays.slice(-14);
+  const barWidth = days <= 7 ? 8 : days <= 14 ? 6 : days <= 30 ? 3 : 2;
 
   const sb = createClient(
     process.env.SUPABASE_URL!,
@@ -136,13 +136,13 @@ export default async function AirportsPage({
               <th className="px-4 py-3 text-right">Couverture</th>
               <th className="px-4 py-3 text-right">Moy / jour</th>
               <th className="px-4 py-3 text-center">Décision</th>
-              <th className="px-4 py-3 text-center">14 derniers jours</th>
+              <th className="px-4 py-3 text-center">{days} derniers jours</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {rows.map(({ iata, city, total, daysWithDeal, pct, avg, perDay, active }) => {
               const { label, cls } = statusLabel(pct);
-              const maxDay = Math.max(...recentDays.map((d) => perDay.get(d) ?? 0), 1);
+              const maxDay = Math.max(...allDays.map((d) => perDay.get(d) ?? 0), 1);
               return (
                 <tr key={iata} className={`hover:bg-slate-50 ${active ? "bg-blue-50/30" : ""}`}>
                   <td className="px-4 py-3 font-medium text-slate-800">
@@ -165,16 +165,16 @@ export default async function AirportsPage({
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${cls}`}>{label}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-end gap-0.5 justify-center h-6">
-                      {recentDays.map((day) => {
+                    <div className="flex items-end gap-px justify-center h-6">
+                      {allDays.map((day) => {
                         const count = perDay.get(day) ?? 0;
                         const h = count > 0 ? Math.max(Math.round((count / maxDay) * 20), 3) : 1;
                         return (
                           <div
                             key={day}
                             title={`${day} : ${count} deal(s)`}
-                            style={{ height: `${h}px` }}
-                            className={`w-2 rounded-sm ${count > 0 ? "bg-brand" : "bg-slate-200"}`}
+                            style={{ height: `${h}px`, width: `${barWidth}px` }}
+                            className={`rounded-sm ${count > 0 ? "bg-brand" : "bg-slate-200"}`}
                           />
                         );
                       })}
