@@ -10,7 +10,7 @@ import {
   dealsAlertEmail,
   blogNewsletterEmail,
 } from "@/lib/email-templates";
-import { dealHtml, teaserDigestHtml } from "@/lib/deal-send";
+import { teaserDigestHtml } from "@/lib/deal-send";
 import { site } from "@/lib/site";
 
 const TO = site.email; // contact@bonvoleur.com
