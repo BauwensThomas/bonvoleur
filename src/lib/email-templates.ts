@@ -22,7 +22,7 @@ export const FB_LOGO = `<img src="${ICON_BASE}/facebook.png" width="16" height="
 const LOGO_URL =
   "https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand/logo.png";
 const HERO_URL =
-  "https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand/hero-email.jpg";
+  "https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand/hero-email.png";
 
 const LINK = "color:#0369a1;text-decoration:none;";
 const WIDTH = 680;
