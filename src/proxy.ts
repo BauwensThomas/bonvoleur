@@ -86,7 +86,17 @@ async function refreshMemberSession(req: NextRequest): Promise<NextResponse> {
   });
 
   // getUser() revalide le jeton et declenche le refresh si besoin.
-  await supabase.auth.getUser();
+  // Ignorer les erreurs de token expiré/invalide (refresh_token_not_found) :
+  // c'est un comportement normal à l'expiration de session.
+  try {
+    await supabase.auth.getUser();
+  } catch (error: any) {
+    // Ignorer les erreurs de token expiré - ce n'est pas un problème
+    if (error?.code !== "refresh_token_not_found") {
+      // Autres erreurs : logger mais ne pas bloquer la requête
+      console.error("[proxy] Erreur de session Supabase:", error?.code, error?.message);
+    }
+  }
   return res;
 }
 

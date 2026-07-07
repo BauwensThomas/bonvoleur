@@ -18,9 +18,20 @@ export type MemberState =
 //   on renvoie « no-account » pour rediriger vers l'inscription.
 export async function getMemberState(): Promise<MemberState> {
   const supabase = await createSupabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  
+  let user: any;
+  try {
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    user = authUser;
+  } catch (error: any) {
+    // Ignorer les erreurs de token expiré/invalide (refresh_token_not_found)
+    // C'est un comportement normal à l'expiration de session.
+    // Autres erreurs seront loggées mais ne bloqueront pas.
+    if (error?.code !== "refresh_token_not_found") {
+      console.error("[getMemberState] Erreur inattendue:", error);
+    }
+    user = null;
+  }
 
   const email = user?.email?.toLowerCase();
   if (!email) return { status: "anonymous" };
