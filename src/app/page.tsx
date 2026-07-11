@@ -14,7 +14,7 @@ import { site } from "@/lib/site";
 import { getHomepageDeals } from "@/lib/homepage";
 import { getActiveAirports } from "@/lib/airports";
 import { getDestinations, destinationSlug } from "@/lib/routes";
-import { getAll } from "@/lib/db";
+import { getAll, getRecentDeals } from "@/lib/db";
 
 // "Lisbonne (LIS)" -> "lisbonne" (slug de la fiche /vols-pas-chers).
 function destSlugOf(label: string): string {
@@ -76,8 +76,7 @@ export default async function Home() {
   // Deals actifs = fenêtre premium (5 jours), aéroport actif, is_hot != false.
   const PREMIUM_WINDOW_DAYS = 5;
   const activeSince = new Date(Date.now() - PREMIUM_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
-  const activeDeals = (await getAll("deals")).filter((d) => {
-    if (d.is_hot === false) return false;
+  const activeDeals = (await getRecentDeals(PREMIUM_WINDOW_DAYS)).filter((d) => {
     if (d.created_at < activeSince) return false;
     const origIata = d.origin.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
     return activeIatas.has(origIata);

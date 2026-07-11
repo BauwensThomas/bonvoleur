@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAll } from "@/lib/db";
+import { getAll, getRecentDeals } from "@/lib/db";
 import { getMemberDeals } from "@/lib/member-deals";
 import { getScannerRuns } from "@/lib/github-actions";
 import { getDestinations } from "@/lib/routes";
@@ -46,13 +46,10 @@ export default async function AdminDashboard() {
   const activeIatas = new Set(activeAirports.map((a: { iata: string }) => a.iata));
 
   // Destinations avec au moins un deal actif (fenêtre 5 jours, même logique que homepage).
-  const allDeals = await getAll("deals");
-  const activeSince = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
+  const recentDeals = await getRecentDeals(5);
   const activeDestIatas = new Set(
-    allDeals
+    recentDeals
       .filter((d) => {
-        if (d.is_hot === false) return false;
-        if (d.created_at < activeSince) return false;
         const orig = d.origin.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
         return activeIatas.has(orig);
       })

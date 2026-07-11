@@ -26,9 +26,22 @@ function sb(): SupabaseClient {
 export async function getAll<T extends TableName>(
   table: T
 ): Promise<Tables[T][]> {
-  const { data, error } = await sb().from(table).select("*");
+  const { data, error } = await sb().from(table).select("*").limit(5000);
   if (error) throw new Error(`Supabase getAll(${table}): ${error.message}`);
   return (data ?? []) as Tables[T][];
+}
+
+// Deals récents uniquement (is_hot != false + created_at dans la fenêtre).
+// Évite de charger les 1800+ deals historiques pour des calculs sur 5-7 jours.
+export async function getRecentDeals(days: number): Promise<Tables["deals"][]> {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await sb()
+    .from("deals")
+    .select("*")
+    .neq("is_hot", false)
+    .gte("created_at", since);
+  if (error) throw new Error(`Supabase getRecentDeals: ${error.message}`);
+  return (data ?? []) as Tables["deals"][];
 }
 
 export async function getById<T extends TableName>(
