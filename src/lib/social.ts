@@ -11,6 +11,10 @@ import type { Post, AgentTrigger } from "./types";
 // Mot-clé à commenter pour déclencher l'envoi du lien en DM via ManyChat.
 const KEYWORD = "DEAL";
 
+// Image de repli si l'article n'a pas de cover_image (Make a besoin d'une image pour IG).
+const FALLBACK_IMAGE =
+  "https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand/hero-email.png";
+
 export interface SocialPayload {
   title: string;
   url: string; // lien de l'article (à mettre en commentaire)
@@ -38,7 +42,9 @@ async function generateCaption(
       messages: [
         {
           role: "user",
-          content: `Tu es le createur de contenu reseaux sociaux de ${site.name} (newsletter de vols pas chers Belgique/France). Ton complice, malin, direct, joueur. INTERDIT : tiret long (em dash), emoji. Francais avec TOUS les accents. Phrases courtes.
+          content: `Tu es le createur de contenu reseaux sociaux de ${site.name} (newsletter de vols pas chers Belgique/France). Ton complice, malin, direct, joueur. INTERDIT : tiret long (em dash), emoji. Phrases courtes.
+
+ACCENTS OBLIGATOIRES - regle absolue, aucune exception : ecris toujours ete, depart, pepites, apres, aout, reve, a (quand "a"), voila, deja, reel, decouvrir, different, reduction, opportunite AVEC leurs accents : été, départ, pépites, après, août, rêve, à, voilà, déjà, réel, découvrir, différent, réduction, opportunité. Relis chaque mot : si un mot francais contient normalement un accent, ecris-le avec.
 
 A partir de cet article de blog, ecris UNE publication Instagram/Facebook (la meme legende pour les deux) qui le met en avant et fait grossir la communaute.
 
@@ -85,8 +91,7 @@ export async function notifySocial(
   const hook = process.env.MAKE_WEBHOOK_URL;
   if (!hook) return;
   if (!post.cover_image) {
-    console.warn(`[social] pas d'image pour "${post.title}", webhook Make ignoré`);
-    return;
+    console.warn(`[social] pas d'image pour "${post.title}", utilisation image de repli`);
   }
   const startedAt = new Date().toISOString();
   let ok = false;
@@ -97,7 +102,7 @@ export async function notifySocial(
     const payload: SocialPayload = {
       title: post.title,
       url,
-      image_url: post.cover_image ?? null,
+      image_url: post.cover_image ?? FALLBACK_IMAGE,
       caption,
       comment,
       keyword: KEYWORD,
