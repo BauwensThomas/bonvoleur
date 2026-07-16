@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAll, getRecentDeals } from "@/lib/db";
+import { getAll } from "@/lib/db";
 import { getMemberDeals } from "@/lib/member-deals";
 import { getScannerRuns } from "@/lib/github-actions";
 import { getDestinations } from "@/lib/routes";
@@ -43,16 +43,11 @@ export default async function AdminDashboard() {
   const freemiumCount = subscribers.filter((s: { tier?: string }) => s.tier !== "premium").length;
   const premiumSubCount = subscribers.filter((s: { tier?: string }) => s.tier === "premium").length;
 
-  const activeIatas = new Set(activeAirports.map((a: { iata: string }) => a.iata));
-
-  // Destinations avec au moins un deal actif (fenêtre 5 jours, même logique que homepage).
-  const recentDeals = await getRecentDeals(5);
+  // Destinations avec au moins un deal actif : même set que "Deals" ci-dessus
+  // (memberDeals = getMemberDeals("premium"), déjà filtré fraîcheur + départ non
+  // passé + aéroport actif), pour rester cohérent avec le stat "Deals".
   const activeDestIatas = new Set(
-    recentDeals
-      .filter((d) => {
-        const orig = d.origin.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
-        return activeIatas.has(orig);
-      })
+    memberDeals.deals
       .map((d) => d.destination.match(/\(([A-Z]{3})\)/)?.[1] ?? "")
       .filter(Boolean)
   );
