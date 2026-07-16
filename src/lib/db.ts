@@ -23,12 +23,28 @@ function sb(): SupabaseClient {
   return _sb;
 }
 
+// Pagine par blocs de 1000 : Supabase plafonne chaque requête à son "Max Rows"
+// (1000 par défaut) côté serveur, quel que soit le .limit() demandé côté client.
+// Sans pagination, getAll("deals") ne renvoie qu'une tranche arbitraire (pas
+// forcément la plus récente) une fois la table au-delà de 1000 lignes.
 export async function getAll<T extends TableName>(
   table: T
 ): Promise<Tables[T][]> {
-  const { data, error } = await sb().from(table).select("*").limit(5000);
-  if (error) throw new Error(`Supabase getAll(${table}): ${error.message}`);
-  return (data ?? []) as Tables[T][];
+  const pageSize = 1000;
+  const all: Tables[T][] = [];
+  let offset = 0;
+  while (true) {
+    const { data, error } = await sb()
+      .from(table)
+      .select("*")
+      .range(offset, offset + pageSize - 1);
+    if (error) throw new Error(`Supabase getAll(${table}): ${error.message}`);
+    if (!data?.length) break;
+    all.push(...(data as Tables[T][]));
+    if (data.length < pageSize) break;
+    offset += pageSize;
+  }
+  return all;
 }
 
 // Deals récents uniquement (is_hot != false + created_at dans la fenêtre).
