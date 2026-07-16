@@ -14,7 +14,8 @@ import { site } from "@/lib/site";
 import { getHomepageDeals } from "@/lib/homepage";
 import { getActiveAirports } from "@/lib/airports";
 import { getDestinations, destinationSlug } from "@/lib/routes";
-import { getAll, getRecentDeals } from "@/lib/db";
+import { getAll } from "@/lib/db";
+import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 
 // "Lisbonne (LIS)" -> "lisbonne" (slug de la fiche /vols-pas-chers).
 function destSlugOf(label: string): string {
@@ -73,11 +74,17 @@ export default async function Home() {
   const FEATURED = 8;
   const activeIatas = new Set(airports.map((a) => a.iata));
 
-  // Deals actifs = fenêtre premium (5 jours), aéroport actif, is_hot != false.
-  const PREMIUM_WINDOW_DAYS = 5;
-  const activeSince = new Date(Date.now() - PREMIUM_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
-  const activeDeals = (await getRecentDeals(PREMIUM_WINDOW_DAYS)).filter((d) => {
-    if (d.created_at < activeSince) return false;
+  // Deals actifs = mêmes règles que "vérité premium" (getMemberDeals) : vus
+  // récemment (published_at < FRESH_MAX_MS), départ pas encore passé,
+  // aéroport actif, is_hot != false.
+  const now = Date.now();
+  const today = new Date(now).toISOString().slice(0, 10);
+  const activeDeals = (await getAll("deals")).filter((d) => {
+    if (d.is_hot === false) return false;
+    const seen = d.published_at ?? d.created_at;
+    if (now - new Date(seen).getTime() > FRESH_MAX_MS) return false;
+    const dep = (d.dates ?? "").match(/\d{4}-\d{2}-\d{2}/)?.[0];
+    if (dep && dep < today) return false;
     const origIata = d.origin.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
     return activeIatas.has(origIata);
   });
