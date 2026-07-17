@@ -69,6 +69,20 @@ export async function rehostImage(
       .from("photos")
       .upload(path, jpeg, { contentType: "image/jpeg", upsert: true, cacheControl: "31536000" });
     if (error) return sourceUrl;
+
+    // Garde-fou : relit le fichier tel que stocké et le compare octet à octet
+    // au JPEG produit par sharp. Un upload peut arriver corrompu (observé en
+    // prod : buffer binaire mangé en UTF-8 quelque part dans la chaîne) sans
+    // que l'API Supabase ne renvoie d'erreur - mieux vaut détecter et retomber
+    // sur l'URL source qu'un article publié avec une image cassée.
+    const { data: stored, error: readBackError } = await client.storage.from("photos").download(path);
+    if (readBackError || !stored) return sourceUrl;
+    const storedBuf = Buffer.from(await stored.arrayBuffer());
+    if (!storedBuf.equals(jpeg)) {
+      await client.storage.from("photos").remove([path]).catch(() => {});
+      return sourceUrl;
+    }
+
     const publicUrl = client.storage.from("photos").getPublicUrl(path).data.publicUrl;
     return `${publicUrl}?v=${Date.now()}`;
   } catch {

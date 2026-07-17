@@ -83,6 +83,18 @@ export async function rehostImage(env, sourceUrl, prefix, name) {
       console.log(`  rehost ${name}: ${error.message}`);
       return sourceUrl;
     }
+
+    // Garde-fou : relit le fichier stocké et le compare octet à octet au JPEG
+    // produit (un upload peut arriver corrompu sans erreur Supabase).
+    const { data: stored, error: readBackError } = await sb.storage.from("photos").download(path);
+    if (readBackError || !stored) return sourceUrl;
+    const storedBuf = Buffer.from(await stored.arrayBuffer());
+    if (!storedBuf.equals(buf)) {
+      console.log(`  rehost ${name}: verification echouee (fichier corrompu), URL source conservee`);
+      await sb.storage.from("photos").remove([path]).catch(() => {});
+      return sourceUrl;
+    }
+
     return sb.storage.from("photos").getPublicUrl(path).data.publicUrl;
   } catch (e) {
     console.log(`  rehost ${name}: ${e.message}`);
