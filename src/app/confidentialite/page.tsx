@@ -98,14 +98,14 @@ export default function Confidentialite() {
           <section>
             <h2 className="text-xl font-semibold">Cookies</h2>
             <p className="mt-2">
-              On utilise uniquement des <strong>cookies essentiels</strong> sans
+              On utilise des <strong>cookies essentiels</strong> sans
               consentement : ceux qui te gardent <strong>connecté</strong> à ton
               espace (session), et ceux posés par <strong>Stripe</strong>{" "}
-              sur sa page de paiement (sécurité anti-fraude). Aucun cookie de suivi
-              publicitaire n&apos;est posé sans ton accord. À la mise en ligne, un
-              bandeau de consentement gérera les éventuels cookies de mesure
-              d&apos;audience et de publicité (par ex. Google AdSense), qui ne se
-              déclenchent qu&apos;après acceptation.
+              sur sa page de paiement (sécurité anti-fraude). Pour les cookies de
+              mesure d&apos;audience et de publicité, un bandeau te permet
+              d&apos;accepter ou de refuser : ils ne se déclenchent qu&apos;après
+              ton acceptation. Tu peux revenir sur ton choix à tout moment via
+              « Gérer les cookies » en bas de page.
             </p>
           </section>
 
