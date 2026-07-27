@@ -2,6 +2,7 @@
 
 import { Fragment, useState } from "react";
 import { FRESH_MAX_DAYS, FRESH_MAX_MS } from "@/lib/deal-freshness";
+import { formatDealDates } from "@/lib/dates";
 import type { Deal } from "@/lib/types";
 
 const seenAt = (d: Deal) => d.published_at ?? d.created_at;
@@ -252,7 +253,7 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
                       )}
                     </td>
                     <td className="px-4 py-2 whitespace-nowrap text-slate-600">
-                      {r.latest.dates || "-"}
+                      {r.latest.dates ? formatDealDates(r.latest.dates) : "-"}
                     </td>
                     <td className="px-4 py-2 whitespace-nowrap text-slate-600">
                       {fmtDate(seenAt(r.latest))}
@@ -284,7 +285,7 @@ export default function DealsManager({ initial }: { initial: Deal[] }) {
                               {d.normal_price ? ` (-${d.discount_pct}%)` : ""}
                             </span>
                             <span className="text-slate-600">
-                              {d.dates || "dates ?"}
+                              {d.dates ? formatDealDates(d.dates) : "dates ?"}
                               {d.airline ? ` · ${d.airline}` : ""}
                             </span>
                             <span className="whitespace-nowrap text-xs text-slate-500">

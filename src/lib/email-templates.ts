@@ -42,7 +42,9 @@ export function emailLayout(
     : "";
 
   return `<!doctype html>
-<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>BonVoleur</title></head>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>BonVoleur</title>
+<style>.bv-stars a{text-decoration:none;color:#e2e8f0;background:transparent;font-size:30px;line-height:1;padding:0 4px;}.bv-stars a:hover,.bv-stars a:hover ~ a{color:#f59e0b;}</style>
+</head>
 <body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#0f172a;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
     <tr><td align="center">

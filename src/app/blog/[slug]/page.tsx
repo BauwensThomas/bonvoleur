@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { findOne, getAll } from "@/lib/db";
 import { site } from "@/lib/site";
+import { formatArticleDate } from "@/lib/dates";
 
 export const revalidate = 60;
 
@@ -140,6 +141,11 @@ export default async function BlogPost({
               {" · "}
               {readingMinutes(post.content)} min de lecture
             </p>
+            {post.cover_image && post.cover_image_credit && (
+              <p className="mt-1 text-xs text-slate-400">
+                Photo : {post.cover_image_credit.replace(/^[Pp]hoto\s+/, "")}
+              </p>
+            )}
           </div>
         </div>
 
@@ -209,12 +215,14 @@ export default async function BlogPost({
                     />
                   )}
                   <div className="flex flex-1 flex-col p-4">
-                    <p className="text-xs text-slate-500">
-                      {new Date(p.published_at ?? p.created_at).toLocaleDateString("fr-BE", { day: "numeric", month: "long", year: "numeric" })}
-                    </p>
-                    <h3 className="mt-1 font-semibold leading-snug text-slate-800 line-clamp-2">{p.title}</h3>
+                    <h3 className="font-semibold leading-snug text-slate-800 line-clamp-2">{p.title}</h3>
                     <p className="mt-1 text-sm text-slate-500 line-clamp-2">{p.excerpt}</p>
-                    <span className="mt-auto pt-3 text-sm font-medium text-brand">Lire l&apos;article</span>
+                    <div className="mt-auto flex items-center justify-between pt-3">
+                      <span className="text-sm font-medium text-brand">Lire l&apos;article</span>
+                      <span className="text-xs text-slate-900">
+                        {formatArticleDate(p.published_at ?? p.created_at)}
+                      </span>
+                    </div>
                   </div>
                 </Link>
               ))}

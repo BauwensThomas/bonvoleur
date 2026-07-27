@@ -3,6 +3,7 @@ import { getAll } from "@/lib/db";
 import { getMemberDeals } from "@/lib/member-deals";
 import { getScannerRuns } from "@/lib/github-actions";
 import { getDestinations } from "@/lib/routes";
+import { formatRating } from "@/lib/reviews";
 
 function Stat({ label, value, href }: { label: string; value: number; href: string }) {
   return (
@@ -17,7 +18,7 @@ function Stat({ label, value, href }: { label: string; value: number; href: stri
 }
 
 export default async function AdminDashboard() {
-  const [subscribers, memberDeals, posts, partners, runs, scanner, airports, destinations] =
+  const [subscribers, memberDeals, posts, partners, runs, scanner, airports, destinations, reviews] =
     await Promise.all([
       getAll("subscribers"),
       getMemberDeals("premium"),
@@ -27,7 +28,15 @@ export default async function AdminDashboard() {
       getScannerRuns(),
       getAll("airports"),
       getDestinations(),
+      getAll("reviews"),
     ]);
+
+  const approvedReviews = reviews.filter((r) => r.status === "approved");
+  const pendingReviewsCount = reviews.filter((r) => r.status === "pending").length;
+  const averageRating =
+    approvedReviews.length > 0
+      ? approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length
+      : 0;
 
   const activeAirports = airports
     .filter((a: { active: boolean; iata: string; name?: string }) => a.active)
@@ -133,6 +142,34 @@ export default async function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      <Link
+        href="/admin/reviews"
+        className="mt-4 flex items-center justify-between gap-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
+      >
+        <div>
+          <h2 className="font-semibold">Avis clients</h2>
+          <div className="mt-3 flex gap-6 text-sm">
+            <div>
+              <p className="text-2xl tabular-nums">
+                <span className="font-bold text-slate-900">
+                  {averageRating > 0 ? formatRating(averageRating) : "-"}
+                </span>
+                <span className="font-normal text-slate-500">/5</span>
+              </p>
+              <p className="text-slate-500">Note actuelle</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold tabular-nums">{reviews.length}</p>
+              <p className="text-slate-500">Votes reçus</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold tabular-nums text-amber-600">{pendingReviewsCount}</p>
+              <p className="text-slate-500">En attente</p>
+            </div>
+          </div>
+        </div>
+      </Link>
 
       <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-center justify-between">

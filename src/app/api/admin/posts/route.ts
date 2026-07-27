@@ -43,6 +43,7 @@ export async function POST(req: Request) {
     content: b.content ?? "",
     faq: Array.isArray(b.faq) ? b.faq : [],
     cover_image: b.cover_image ?? null,
+    cover_image_credit: b.cover_image_credit ?? null,
     meta_title: b.meta_title ?? null,
     meta_description: b.meta_description ?? null,
     status,

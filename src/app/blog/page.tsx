@@ -3,6 +3,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getAll } from "@/lib/db";
+import { formatArticleDate } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -12,14 +13,6 @@ export const metadata: Metadata = {
     "Guides destinations, conseils voyage et astuces pour voler moins cher depuis la Belgique et la France.",
   alternates: { canonical: "https://www.bonvoleur.com/blog" },
 };
-
-function frDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("fr-BE", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
 
 export default async function BlogIndex() {
   const all = await getAll("posts");
@@ -39,7 +32,7 @@ export default async function BlogIndex() {
         <p className="mt-2 text-slate-600">
           Guides destinations, bons plans et astuces pour voyager moins cher depuis la Belgique et la France.
           On décortique les meilleures destinations, on t&apos;explique comment dénicher un vol pas cher et on partage
-          nos conseils pratiques pour préparer chaque étape de ton voyage - de l&apos;aéroport au logement.
+          nos conseils pratiques pour préparer chaque étape de ton voyage, de l&apos;aéroport au logement.
         </p>
 
         {posts.length === 0 ? (
@@ -61,18 +54,20 @@ export default async function BlogIndex() {
                   />
                 )}
                 <div className="flex flex-1 flex-col p-5">
-                  <p className="text-xs font-medium text-slate-500">
-                    {frDate(p.published_at ?? p.created_at)}
-                  </p>
-                  <h2 className="mt-1 text-lg font-semibold line-clamp-2 min-h-14">
+                  <h2 className="text-lg font-semibold line-clamp-2 min-h-14">
                     {p.title}
                   </h2>
                   <p className="mt-2 text-sm text-slate-600 line-clamp-3 min-h-15">
                     {p.excerpt}
                   </p>
-                  <span className="mt-auto pt-3 text-sm font-medium text-brand">
-                    Lire l&apos;article
-                  </span>
+                  <div className="mt-auto flex items-center justify-between pt-3">
+                    <span className="text-sm font-medium text-brand">
+                      Lire l&apos;article
+                    </span>
+                    <span className="text-xs text-slate-900">
+                      {formatArticleDate(p.published_at ?? p.created_at)}
+                    </span>
+                  </div>
                 </div>
               </Link>
             ))}

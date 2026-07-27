@@ -7,6 +7,8 @@ import { sendEmail, sendBatch, type EmailMessage } from "./email";
 import { emailLayout } from "./email-templates";
 import { site, discountPct } from "./site";
 import { unsubscribeUrl as unsubUrl } from "./unsubscribe";
+import { reviewUrl } from "./reviews";
+import { formatDealDates } from "./dates";
 import { getActiveAirportCodes, getAirportName } from "./airports";
 import type { Deal, EmailFrequency, Subscriber, Tier } from "./types";
 
@@ -42,7 +44,7 @@ function matches(sub: Subscriber, iata: string | null): boolean {
 function dealCard(deal: Deal): string {
   const priceLine = `<span style="font-size:28px;font-weight:800;color:#0369a1;">${deal.price}€</span>`;
   const notes: string[] = [];
-  if (deal.dates) notes.push(`Dates : ${escapeHtml(deal.dates)}`);
+  if (deal.dates) notes.push(`Dates : ${escapeHtml(formatDealDates(deal.dates))}`);
   const notesHtml = notes.length
     ? `<div style="margin-top:6px;font-size:13px;color:#475569;">${notes.join(" &nbsp;-&nbsp; ")}</div>`
     : "";
@@ -78,6 +80,26 @@ export function digestHtml(deals: Deal[], unsubscribeUrl: string): string {
 
 function spacer(): string {
   return `<tr><td style="height:14px;"></td></tr>`;
+}
+
+// Bloc de notation par étoiles, juste sous la bannière (les lecteurs qui ne
+// scrollent pas jusqu'en bas de l'email ne le verraient jamais ailleurs).
+// 5 liens fixes (1 par note) : pas de JS possible en email, chaque étoile est
+// un lien direct vers /avis avec la note pré-remplie.
+function reviewBlock(token?: string): string {
+  if (!token) return "";
+  // Ordre DOM inversé (5..1) + direction:rtl -> affichage visuel 1..5, pour
+  // profiter du hack CSS ":hover ~" (survoler la 4e étoile allume les 4
+  // premières). Fonctionne dans les clients qui supportent :hover (Apple
+  // Mail, Gmail web/app) ; dégradation propre ailleurs (étoiles grises,
+  // toujours cliquables) puisqu'aucune n'est pré-remplie par défaut.
+  const stars = [5, 4, 3, 2, 1]
+    .map((n) => `<a href="${reviewUrl(token, n)}">&#9733;</a>`)
+    .join("");
+  return `<tr><td style="padding:18px 32px 4px;text-align:center;background:#fffbeb;border-bottom:1px solid #fde68a;">
+    <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#92400e;">Tu nous donnes combien d'étoiles ?</p>
+    <div class="bv-stars" style="direction:rtl;unicode-bidi:bidi-override;">${stars}</div>
+  </td></tr>`;
 }
 
 // Bouton CTA vers l'espace compte (voir TOUS les bons plans).
@@ -121,8 +143,8 @@ export function teaserDigestHtml(
     )
     .join("");
   const body = hasDeals
-    ? intro + hurryLine + sections + deactivatedSection + accountCta(accountUrl) + spacer()
-    : intro + deactivatedSection + accountCta(accountUrl) + spacer();
+    ? reviewBlock(trackingToken) + intro + hurryLine + sections + deactivatedSection + accountCta(accountUrl) + spacer()
+    : reviewBlock(trackingToken) + intro + deactivatedSection + accountCta(accountUrl) + spacer();
   return emailLayout(body, unsubscribeUrl, trackingToken);
 }
 

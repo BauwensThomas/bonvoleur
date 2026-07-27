@@ -13,6 +13,7 @@ import { destinationRegion, REGION_ORDER } from "@/lib/destinations";
 import CompteControls from "@/components/CompteControls";
 import PromoCodeInput from "@/components/PromoCodeInput";
 import ResendConfirmationForm from "@/components/ResendConfirmationForm";
+import { formatDealDates } from "@/lib/dates";
 
 // "Lisbonne (LIS)" -> "lisbonne" (slug de la fiche destination).
 function destSlugOf(label: string): string {
@@ -354,7 +355,7 @@ export default async function Compte({
                 {d.destination}
                     </p>
                     <p className="text-sm text-slate-500">
-                      {d.dates}
+                      {formatDealDates(d.dates)}
                       {d.airline ? ` · ${d.airline}` : ""}
                     </p>
                     <p className="text-xs font-medium text-accent-dark">
@@ -453,7 +454,7 @@ export default async function Compte({
                     </span>
                   </p>
                   {d.dates && (
-                    <p className="mt-2 text-sm text-slate-600">Dates : {d.dates}</p>
+                    <p className="mt-2 text-sm text-slate-600">Dates : {formatDealDates(d.dates)}</p>
                   )}
                   <p className="mt-1 text-xs font-medium text-accent-dark">
                     Déniché le{" "}

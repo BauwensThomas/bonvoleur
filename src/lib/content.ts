@@ -356,9 +356,10 @@ async function gatherFacts(topic: string): Promise<string> {
   }
 }
 
-// Photo d'illustration de l'article via Unsplash (URL hébergée). Renvoie null
-// sans clé ou en cas d'échec (l'article reste publiable sans image).
-async function unsplashImage(query: string): Promise<string | null> {
+// Photo d'illustration de l'article via Unsplash (URL + crédit photographe,
+// obligatoire par les conditions d'utilisation Unsplash). Renvoie null sans
+// clé ou en cas d'échec (l'article reste publiable sans image).
+async function unsplashImage(query: string): Promise<{ url: string; credit: string } | null> {
   const key = process.env.UNSPLASH_ACCESS_KEY;
   if (!key || !query) {
     console.warn("[unsplash] clé manquante ou query vide");
@@ -385,7 +386,10 @@ async function unsplashImage(query: string): Promise<string | null> {
         headers: { Authorization: `Client-ID ${key}` },
       }).catch(() => {});
     }
-    return p.urls?.regular ?? p.urls?.full ?? null;
+    const url = p.urls?.regular ?? p.urls?.full ?? null;
+    if (!url) return null;
+    const credit = p.user?.name ? `${p.user.name} / Unsplash` : "Unsplash";
+    return { url, credit };
   } catch {
     return null;
   }
@@ -512,6 +516,11 @@ RAPPEL FINAL CRITIQUE : TOUT le texte (title, excerpt, content, meta_title, meta
 // Exécute l'agent content-publisher : génère un article, le PUBLIE directement
 // et journalise l'exécution. Utilisé par le cron et le bouton admin.
 const PUBLISH_INTERVAL_DAYS = 3;
+// Marge de tolérance sur le seuil : le cron Vercel ne tourne qu'une fois par
+// jour, donc un décalage de quelques heures (jitter) suffit à faire passer
+// daysSince juste sous PUBLISH_INTERVAL_DAYS - ce qui décale la publication
+// d'un jour entier plutôt que de quelques heures. La tolérance absorbe ce jitter.
+const PUBLISH_TOLERANCE_HOURS = 6;
 
 export async function runContentPublisher(
   trigger: "cron" | "manuel"
@@ -528,7 +537,8 @@ export async function runContentPublisher(
     if (last?.published_at) {
       const daysSince =
         (Date.now() - new Date(last.published_at).getTime()) / (1000 * 60 * 60 * 24);
-      if (daysSince < PUBLISH_INTERVAL_DAYS) {
+      const effectiveThreshold = PUBLISH_INTERVAL_DAYS - PUBLISH_TOLERANCE_HOURS / 24;
+      if (daysSince < effectiveThreshold) {
         return insert("agent_runs", {
           agent_name: "content-publisher",
           started_at: startedAt,
@@ -557,6 +567,7 @@ export async function runContentPublisher(
       slug = `${slug}-${Date.now().toString(36)}`;
     }
 
+    const photo = await unsplashImage(article.image_query || article.title);
     const now = new Date().toISOString();
     const post = await insert("posts", {
       slug,
@@ -564,11 +575,8 @@ export async function runContentPublisher(
       excerpt: article.excerpt,
       content: sanitizeLinks(stripTags(article.content), await validDestSlugs()),
       faq: article.faq,
-      cover_image: await rehostImage(
-        await unsplashImage(article.image_query || article.title),
-        "articles",
-        slug
-      ),
+      cover_image: await rehostImage(photo?.url ?? null, "articles", slug),
+      cover_image_credit: photo?.credit ?? null,
       meta_title: article.meta_title,
       meta_description: article.meta_description,
       status: "published", // publication directe (relecture a posteriori si besoin)

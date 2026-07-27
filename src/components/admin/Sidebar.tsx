@@ -10,6 +10,7 @@ const links = [
   { href: "/admin/photos", label: "Photos" },
   { href: "/admin/partners", label: "Partenaires" },
   { href: "/admin/blog", label: "Blog" },
+  { href: "/admin/reviews", label: "Avis" },
   { href: "/admin/subscribers", label: "Abonnés" },
   { href: "/admin/agents", label: "Agents" },
   { href: "/admin/airports", label: "Aéroports" },
@@ -17,8 +18,10 @@ const links = [
 
 export default function Sidebar({
   incompleteCount = 0,
+  pendingReviewsCount = 0,
 }: {
   incompleteCount?: number;
+  pendingReviewsCount?: number;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -59,6 +62,16 @@ export default function Sidebar({
                   title="Fiches sans photo ou sans texte"
                 >
                   {incompleteCount}
+                </span>
+              )}
+              {l.href === "/admin/reviews" && pendingReviewsCount > 0 && (
+                <span
+                  className={`ml-2 rounded-full px-1.5 py-0.5 text-xs font-semibold ${
+                    active ? "bg-white text-brand" : "bg-red-100 text-red-700"
+                  }`}
+                  title="Avis en attente de validation"
+                >
+                  {pendingReviewsCount}
                 </span>
               )}
             </Link>

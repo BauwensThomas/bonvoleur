@@ -10,6 +10,7 @@ import GalleryLightbox from "@/components/GalleryLightbox";
 import { getAll } from "@/lib/db";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { DEFAULT_DEST_IMAGE } from "@/lib/destinations";
+import { formatArticleDate } from "@/lib/dates";
 import { site } from "@/lib/site";
 import { getMemberState } from "@/lib/member-auth";
 import {
@@ -434,7 +435,12 @@ export default async function DestinationPage({
                     {p.meta_description && (
                       <p className="mt-1 text-sm text-slate-500 line-clamp-2">{p.meta_description}</p>
                     )}
-                    <span className="mt-auto pt-3 text-sm font-medium text-brand">Lire l&apos;article</span>
+                    <div className="mt-auto flex items-center justify-between pt-3">
+                      <span className="text-sm font-medium text-brand">Lire l&apos;article</span>
+                      <span className="text-xs text-slate-900">
+                        {formatArticleDate(p.published_at ?? p.created_at)}
+                      </span>
+                    </div>
                   </div>
                 </Link>
               ))}

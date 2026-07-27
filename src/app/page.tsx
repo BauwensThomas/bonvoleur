@@ -16,11 +16,14 @@ import { getActiveAirports } from "@/lib/airports";
 import { getDestinations, destinationSlug } from "@/lib/routes";
 import { getAll } from "@/lib/db";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
+import { getReviewStats, formatRating } from "@/lib/reviews";
+import { formatArticleDate } from "@/lib/dates";
 
 // "Lisbonne (LIS)" -> "lisbonne" (slug de la fiche /vols-pas-chers).
 function destSlugOf(label: string): string {
   return destinationSlug(label.replace(/\s*\([A-Z]{3}\)\s*$/, "").trim());
 }
+
 
 export const metadata = {
   title: "BonVoleur - Vols pas chers depuis la Belgique et la France",
@@ -62,12 +65,14 @@ const features = [
 
 export default async function Home() {
   // Vitrine "teaser" : route + prix uniquement (aucune info actionnable).
-  const [{ teaserDeals, liveCount }, airports, allSubscribers] = await Promise.all([
+  const [{ teaserDeals, liveCount }, airports, allSubscribers, reviewStats] = await Promise.all([
     getHomepageDeals(),
     getActiveAirports(),
     getAll("subscribers"),
+    getReviewStats(),
   ]);
   const premiumCount = allSubscribers.filter((s) => s.tier === "premium").length;
+  const subscriberTierById = new Map(allSubscribers.map((s) => [s.id, s.tier]));
 
   // Destinations populaires : par ville, avec ses aéroports de départ.
   const destGroups = await getDestinations();
@@ -184,7 +189,7 @@ export default async function Home() {
         {/* ── Stats ── */}
         <section className="border-y border-slate-200 bg-white">
           <div className="mx-auto max-w-7xl px-4 py-8">
-            <dl className={`grid gap-px bg-slate-200 overflow-hidden rounded-2xl shadow-sm ${premiumCount >= 50 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
+            <dl className={`grid gap-px bg-slate-200 overflow-hidden rounded-2xl shadow-sm ${premiumCount >= 50 ? "grid-cols-2 sm:grid-cols-5" : "grid-cols-2 sm:grid-cols-4"}`}>
               {([
                 {
                   value: liveCount,
@@ -225,7 +230,26 @@ export default async function Home() {
                     </svg>
                   ),
                 },
-              ].filter(Boolean) as { value: number; label: string; icon: React.ReactNode }[]).map((s) => (
+                {
+                  value: reviewStats.total > 0 ? (
+                    <>
+                      {formatRating(reviewStats.average)}
+                      <span className="ml-1.5 align-middle text-xl text-amber-500">★</span>
+                    </>
+                  ) : (
+                    "-"
+                  ),
+                  label:
+                    reviewStats.total >= 50
+                      ? `Note moyenne (${reviewStats.total} avis)`
+                      : "Note moyenne",
+                  icon: (
+                    <svg className="mx-auto mb-2 h-7 w-7 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                  ),
+                },
+              ].filter(Boolean) as { value: React.ReactNode; label: string; icon: React.ReactNode }[]).map((s) => (
                 <div key={s.label} className="bg-white px-4 py-6 text-center flex flex-col items-center">
                   <dt className="text-sm font-normal text-slate-900">
                     {s.icon}
@@ -413,9 +437,14 @@ export default async function Home() {
                     <p className="mt-2 text-sm text-slate-600 line-clamp-3 min-h-15">
                       {p.excerpt}
                     </p>
-                    <span className="mt-auto pt-3 text-sm font-medium text-brand">
-                      Lire l&apos;article
-                    </span>
+                    <div className="mt-auto flex items-center justify-between pt-3">
+                      <span className="text-sm font-medium text-brand">
+                        Lire l&apos;article
+                      </span>
+                      <span className="text-xs text-slate-900">
+                        {formatArticleDate(p.published_at ?? p.created_at)}
+                      </span>
+                    </div>
                   </div>
                 </a>
               ))}
@@ -427,6 +456,70 @@ export default async function Home() {
               >
                 Voir tous les articles ({totalArticles})
               </a>
+            </div>
+          </section>
+        )}
+
+        {/* ── Avis clients ── */}
+        {reviewStats.total > 0 && (
+          <section className="border-t border-slate-200 bg-white">
+            <div className="mx-auto max-w-4xl px-4 py-20 text-center">
+              <h2 className="text-3xl font-bold tracking-tight">Ce qu&apos;ils en pensent</h2>
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <span className="text-2xl font-bold text-slate-900 tabular-nums">
+                  {formatRating(reviewStats.average)}
+                </span>
+                <span className="text-2xl font-normal text-slate-500">/5</span>
+                <span className="text-2xl text-amber-500" aria-hidden>
+                  {"★".repeat(Math.round(reviewStats.average))}
+                  <span className="text-slate-200">
+                    {"★".repeat(5 - Math.round(reviewStats.average))}
+                  </span>
+                </span>
+                <span className="text-lg text-slate-700">
+                  ({reviewStats.total} avis)
+                </span>
+              </div>
+              {reviewStats.latest.length > 0 && (
+                <div className="mx-auto mt-10 flex max-w-xl flex-wrap justify-center gap-6 text-left">
+                  {reviewStats.latest.map((r) => {
+                    const tier = subscriberTierById.get(r.subscriber_id);
+                    return (
+                      <div
+                        key={r.id}
+                        className="flex w-[calc(50%-0.75rem)] flex-col rounded-2xl border border-slate-200 bg-slate-50 p-5"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-amber-500" aria-hidden>
+                            {"★".repeat(r.rating)}
+                            <span className="text-slate-200">{"★".repeat(5 - r.rating)}</span>
+                          </span>
+                          <span className="text-xs text-slate-900">
+                            {new Date(r.created_at).toLocaleDateString("fr-BE")}
+                          </span>
+                        </div>
+                        {r.comment && (
+                          <p className="mt-2 text-sm text-slate-600">{r.comment}</p>
+                        )}
+                        <div className="mt-auto pt-3 flex items-center gap-2">
+                          <p className="text-sm font-semibold text-slate-800">{r.name}</p>
+                          {tier && (
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                                tier === "premium"
+                                  ? "bg-brand/10 text-brand"
+                                  : "bg-slate-200 text-slate-600"
+                              }`}
+                            >
+                              {tier === "premium" ? "Premium" : "Freemium"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </section>
         )}

@@ -1,5 +1,6 @@
 import { discountPct } from "@/lib/site";
 import { destinationImage, DEFAULT_DEST_IMAGE } from "@/lib/destinations";
+import { formatDealDates } from "@/lib/dates";
 
 interface DealCardProps {
   origin: string;
@@ -103,7 +104,7 @@ export default function DealCard({
           <span className="ml-1 text-sm text-slate-500">aller-retour</span>
         </p>
         {dates && (
-          <p className="mt-2 text-sm text-slate-600">Dates : {dates}</p>
+          <p className="mt-2 text-sm text-slate-600">Dates : {formatDealDates(dates)}</p>
         )}
         {postedAt && (
           <p className="mt-2 text-xs font-medium text-accent-dark">

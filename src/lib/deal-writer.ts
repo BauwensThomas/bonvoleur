@@ -5,6 +5,7 @@
 
 import { getById, update, insert } from "./db";
 import { discountPct } from "./site";
+import { formatDealDates } from "./dates";
 import type { AgentRun, Deal, DealEmail } from "./types";
 
 interface GeneratedEmail {
@@ -78,7 +79,7 @@ function localEmail(deal: Deal): GeneratedEmail {
     `Prix : aux alentours de ${deal.price} euros aller-retour${
       deal.normal_price ? ` (prix normal ${deal.normal_price} euros${pct ? `, soit -${pct}%` : ""})` : ""
     }`,
-    deal.dates ? `Dates : ${deal.dates}` : null,
+    deal.dates ? `Dates : ${formatDealDates(deal.dates)}` : null,
     deal.airline ? `Compagnie : ${deal.airline}` : null,
     `Réserver : ${deal.booking_url}`,
     "",

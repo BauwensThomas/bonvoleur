@@ -10,6 +10,7 @@ const empty: Draft = {
   excerpt: "",
   content: "",
   cover_image: "",
+  cover_image_credit: "",
   meta_title: "",
   meta_description: "",
   status: "draft",
@@ -198,6 +199,16 @@ export default function BlogManager({ initial }: { initial: Post[] }) {
                     />
                   </span>
                 ) : null}
+              </L>
+              <L label={'Crédit photo (ex. "Jane Doe / Unsplash")'}>
+                <input
+                  className="in"
+                  value={draft.cover_image_credit ?? ""}
+                  onChange={(e) =>
+                    setDraft({ ...draft, cover_image_credit: e.target.value })
+                  }
+                  placeholder="Nom du photographe / Unsplash"
+                />
               </L>
               <L label="Résumé (excerpt)">
                 <textarea

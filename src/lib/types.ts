@@ -10,6 +10,7 @@ export type PostStatus = "draft" | "published";
 export type AgentRunStatus = "success" | "error" | "draft" | "skip";
 export type AgentTrigger = "cron" | "manuel" | "auto";
 export type ReferralStatus = "pending" | "confirmed";
+export type ReviewStatus = "pending" | "approved" | "rejected";
 
 export interface Subscriber {
   id: string;
@@ -115,6 +116,7 @@ export interface Post {
   content: string;
   faq: FaqItem[];
   cover_image: string | null;
+  cover_image_credit: string | null;
   meta_title: string | null;
   meta_description: string | null;
   status: PostStatus;
@@ -145,6 +147,16 @@ export interface Partner {
   created_at: string;
 }
 
+export interface Review {
+  id: string;
+  subscriber_id: string;
+  rating: number; // 1 a 5
+  name: string;
+  comment: string | null;
+  status: ReviewStatus;
+  created_at: string;
+}
+
 export interface AgentRun {
   id: string;
   agent_name: string;
@@ -170,6 +182,7 @@ export interface Tables {
   admins: Admin;
   partners: Partner;
   agent_runs: AgentRun;
+  reviews: Review;
 }
 
 export type TableName = keyof Tables;

@@ -33,7 +33,7 @@ export default function CookieBanner() {
       role="dialog"
       aria-live="polite"
       aria-label="Consentement aux cookies"
-      className="fixed inset-x-0 bottom-0 z-[60] border-t border-slate-200 bg-white shadow-lg"
+      className="fixed inset-x-0 bottom-0 z-60 border-t border-slate-200 bg-white shadow-lg"
     >
       <div className="mx-auto max-w-7xl px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-600">
