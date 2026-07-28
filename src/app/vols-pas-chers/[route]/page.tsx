@@ -1,7 +1,7 @@
 import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SummerPromoPopup from "@/components/SummerPromoPopup";
@@ -207,11 +207,11 @@ export default async function DestinationPage({
     // Rapide (sans DB) : retire un prefixe d'aeroport de depart connu.
     for (const o of ["bruxelles", "charleroi", "paris", "lyon"]) {
       if (route.startsWith(`${o}-`)) {
-        redirect(`/vols-pas-chers/${route.slice(o.length + 1)}`);
+        permanentRedirect(`/vols-pas-chers/${route.slice(o.length + 1)}`);
       }
     }
     const r = await getRoute(route);
-    if (r) redirect(`/vols-pas-chers/${destinationSlug(r.destCity)}`);
+    if (r) permanentRedirect(`/vols-pas-chers/${destinationSlug(r.destCity)}`);
     notFound();
   }
 
