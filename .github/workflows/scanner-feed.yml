@@ -6,14 +6,19 @@ name: Scanner BonVoleur (vers Supabase)
 # generate-routes (fiches SEO) a chaque run, et les digests (deal-sender) APRES
 # le scan du soir -> ils tournent toujours APRES le scan, jamais a heure fixe.
 #
-# Heures en UTC : 05:30, 11:30, 17:30 UTC ~= 07:30, 13:30, 19:30 Bruxelles (ete).
-# NB : necessite le secret GitHub CRON_SECRET (Settings > Secrets > Actions).
+# Heures en UTC : 01:07, 08:07, 15:07 UTC ~= 03:07, 10:07, 17:07 Bruxelles (ete).
+# Minute decalee (07 au lieu de 00/30) : les minutes rondes sont les plus
+# demandees sur GitHub Actions -> plus de retard aux heures de pointe. Premier
+# scan tot le matin pour capter les bons plans qui apparaissent la nuit.
+# NB : GitHub ne garantit pas l'heure exacte des workflows planifies (retard
+# possible en cas de forte charge, documente officiellement) - necessite le
+# secret GitHub CRON_SECRET (Settings > Secrets > Actions).
 
 on:
   schedule:
-    - cron: "30 5 * * *"
-    - cron: "30 11 * * *"
-    - cron: "30 17 * * *"
+    - cron: "7 1 * * *"
+    - cron: "7 8 * * *"
+    - cron: "7 15 * * *"
   workflow_dispatch: {}
 
 jobs:

@@ -42,10 +42,11 @@ CRON_SECRET = os.environ.get("CRON_SECRET", "")
 # Horaires de scan dans la journée (heure locale du PC), séparés par des virgules.
 # Après CHAQUE scan, on envoie à chaque abonné les deals de son aéroport pas
 # encore reçus (dédoublonnage via la table sends) : tout le monde est servi sur
-# la journée, sans doublon. Defaut : 2 fois par jour (07h30 et 13h30).
+# la journée, sans doublon. Defaut : 3 fois par jour (03h07, 10h07, 17h07) - premier scan tot le matin
+# pour capter les bons plans qui apparaissent la nuit avant qu'ils disparaissent.
 SCAN_TIMES = [
     t.strip()
-    for t in os.environ.get("SCAN_TIMES", "07:30,13:30,19:30").split(",")
+    for t in os.environ.get("SCAN_TIMES", "03:07,10:07,17:07").split(",")
     if t.strip()
 ]
 # Le digest gratuit (hebdo) ne part qu'un jour par semaine (0 = lundi).

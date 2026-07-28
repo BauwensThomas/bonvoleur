@@ -30,8 +30,8 @@ export const site = {
 
 // Heures d'actualisation du scanner (heure de Bruxelles). Sert au compte à
 // rebours de l'espace premium. Doit rester aligné avec SCAN_TIMES
-// (scripts/scanner.py) et le cron de .github/workflows/scanner.yml.
-export const scanTimes = ["07:30", "13:30", "19:30"] as const;
+// (scripts/scanner.py) et le cron de .github/workflows/scanner-feed.yml.
+export const scanTimes = ["03:07", "10:07", "17:07"] as const;
 
 // Aéroports proposés à l'inscription.
 // IMPORTANT : on ne propose QUE des aéroports qu'on scanne activement et qui
