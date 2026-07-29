@@ -12,14 +12,16 @@ import VersionFooter from "../components/VersionFooter";
 // pas non plus un bandeau compressé sur une seule ligne). "Mes bons plans"
 // est une tuile du menu comme les autres (même taille), mais en bleu pour
 // rester repérable. "Réglages" est aussi une tuile, toujours en dernière
-// position. La version est fixée en bas de l'écran (hors du scroll), en
-// respectant la zone de sécurité pour ne jamais passer sous les boutons de
-// navigation du téléphone.
+// position. Pas de "Comment ça marche" ici - inutile pour quelqu'un déjà
+// inscrit, ça reste sur l'écran d'avant connexion. "Mon abonnement" prend sa
+// place (pertinent pour un membre, sert aussi l'upsell premium). La version
+// est fixée en bas de l'écran (hors du scroll), en respectant la zone de
+// sécurité pour ne jamais passer sous les boutons de navigation du téléphone.
 const MENU = [
   { label: "Mes bons plans", accent: true },
   { label: "Blog" },
   { label: "Destinations" },
-  { label: "Comment ça marche" },
+  { label: "Mon abonnement" },
   { label: "Villes populaires" },
   { label: "Avis" },
   { label: "Partenaires" },
