@@ -1,4 +1,5 @@
 import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
+import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStats } from "../hooks/useStats";
@@ -27,7 +28,12 @@ export default function DashboardScreen() {
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 12) + 16 }}>
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-          <Text style={styles.headerTitle}>BonVoleur</Text>
+          <View style={styles.brand}>
+            <Image source={require("../assets/plane-mark.png")} style={styles.brandMark} contentFit="contain" />
+            <Text style={styles.headerTitle}>
+              BonVoleur<Text style={styles.headerTitleAccent}>.com</Text>
+            </Text>
+          </View>
           <Pressable>
             <Text style={styles.settingsLink}>Réglages</Text>
           </Pressable>
@@ -64,10 +70,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 12,
   },
+  brand: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  brandMark: {
+    width: 26,
+    height: 26,
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: "800",
     color: "#0f172a",
+  },
+  headerTitleAccent: {
+    color: "#0369a1",
   },
   settingsLink: {
     fontSize: 13,
