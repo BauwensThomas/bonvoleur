@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStats } from "../hooks/useStats";
 import { formatRating } from "../lib/format";
+import { supabase } from "../lib/supabase";
 import VersionFooter from "../components/VersionFooter";
 
 // Écran d'accueil APRÈS connexion : pas d'image hero (c'est l'écran avant
@@ -81,6 +82,9 @@ export default function DashboardScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <Pressable style={styles.logoutButton} onPress={() => supabase.auth.signOut()}>
+          <Text style={styles.logoutButtonText}>Déconnexion</Text>
+        </Pressable>
         <VersionFooter safeArea={false} />
       </View>
     </View>
@@ -192,5 +196,19 @@ const styles = StyleSheet.create({
   footer: {
     backgroundColor: "#ffffff",
     paddingTop: 6,
+    paddingHorizontal: 16,
+  },
+  logoutButton: {
+    borderWidth: 1,
+    borderColor: "#fbcfe8",
+    backgroundColor: "#fdf2f8",
+    borderRadius: 12,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  logoutButtonText: {
+    color: "#be123c",
+    fontWeight: "700",
+    fontSize: 14,
   },
 });
