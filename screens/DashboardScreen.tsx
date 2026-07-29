@@ -165,11 +165,12 @@ const styles = StyleSheet.create({
   menuGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
-    gap: 12,
+    rowGap: 12,
   },
   menuTile: {
-    width: "47%",
+    width: "48%",
     minHeight: 92,
     backgroundColor: "#f8fafc",
     borderWidth: 1,
