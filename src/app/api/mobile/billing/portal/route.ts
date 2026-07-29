@@ -1,0 +1,27 @@
+import { NextResponse } from "next/server";
+import { getMobileMemberState } from "@/lib/mobile-auth";
+import { withCors, corsPreflight } from "@/lib/mobile-cors";
+import { stripe } from "@/lib/stripe";
+import { site } from "@/lib/site";
+
+export const OPTIONS = corsPreflight;
+
+// Équivalent mobile de POST /api/billing/portal (web) : ouvre le portail de
+// facturation Stripe (gestion/annulation/factures). Authentifié par jeton
+// bearer, renvoie l'URL en JSON pour que l'app l'ouvre dans le navigateur.
+export async function POST(req: Request) {
+  const state = await getMobileMemberState(req);
+  if (state.status !== "member" || !state.subscriber.stripe_customer_id) {
+    return withCors(NextResponse.json({ error: "Non autorisé" }, { status: 401 }));
+  }
+
+  const session = await stripe().billingPortal.sessions.create({
+    customer: state.subscriber.stripe_customer_id,
+    return_url: `${site.canonicalBase}/compte`,
+    ...(process.env.STRIPE_PORTAL_CONFIG_ID
+      ? { configuration: process.env.STRIPE_PORTAL_CONFIG_ID }
+      : {}),
+  });
+
+  return withCors(NextResponse.json({ url: session.url }));
+}

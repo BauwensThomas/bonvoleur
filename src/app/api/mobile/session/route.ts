@@ -22,6 +22,10 @@ export async function GET(req: Request) {
       tier: state.tier,
       home_airports: state.subscriber.home_airports,
       push_enabled: state.subscriber.push_enabled ?? true,
+      premium_until: state.subscriber.premium_until ?? null,
+      premium_cancel_at_period_end: state.subscriber.premium_cancel_at_period_end ?? false,
+      premium_interval: state.subscriber.premium_interval ?? null,
+      has_stripe_customer: Boolean(state.subscriber.stripe_customer_id),
     })
   );
 }
