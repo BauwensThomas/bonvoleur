@@ -25,5 +25,5 @@ export async function GET(req: Request) {
   };
 
   const result = await getMemberDeals(state.tier, filters);
-  return withCors(NextResponse.json(result));
+  return withCors(NextResponse.json({ ...result, tier: state.tier }));
 }
