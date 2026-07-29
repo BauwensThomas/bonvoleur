@@ -95,7 +95,7 @@ export default function LoginScreen() {
               disabled={!canSubmit}
             >
               {busy === "email" ? (
-                <ActivityIndicator color="#000000" />
+                <ActivityIndicator color="#0f172a" />
               ) : (
                 <Text style={styles.buttonPrimaryText}>Recevoir le lien magique</Text>
               )}
@@ -111,7 +111,10 @@ export default function LoginScreen() {
               {busy === "google" ? (
                 <ActivityIndicator color="#0f172a" />
               ) : (
-                <Text style={styles.buttonSecondaryText}>Continuer avec Google</Text>
+                <View style={styles.buttonSecondaryContent}>
+                  <Image source={require("../assets/google-logo.png")} style={styles.googleLogo} contentFit="contain" />
+                  <Text style={styles.buttonSecondaryText}>Continuer avec Google</Text>
+                </View>
               )}
             </Pressable>
           </>
@@ -189,7 +192,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonPrimaryText: {
-    color: "#000000",
+    color: "#0f172a",
     fontWeight: "700",
     fontSize: 15,
   },
@@ -214,6 +217,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: "center",
+  },
+  buttonSecondaryContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  googleLogo: {
+    width: 18,
+    height: 18,
   },
   buttonSecondaryText: {
     color: "#0f172a",
