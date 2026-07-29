@@ -103,132 +103,6 @@ export default function DealsScreen() {
         <Text style={styles.title}>Mes bons plans</Text>
       </View>
 
-      {result?.tier === "free" && (
-        <Pressable style={styles.upsell} onPress={() => Linking.openURL("https://www.bonvoleur.com/compte")}>
-          <Text style={styles.upsellText}>
-            Tes alertes email couvrent <Text style={styles.upsellBold}>{myAirportNames || "ton aéroport"}</Text>.
-            Tu vois ici <Text style={styles.upsellBold}>tous</Text> les bons plans disponibles - passe premium
-            pour recevoir toutes les alertes par email.
-          </Text>
-          <View style={styles.upsellButton}>
-            <Text style={styles.upsellButtonText}>Voir mon abonnement</Text>
-          </View>
-        </Pressable>
-      )}
-
-      <View style={styles.searchRow}>
-        <TextInput
-          value={destinationInput}
-          onChangeText={onDestinationChange}
-          placeholder="Ville d'arrivée"
-          placeholderTextColor="#94a3b8"
-          style={styles.searchInput}
-        />
-        <Pressable style={styles.filtersButton} onPress={() => setFiltersOpen((v) => !v)}>
-          <Text style={styles.filtersButtonText}>Filtres{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}</Text>
-        </Pressable>
-      </View>
-
-      {filtersOpen && (
-        <View style={styles.filtersPanel}>
-          <Text style={styles.filterLabel}>Départ</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-            <Chip label="Tous" active={origin === ""} onPress={() => setOrigin("")} />
-            {airports.map((a) => (
-              <Chip
-                key={a.iata}
-                label={homeAirports.includes(a.iata) ? `★ ${a.city}` : a.city}
-                active={origin === a.iata}
-                onPress={() => setOrigin(a.iata)}
-              />
-            ))}
-          </ScrollView>
-
-          <Text style={styles.filterLabel}>Région</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-            <Chip label="Toutes" active={region === ""} onPress={() => setRegion("")} />
-            {REGIONS.map((r) => (
-              <Chip key={r} label={r} active={region === r} onPress={() => setRegion(r)} />
-            ))}
-          </ScrollView>
-
-          <View style={styles.inlineRow}>
-            <View style={styles.priceCol}>
-              <Text style={styles.filterLabel}>Prix max (€)</Text>
-              <TextInput
-                value={maxPriceInput}
-                onChangeText={setMaxPriceInput}
-                placeholder="ex. 100"
-                placeholderTextColor="#94a3b8"
-                keyboardType="number-pad"
-                style={styles.priceInput}
-              />
-            </View>
-            <View style={styles.sortCol}>
-              <Text style={styles.filterLabel}>Trier par</Text>
-              <View style={styles.chipRow}>
-                <Chip label="Plus récent" active={sort === "recent"} onPress={() => setSort("recent")} />
-                <Chip label="Prix ↑" active={sort === "price-asc"} onPress={() => setSort("price-asc")} />
-                <Chip label="Prix ↓" active={sort === "price-desc"} onPress={() => setSort("price-desc")} />
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.periodLabelRow}>
-            <Text style={styles.filterLabel}>Période de voyage</Text>
-            {!isPremium && (
-              <View style={styles.premiumBadge}>
-                <Text style={styles.premiumBadgeText}>Réservé au premium</Text>
-              </View>
-            )}
-          </View>
-          <View style={styles.periodRow}>
-            <Pressable
-              style={[styles.dateInput, !isPremium && styles.dateInputDisabled]}
-              disabled={!isPremium}
-              onPress={() => setShowFromPicker(true)}
-            >
-              <Text style={[styles.dateInputText, !isPremium && styles.dateInputTextDisabled]}>
-                {dateFrom ? toDisplayDate(dateFrom) : "du jj/mm/aaaa"}
-              </Text>
-            </Pressable>
-            <Pressable
-              style={[styles.dateInput, !isPremium && styles.dateInputDisabled]}
-              disabled={!isPremium}
-              onPress={() => setShowToPicker(true)}
-            >
-              <Text style={[styles.dateInputText, !isPremium && styles.dateInputTextDisabled]}>
-                {dateTo ? toDisplayDate(dateTo) : "au jj/mm/aaaa"}
-              </Text>
-            </Pressable>
-          </View>
-          {showFromPicker && (
-            <DateTimePicker
-              value={dateFrom ?? new Date()}
-              mode="date"
-              onChange={(_event, selected) => {
-                setShowFromPicker(false);
-                if (selected) setDateFrom(selected);
-              }}
-            />
-          )}
-          {showToPicker && (
-            <DateTimePicker
-              value={dateTo ?? new Date()}
-              mode="date"
-              onChange={(_event, selected) => {
-                setShowToPicker(false);
-                if (selected) setDateTo(selected);
-              }}
-            />
-          )}
-
-          <Pressable onPress={resetFilters}>
-            <Text style={styles.resetLink}>Réinitialiser les filtres</Text>
-          </Pressable>
-        </View>
-      )}
-
       {loading ? (
         <ScreenLoader />
       ) : error ? (
@@ -239,6 +113,11 @@ export default function DealsScreen() {
           </Pressable>
         </View>
       ) : (
+        // Tout ce qui est au-dessus des resultats (recherche, filtres,
+        // bandeau) vit dans le ListHeaderComponent : sinon, ouvrir le
+        // panneau de filtres reduisait l'espace du FlatList a presque
+        // rien, avec seulement la liste elle-meme qui pouvait scroller.
+        // Comme ca, toute la page defile en un seul bloc.
         <FlatList
           style={styles.list}
           data={deals}
@@ -246,9 +125,140 @@ export default function DealsScreen() {
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} tintColor="#0ea5e9" />}
           ListHeaderComponent={
-            result?.lastRefresh ? (
-              <Text style={styles.lastRefresh}>Dernière actualisation : {detectedAt(result.lastRefresh)}</Text>
-            ) : null
+            <>
+              {result?.tier === "free" && (
+                <Pressable style={styles.upsell} onPress={() => Linking.openURL("https://www.bonvoleur.com/compte")}>
+                  <Text style={styles.upsellText}>
+                    Tes alertes email couvrent{" "}
+                    <Text style={styles.upsellBold}>{myAirportNames || "ton aéroport"}</Text>. Tu vois ici{" "}
+                    <Text style={styles.upsellBold}>tous</Text> les bons plans disponibles - passe premium pour
+                    recevoir toutes les alertes par email.
+                  </Text>
+                  <View style={styles.upsellButton}>
+                    <Text style={styles.upsellButtonText}>Voir mon abonnement</Text>
+                  </View>
+                </Pressable>
+              )}
+
+              <View style={styles.searchRow}>
+                <TextInput
+                  value={destinationInput}
+                  onChangeText={onDestinationChange}
+                  placeholder="Ville d'arrivée"
+                  placeholderTextColor="#94a3b8"
+                  style={styles.searchInput}
+                />
+                <Pressable style={styles.filtersButton} onPress={() => setFiltersOpen((v) => !v)}>
+                  <Text style={styles.filtersButtonText}>
+                    Filtres{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+                  </Text>
+                </Pressable>
+              </View>
+
+              {filtersOpen && (
+                <View style={styles.filtersPanel}>
+                  <Text style={styles.filterLabel}>Départ</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+                    <Chip label="Tous" active={origin === ""} onPress={() => setOrigin("")} />
+                    {airports.map((a) => (
+                      <Chip
+                        key={a.iata}
+                        label={homeAirports.includes(a.iata) ? `★ ${a.city}` : a.city}
+                        active={origin === a.iata}
+                        onPress={() => setOrigin(a.iata)}
+                      />
+                    ))}
+                  </ScrollView>
+
+                  <Text style={styles.filterLabel}>Région</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+                    <Chip label="Toutes" active={region === ""} onPress={() => setRegion("")} />
+                    {REGIONS.map((r) => (
+                      <Chip key={r} label={r} active={region === r} onPress={() => setRegion(r)} />
+                    ))}
+                  </ScrollView>
+
+                  <View style={styles.inlineRow}>
+                    <View style={styles.priceCol}>
+                      <Text style={styles.filterLabel}>Prix max (€)</Text>
+                      <TextInput
+                        value={maxPriceInput}
+                        onChangeText={setMaxPriceInput}
+                        placeholder="ex. 100"
+                        placeholderTextColor="#94a3b8"
+                        keyboardType="number-pad"
+                        style={styles.priceInput}
+                      />
+                    </View>
+                    <View style={styles.sortCol}>
+                      <Text style={styles.filterLabel}>Trier par</Text>
+                      <View style={styles.chipRow}>
+                        <Chip label="Plus récent" active={sort === "recent"} onPress={() => setSort("recent")} />
+                        <Chip label="Prix ↑" active={sort === "price-asc"} onPress={() => setSort("price-asc")} />
+                        <Chip label="Prix ↓" active={sort === "price-desc"} onPress={() => setSort("price-desc")} />
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={styles.periodLabelRow}>
+                    <Text style={styles.filterLabel}>Période de voyage</Text>
+                    {!isPremium && (
+                      <View style={styles.premiumBadge}>
+                        <Text style={styles.premiumBadgeText}>Réservé au premium</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.periodRow}>
+                    <Pressable
+                      style={[styles.dateInput, !isPremium && styles.dateInputDisabled]}
+                      disabled={!isPremium}
+                      onPress={() => setShowFromPicker(true)}
+                    >
+                      <Text style={[styles.dateInputText, !isPremium && styles.dateInputTextDisabled]}>
+                        {dateFrom ? toDisplayDate(dateFrom) : "du jj/mm/aaaa"}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.dateInput, !isPremium && styles.dateInputDisabled]}
+                      disabled={!isPremium}
+                      onPress={() => setShowToPicker(true)}
+                    >
+                      <Text style={[styles.dateInputText, !isPremium && styles.dateInputTextDisabled]}>
+                        {dateTo ? toDisplayDate(dateTo) : "au jj/mm/aaaa"}
+                      </Text>
+                    </Pressable>
+                  </View>
+                  {showFromPicker && (
+                    <DateTimePicker
+                      value={dateFrom ?? new Date()}
+                      mode="date"
+                      onChange={(_event, selected) => {
+                        setShowFromPicker(false);
+                        if (selected) setDateFrom(selected);
+                      }}
+                    />
+                  )}
+                  {showToPicker && (
+                    <DateTimePicker
+                      value={dateTo ?? new Date()}
+                      mode="date"
+                      onChange={(_event, selected) => {
+                        setShowToPicker(false);
+                        if (selected) setDateTo(selected);
+                      }}
+                    />
+                  )}
+
+                  <Pressable onPress={resetFilters}>
+                    <Text style={styles.resetLink}>Réinitialiser les filtres</Text>
+                  </Pressable>
+                </View>
+              )}
+
+              {result?.lastRefresh && (
+                <Text style={styles.lastRefresh}>Dernière actualisation : {detectedAt(result.lastRefresh)}</Text>
+              )}
+            </>
           }
           ListEmptyComponent={
             <View style={styles.centerBox}>
@@ -301,7 +311,6 @@ const styles = StyleSheet.create({
   searchRow: {
     flexDirection: "row",
     gap: 8,
-    paddingHorizontal: 16,
     paddingBottom: 12,
   },
   searchInput: {
@@ -327,7 +336,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   filtersPanel: {
-    marginHorizontal: 16,
     marginBottom: 12,
     padding: 14,
     borderRadius: 14,
@@ -482,7 +490,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fdf2f8",
     borderRadius: 14,
     padding: 16,
-    marginHorizontal: 16,
     marginBottom: 12,
   },
   upsellText: {
