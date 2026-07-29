@@ -11,7 +11,6 @@ import {
   ScrollView,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDeals } from "../hooks/useDeals";
 import { useAirports } from "../hooks/useAirports";
@@ -20,6 +19,7 @@ import { REGIONS } from "../lib/regions";
 import { detectedAt } from "../lib/format";
 import ScreenLoader from "../components/ScreenLoader";
 import DealCard from "../components/DealCard";
+import ScreenHeader from "../components/ScreenHeader";
 import VersionFooter from "../components/VersionFooter";
 
 type Sort = "recent" | "price-asc" | "price-desc";
@@ -98,10 +98,7 @@ export default function DealsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Image source={require("../assets/plane-mark.png")} style={styles.titleMark} contentFit="contain" />
-        <Text style={styles.title}>Mes bons plans</Text>
-      </View>
+      <ScreenHeader title="Mes bons plans" />
 
       {loading ? (
         <ScreenLoader />
@@ -292,23 +289,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  titleMark: {
-    width: 20,
-    height: 20,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#0f172a",
   },
   searchRow: {
     flexDirection: "row",
