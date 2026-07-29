@@ -22,17 +22,33 @@ export interface DealsResult {
   tier: "free" | "premium";
 }
 
+export interface DealFilters {
+  origin?: string;
+  destination?: string;
+  region?: string;
+  maxPrice?: number;
+}
+
 // Deals de l'abonne connecte (/api/mobile/deals) - meme gating premium/gratuit
 // que la page /compte du site, deja gere cote serveur (getMemberDeals()).
-export function useDeals() {
+// Les filtres sont les memes que CompteControls.tsx cote site web.
+export function useDeals(filters: DealFilters = {}) {
   const [result, setResult] = useState<DealsResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { origin, destination, region, maxPrice } = filters;
+
   const load = useCallback(async () => {
     setError(null);
     try {
-      const res = await apiFetch("/api/mobile/deals");
+      const params = new URLSearchParams();
+      if (origin) params.set("origin", origin);
+      if (destination) params.set("destination", destination);
+      if (region) params.set("region", region);
+      if (maxPrice) params.set("maxPrice", String(maxPrice));
+      const qs = params.toString();
+      const res = await apiFetch(`/api/mobile/deals${qs ? `?${qs}` : ""}`);
       if (!res.ok) throw new Error("request_failed");
       setResult(await res.json());
     } catch {
@@ -40,7 +56,8 @@ export function useDeals() {
     } finally {
       setLoading(false);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [origin, destination, region, maxPrice]);
 
   useEffect(() => {
     load();
