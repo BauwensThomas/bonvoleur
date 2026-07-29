@@ -1,6 +1,9 @@
 import { StyleSheet, Text, View, ActivityIndicator } from "react-native";
 import type { Stats } from "../hooks/useStats";
 import { formatRating } from "../lib/format";
+import TileDecor from "./TileDecor";
+
+const DECOR_COLOR = "rgba(14,165,233,0.18)";
 
 export default function StatsGrid({ stats }: { stats: Stats | null }) {
   if (!stats) {
@@ -10,18 +13,22 @@ export default function StatsGrid({ stats }: { stats: Stats | null }) {
   return (
     <View style={styles.grid}>
       <View style={styles.tile}>
+        <TileDecor icon="pricetag" color={DECOR_COLOR} />
         <Text style={styles.value}>{stats.liveCount}</Text>
         <Text style={styles.label}>Bons plans en ce moment</Text>
       </View>
       <View style={styles.tile}>
+        <TileDecor icon="airplane" color={DECOR_COLOR} />
         <Text style={styles.value}>{stats.airportsCount}</Text>
         <Text style={styles.label}>Aéroports de départ</Text>
       </View>
       <View style={styles.tile}>
+        <TileDecor icon="location" color={DECOR_COLOR} />
         <Text style={styles.value}>{stats.totalDest}</Text>
         <Text style={styles.label}>Destinations disponibles</Text>
       </View>
       <View style={styles.tile}>
+        <TileDecor icon="star" color={DECOR_COLOR} />
         <Text style={styles.value}>
           {stats.reviewTotal > 0 ? formatRating(stats.reviewAverage) : "-"}
           {stats.reviewTotal > 0 && <Text style={styles.star}> ★</Text>}
@@ -51,6 +58,8 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 12,
     alignItems: "center",
+    position: "relative",
+    overflow: "hidden",
   },
   value: {
     color: "#0f172a",

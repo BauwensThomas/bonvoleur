@@ -1,6 +1,5 @@
 import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -8,8 +7,7 @@ import { useStats } from "../hooks/useStats";
 import { formatRating } from "../lib/format";
 import { supabase } from "../lib/supabase";
 import VersionFooter from "../components/VersionFooter";
-
-type IconName = keyof typeof Ionicons.glyphMap;
+import TileDecor, { type IconName } from "../components/TileDecor";
 
 // Écran d'accueil APRÈS connexion : pas d'image hero (c'est l'écran avant
 // connexion qui vend le service) - ici on va droit au but. Les stats sont un
@@ -32,40 +30,6 @@ const MENU: { label: string; icon: IconName; accent?: true; route?: string }[] =
   { label: "Partenaires", icon: "people" },
   { label: "Réglages", icon: "settings" },
 ];
-
-// Petits dessins decoratifs disperses dans la tuile (tailles/angles/positions
-// varies), pour amener de la couleur sans image de destination (voir avis
-// utilisateur : les tuiles etaient toutes en couleur unie).
-function TileDecor({ icon, color }: { icon: IconName; color: string }) {
-  return (
-    <>
-      <Ionicons
-        name={icon}
-        size={34}
-        color={color}
-        style={[styles.decorIcon, { top: -10, left: -8, transform: [{ rotate: "-20deg" }] }]}
-      />
-      <Ionicons
-        name={icon}
-        size={18}
-        color={color}
-        style={[styles.decorIcon, { bottom: -2, right: 10, transform: [{ rotate: "18deg" }] }]}
-      />
-      <Ionicons
-        name={icon}
-        size={24}
-        color={color}
-        style={[styles.decorIcon, { bottom: -8, left: 14, transform: [{ rotate: "-10deg" }] }]}
-      />
-      <Ionicons
-        name={icon}
-        size={20}
-        color={color}
-        style={[styles.decorIcon, { top: -4, right: -4, transform: [{ rotate: "24deg" }] }]}
-      />
-    </>
-  );
-}
 
 export default function DashboardScreen() {
   const stats = useStats();
@@ -119,6 +83,7 @@ export default function DashboardScreen() {
         </View>
 
         <Pressable style={styles.logoutButton} onPress={() => supabase.auth.signOut()}>
+          <TileDecor icon="log-out-outline" color="rgba(190,18,60,0.15)" />
           <Text style={styles.logoutButtonText}>Déconnexion</Text>
         </Pressable>
       </ScrollView>
@@ -222,9 +187,6 @@ const styles = StyleSheet.create({
     position: "relative",
     overflow: "hidden",
   },
-  decorIcon: {
-    position: "absolute",
-  },
   menuTileAccent: {
     backgroundColor: "#0ea5e9",
     borderColor: "#0ea5e9",
@@ -251,6 +213,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 44,
     alignItems: "center",
+    position: "relative",
+    overflow: "hidden",
   },
   logoutButtonText: {
     color: "#be123c",
