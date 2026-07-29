@@ -10,7 +10,7 @@ import VersionFooter from "../components/VersionFooter";
 // Écran d'accueil APRÈS connexion : pas d'image hero (c'est l'écran avant
 // connexion qui vend le service) - ici on va droit au but. Les stats sont un
 // seul cadre rosé en 2x2 (pas 4 tuiles séparées comme sur l'écran hero, mais
-// pas non plus un bandeau compressé sur une seule ligne). "Mes bons plans"
+// pas non plus un bandeau compressé sur une seule ligne). "Bons plans"
 // est une tuile du menu comme les autres (même taille), mais en bleu pour
 // rester repérable. "Réglages" est aussi une tuile, toujours en dernière
 // position. Pas de "Comment ça marche" ici - inutile pour quelqu'un déjà
@@ -19,7 +19,7 @@ import VersionFooter from "../components/VersionFooter";
 // est fixée en bas de l'écran (hors du scroll), en respectant la zone de
 // sécurité pour ne jamais passer sous les boutons de navigation du téléphone.
 const MENU: { label: string; accent?: true; route?: string }[] = [
-  { label: "Mes bons plans", accent: true, route: "/deals" },
+  { label: "Bons plans", accent: true, route: "/deals" },
   { label: "Blog" },
   { label: "Destinations" },
   { label: "Mon abonnement" },
