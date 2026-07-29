@@ -1,38 +1,20 @@
-import { useEffect, useState } from "react";
-import { StyleSheet, Text, View, Pressable, ActivityIndicator } from "react-native";
+import { StyleSheet, Text, View, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useStats } from "../hooks/useStats";
+import StatsGrid from "../components/StatsGrid";
 
-// Écran d'accueil : simple image de fond + texte, comme la homepage web
-// (src/components/HeroCinematic.tsx), mais sans animation ni 3D - juste
-// une image statique avec le texte par-dessus.
+// Écran d'accueil (avant connexion) : simple image de fond + texte, comme la
+// homepage web (src/components/HeroCinematic.tsx), mais sans animation ni 3D -
+// juste une image statique avec le texte par-dessus.
 const HERO_IMAGE = "https://www.bonvoleur.com/hero/04-ville.webp";
 
-interface Stats {
-  liveCount: number;
-  airportsCount: number;
-  totalDest: number;
-  reviewAverage: number;
-  reviewTotal: number;
-}
-
-// Entier si rond (5 -> "5"), sinon 1 décimale avec virgule française (4.5 -> "4,5").
-// Même règle que formatRating() côté site web (src/lib/reviews.ts).
-function formatRating(n: number): string {
-  return n % 1 === 0 ? n.toFixed(0) : n.toFixed(1).replace(".", ",");
-}
-
 export default function HomeScreen() {
-  const [stats, setStats] = useState<Stats | null>(null);
+  const stats = useStats();
   const insets = useSafeAreaInsets();
-
-  useEffect(() => {
-    fetch("https://www.bonvoleur.com/api/mobile/stats")
-      .then((res) => res.json())
-      .then(setStats)
-      .catch(() => {});
-  }, []);
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
@@ -59,10 +41,12 @@ export default function HomeScreen() {
           <Text style={styles.subtext}>Deals vérifiés depuis la Belgique et la France.</Text>
 
           <View style={styles.buttonRow}>
-            <Pressable style={styles.buttonPrimary}>
+            {/* TEMPORAIRE : navigue direct vers le tableau de bord pour prévisualiser,
+                en attendant la vraie connexion Supabase (email magique + Google). */}
+            <Pressable style={styles.buttonPrimary} onPress={() => router.push("/dashboard")}>
               <Text style={styles.buttonPrimaryText}>S'inscrire</Text>
             </Pressable>
-            <Pressable style={styles.buttonSecondary}>
+            <Pressable style={styles.buttonSecondary} onPress={() => router.push("/dashboard")}>
               <Text style={styles.buttonSecondaryText}>Se connecter</Text>
             </Pressable>
           </View>
@@ -70,33 +54,7 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.rest}>
-        {!stats ? (
-          <ActivityIndicator color="#0ea5e9" style={{ marginTop: 32 }} />
-        ) : (
-          <View style={styles.statsGrid}>
-            <View style={styles.statTile}>
-              <Text style={styles.statValue}>{stats.liveCount}</Text>
-              <Text style={styles.statLabel}>Bons plans en ce moment</Text>
-            </View>
-            <View style={styles.statTile}>
-              <Text style={styles.statValue}>{stats.airportsCount}</Text>
-              <Text style={styles.statLabel}>Aéroports de départ</Text>
-            </View>
-            <View style={styles.statTile}>
-              <Text style={styles.statValue}>{stats.totalDest}</Text>
-              <Text style={styles.statLabel}>Destinations disponibles</Text>
-            </View>
-            <View style={styles.statTile}>
-              <Text style={styles.statValue}>
-                {stats.reviewTotal > 0 ? formatRating(stats.reviewAverage) : "-"}
-                {stats.reviewTotal > 0 && <Text style={styles.statStar}> ★</Text>}
-              </Text>
-              <Text style={styles.statLabel}>
-                {stats.reviewTotal >= 50 ? `Note moyenne (${stats.reviewTotal} avis)` : "Note moyenne"}
-              </Text>
-            </View>
-          </View>
-        )}
+        <StatsGrid stats={stats} />
         <Text style={[styles.version, { marginBottom: Math.max(insets.bottom, 12) + 8 }]}>
           BonVoleur · Version mobile 1.0
         </Text>
@@ -118,37 +76,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#ffffff",
     justifyContent: "space-between",
-  },
-  statsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    padding: 16,
-    gap: 12,
-  },
-  statTile: {
-    width: "47%",
-    backgroundColor: "#f8fafc",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 14,
-    paddingVertical: 18,
-    paddingHorizontal: 12,
-    alignItems: "center",
-  },
-  statValue: {
-    color: "#0f172a",
-    fontSize: 26,
-    fontWeight: "800",
-  },
-  statStar: {
-    color: "#f59e0b",
-    fontSize: 18,
-  },
-  statLabel: {
-    color: "#64748b",
-    fontSize: 12,
-    textAlign: "center",
-    marginTop: 6,
   },
   version: {
     color: "#94a3b8",
