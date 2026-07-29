@@ -4,7 +4,7 @@ import { StatusBar } from "expo-status-bar";
 // Écran d'accueil : simple image de fond + texte, comme la homepage web
 // (src/components/HeroCinematic.tsx), mais sans animation ni 3D - juste
 // une image statique avec le texte par-dessus.
-const HERO_IMAGE = "https://www.bonvoleur.com/hero/01-nuit.webp";
+const HERO_IMAGE = "https://www.bonvoleur.com/hero/04-ville.webp";
 
 export default function HomeScreen() {
   return (
