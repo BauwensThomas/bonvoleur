@@ -95,6 +95,7 @@ export default function HomeScreen() {
             </View>
           </View>
         )}
+        <Text style={styles.version}>BonVoleur · Version mobile 1.0</Text>
       </View>
     </View>
   );
@@ -143,6 +144,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: "center",
     marginTop: 6,
+  },
+  version: {
+    color: "#94a3b8",
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 24,
   },
   overlay: {
     ...StyleSheet.absoluteFill,
