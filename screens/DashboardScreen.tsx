@@ -1,5 +1,6 @@
 import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 import { Image } from "expo-image";
+import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,6 +8,8 @@ import { useStats } from "../hooks/useStats";
 import { formatRating } from "../lib/format";
 import { supabase } from "../lib/supabase";
 import VersionFooter from "../components/VersionFooter";
+
+type IconName = keyof typeof Ionicons.glyphMap;
 
 // Écran d'accueil APRÈS connexion : pas d'image hero (c'est l'écran avant
 // connexion qui vend le service) - ici on va droit au but. Les stats sont un
@@ -19,16 +22,44 @@ import VersionFooter from "../components/VersionFooter";
 // place (pertinent pour un membre, sert aussi l'upsell premium). La version
 // est fixée en bas de l'écran (hors du scroll), en respectant la zone de
 // sécurité pour ne jamais passer sous les boutons de navigation du téléphone.
-const MENU: { label: string; accent?: true; route?: string }[] = [
-  { label: "Bons plans", accent: true, route: "/deals" },
-  { label: "Blog", route: "/blog" },
-  { label: "Destinations" },
-  { label: "Mon abonnement" },
-  { label: "Villes populaires" },
-  { label: "Avis" },
-  { label: "Partenaires" },
-  { label: "Réglages" },
+const MENU: { label: string; icon: IconName; accent?: true; route?: string }[] = [
+  { label: "Bons plans", icon: "pricetag", accent: true, route: "/deals" },
+  { label: "Blog", icon: "book", route: "/blog" },
+  { label: "Destinations", icon: "airplane" },
+  { label: "Mon abonnement", icon: "diamond" },
+  { label: "Villes populaires", icon: "business" },
+  { label: "Avis", icon: "star" },
+  { label: "Partenaires", icon: "people" },
+  { label: "Réglages", icon: "settings" },
 ];
+
+// Petits dessins decoratifs disperses dans la tuile (tailles/angles/positions
+// varies), pour amener de la couleur sans image de destination (voir avis
+// utilisateur : les tuiles etaient toutes en couleur unie).
+function TileDecor({ icon, color }: { icon: IconName; color: string }) {
+  return (
+    <>
+      <Ionicons
+        name={icon}
+        size={34}
+        color={color}
+        style={[styles.decorIcon, { top: -10, left: -8, transform: [{ rotate: "-20deg" }] }]}
+      />
+      <Ionicons
+        name={icon}
+        size={18}
+        color={color}
+        style={[styles.decorIcon, { bottom: -2, right: 10, transform: [{ rotate: "18deg" }] }]}
+      />
+      <Ionicons
+        name={icon}
+        size={24}
+        color={color}
+        style={[styles.decorIcon, { bottom: -8, left: 14, transform: [{ rotate: "-10deg" }] }]}
+      />
+    </>
+  );
+}
 
 export default function DashboardScreen() {
   const stats = useStats();
@@ -75,6 +106,7 @@ export default function DashboardScreen() {
               style={[styles.menuTile, item.accent && styles.menuTileAccent]}
               onPress={() => item.route && router.push(item.route as never)}
             >
+              <TileDecor icon={item.icon} color={item.accent ? "rgba(255,255,255,0.3)" : "rgba(14,165,233,0.18)"} />
               <Text style={[styles.menuTileText, item.accent && styles.menuTileTextAccent]}>{item.label}</Text>
             </Pressable>
           ))}
@@ -181,6 +213,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     alignItems: "center",
     justifyContent: "center",
+    position: "relative",
+    overflow: "hidden",
+  },
+  decorIcon: {
+    position: "absolute",
   },
   menuTileAccent: {
     backgroundColor: "#0ea5e9",
