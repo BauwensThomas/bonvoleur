@@ -11,7 +11,6 @@ import {
   ScrollView,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDeals } from "../hooks/useDeals";
 import { useAirports } from "../hooks/useAirports";
@@ -39,7 +38,6 @@ function toDisplayDate(d: Date): string {
 // qu'une rangee de 6 champs, pas assez de place sur un ecran de telephone).
 export default function DealsScreen() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const airports = useAirports();
   const homeAirports = useHomeAirports();
 
@@ -85,6 +83,10 @@ export default function DealsScreen() {
     dateTo: dateTo ? toISODate(dateTo) : undefined,
   });
   const isPremium = result?.tier === "premium";
+  const myAirportNames = airports
+    .filter((a) => homeAirports.includes(a.iata))
+    .map((a) => a.city)
+    .join(", ");
 
   const deals = useMemo(() => {
     const list = result?.deals ?? [];
@@ -96,18 +98,14 @@ export default function DealsScreen() {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable onPress={() => router.back()}>
-          <Text style={styles.back}>← Retour</Text>
-        </Pressable>
         <Text style={styles.title}>Mes bons plans</Text>
-        <View style={styles.backSpacer} />
       </View>
 
       <View style={styles.searchRow}>
         <TextInput
           value={destinationInput}
           onChangeText={onDestinationChange}
-          placeholder="Chercher une ville ou un code"
+          placeholder="Ville d'arrivée"
           placeholderTextColor="#94a3b8"
           style={styles.searchInput}
         />
@@ -232,21 +230,21 @@ export default function DealsScreen() {
               {result?.lastRefresh && (
                 <Text style={styles.lastRefresh}>Dernière actualisation : {detectedAt(result.lastRefresh)}</Text>
               )}
-              {result?.tier === "free" && (result?.liveLockedForFree ?? 0) > 0 && (
-                <View style={styles.upsell}>
+              {result?.tier === "free" && (
+                <Pressable
+                  style={styles.upsell}
+                  onPress={() => Linking.openURL("https://www.bonvoleur.com/compte")}
+                >
                   <Text style={styles.upsellText}>
-                    Passe premium : <Text style={styles.upsellBold}>tous</Text> les bons plans en direct, sans
-                    retard. Actuellement <Text style={styles.upsellBold}>{result?.total}</Text> bon
-                    {(result?.total ?? 0) > 1 ? "s" : ""} plan{(result?.total ?? 0) > 1 ? "s" : ""} réservé
-                    {(result?.total ?? 0) > 1 ? "s" : ""} au premium.
+                    Tes alertes email couvrent{" "}
+                    <Text style={styles.upsellBold}>{myAirportNames || "ton aéroport"}</Text>. Tu vois ici{" "}
+                    <Text style={styles.upsellBold}>tous</Text> les bons plans disponibles - passe premium pour
+                    recevoir toutes les alertes par email.
                   </Text>
-                  <Pressable
-                    style={styles.upsellButton}
-                    onPress={() => Linking.openURL("https://www.bonvoleur.com/compte")}
-                  >
+                  <View style={styles.upsellButton}>
                     <Text style={styles.upsellButtonText}>Voir mon abonnement</Text>
-                  </Pressable>
-                </View>
+                  </View>
+                </Pressable>
               )}
             </>
           }
@@ -258,7 +256,6 @@ export default function DealsScreen() {
             </View>
           }
           renderItem={({ item }) => <DealCard deal={item} />}
-          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         />
       )}
 
@@ -283,19 +280,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   header: {
-    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingBottom: 12,
-  },
-  back: {
-    color: "#64748b",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  backSpacer: {
-    width: 60,
   },
   title: {
     fontSize: 16,
