@@ -8,10 +8,13 @@ import VersionFooter from "../components/VersionFooter";
 
 // Écran d'accueil APRÈS connexion : pas d'image hero (c'est l'écran avant
 // connexion qui vend le service) - ici on va droit au but. Les stats sont un
-// simple bandeau d'info en haut (pas la mise en avant qu'elles ont sur
-// l'écran hero). "Mes bons plans" est une tuile du menu comme les autres
-// (même taille), mais en bleu pour rester repérable. "Réglages" est aussi
-// une tuile, toujours en dernière position.
+// seul cadre rosé en 2x2 (pas 4 tuiles séparées comme sur l'écran hero, mais
+// pas non plus un bandeau compressé sur une seule ligne). "Mes bons plans"
+// est une tuile du menu comme les autres (même taille), mais en bleu pour
+// rester repérable. "Réglages" est aussi une tuile, toujours en dernière
+// position. La version est fixée en bas de l'écran (hors du scroll), en
+// respectant la zone de sécurité pour ne jamais passer sous les boutons de
+// navigation du téléphone.
 const MENU = [
   { label: "Mes bons plans", accent: true },
   { label: "Blog" },
@@ -30,7 +33,7 @@ export default function DashboardScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
-      <ScrollView contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 12) + 16 }}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <Image source={require("../assets/plane-mark.png")} style={styles.brandMark} contentFit="contain" />
           <Text style={styles.headerTitle}>
@@ -38,28 +41,25 @@ export default function DashboardScreen() {
           </Text>
         </View>
 
-        <View style={styles.statsBar}>
-          <View style={styles.statItem}>
+        <View style={styles.statsCard}>
+          <View style={[styles.statCell, styles.statCellRight, styles.statCellBottom]}>
             <Text style={styles.statValue}>{stats ? stats.liveCount : "-"}</Text>
-            <Text style={styles.statLabel}>Bons plans</Text>
+            <Text style={styles.statLabel}>Bons plans en ce moment</Text>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
+          <View style={[styles.statCell, styles.statCellBottom]}>
             <Text style={styles.statValue}>{stats ? stats.airportsCount : "-"}</Text>
-            <Text style={styles.statLabel}>Aéroports</Text>
+            <Text style={styles.statLabel}>Aéroports de départ</Text>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
+          <View style={[styles.statCell, styles.statCellRight]}>
             <Text style={styles.statValue}>{stats ? stats.totalDest : "-"}</Text>
-            <Text style={styles.statLabel}>Destinations</Text>
+            <Text style={styles.statLabel}>Destinations disponibles</Text>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
+          <View style={styles.statCell}>
             <Text style={styles.statValue}>
               {stats && stats.reviewTotal > 0 ? formatRating(stats.reviewAverage) : "-"}
               {stats && stats.reviewTotal > 0 ? <Text style={styles.statStar}> ★</Text> : null}
             </Text>
-            <Text style={styles.statLabel}>Note</Text>
+            <Text style={styles.statLabel}>Note moyenne</Text>
           </View>
         </View>
 
@@ -70,9 +70,11 @@ export default function DashboardScreen() {
             </Pressable>
           ))}
         </View>
-
-        <VersionFooter safeArea={false} />
       </ScrollView>
+
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <VersionFooter safeArea={false} />
+      </View>
     </View>
   );
 }
@@ -81,6 +83,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 12,
   },
   header: {
     flexDirection: "row",
@@ -101,52 +109,58 @@ const styles = StyleSheet.create({
   headerTitleAccent: {
     color: "#0369a1",
   },
-  statsBar: {
+  statsCard: {
     flexDirection: "row",
-    alignItems: "center",
+    flexWrap: "wrap",
     marginHorizontal: 16,
-    marginTop: 4,
-    paddingVertical: 10,
-    borderRadius: 14,
+    marginTop: 8,
+    marginBottom: 24,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: "#fbcfe8",
     backgroundColor: "#fdf2f8",
+    overflow: "hidden",
   },
-  statItem: {
-    flex: 1,
+  statCell: {
+    width: "50%",
     alignItems: "center",
+    paddingVertical: 18,
+    paddingHorizontal: 10,
   },
-  statDivider: {
-    width: 1,
-    height: 26,
-    backgroundColor: "#fbcfe8",
+  statCellRight: {
+    borderRightWidth: 1,
+    borderRightColor: "#fbcfe8",
+  },
+  statCellBottom: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#fbcfe8",
   },
   statValue: {
     color: "#0f172a",
-    fontSize: 15,
+    fontSize: 22,
     fontWeight: "800",
   },
   statStar: {
     color: "#f59e0b",
-    fontSize: 12,
+    fontSize: 16,
   },
   statLabel: {
     color: "#64748b",
-    fontSize: 10,
-    marginTop: 2,
+    fontSize: 11,
+    marginTop: 4,
     textAlign: "center",
   },
   menuGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    padding: 16,
+    paddingHorizontal: 16,
     gap: 12,
   },
   menuTile: {
     width: "47%",
     backgroundColor: "#f8fafc",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#0ea5e9",
     borderRadius: 14,
     paddingVertical: 20,
     paddingHorizontal: 12,
@@ -164,5 +178,11 @@ const styles = StyleSheet.create({
   },
   menuTileTextAccent: {
     color: "#fff",
+  },
+  footer: {
+    backgroundColor: "#ffffff",
+    borderTopWidth: 1,
+    borderTopColor: "#f1f5f9",
+    paddingTop: 6,
   },
 });
