@@ -130,8 +130,8 @@ const styles = StyleSheet.create({
     marginBottom: 44,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#fbcfe8",
-    backgroundColor: "#fdf2f8",
+    borderColor: "#fef08a",
+    backgroundColor: "#fefce8",
     overflow: "hidden",
   },
   statCell: {
@@ -142,11 +142,11 @@ const styles = StyleSheet.create({
   },
   statCellRight: {
     borderRightWidth: 1,
-    borderRightColor: "#fbcfe8",
+    borderRightColor: "#fef08a",
   },
   statCellBottom: {
     borderBottomWidth: 1,
-    borderBottomColor: "#fbcfe8",
+    borderBottomColor: "#fef08a",
   },
   statValue: {
     color: "#0f172a",
