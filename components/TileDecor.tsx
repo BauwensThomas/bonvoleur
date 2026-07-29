@@ -24,7 +24,7 @@ export default function TileDecor({
         name={icon}
         size={28}
         color={color}
-        style={[styles.decorIcon, { top: -2, right: 6, transform: [{ rotate: "18deg" }] }]}
+        style={[styles.decorIcon, { top: 6, right: 6, transform: [{ rotate: "18deg" }] }]}
       />
     );
   }
