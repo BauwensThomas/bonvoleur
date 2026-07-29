@@ -26,7 +26,9 @@ export async function GET(req: Request) {
   let myReview = null;
   if (state.status === "member") {
     const mine = await findOne("reviews", (r) => r.subscriber_id === state.subscriber.id);
-    myReview = mine ? { rating: mine.rating, name: mine.name, comment: mine.comment, status: mine.status } : null;
+    myReview = mine
+      ? { id: mine.id, rating: mine.rating, name: mine.name, comment: mine.comment, status: mine.status }
+      : null;
   }
 
   return withCors(NextResponse.json({ reviews: approved, average, total: approved.length, myReview }));
