@@ -185,8 +185,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     backgroundColor: "#ffffff",
-    borderTopWidth: 1,
-    borderTopColor: "#f1f5f9",
     paddingTop: 6,
   },
 });
