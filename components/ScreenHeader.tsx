@@ -16,7 +16,7 @@ export default function ScreenHeader({ title }: { title: string }) {
   return (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
       <Pressable style={[styles.back, { top: insets.top + 8 }]} onPress={() => router.back()}>
-        <Text style={styles.backText}>{"<"}</Text>
+        <Image source={require("../assets/plane-back.png")} style={styles.backPlane} contentFit="contain" />
       </Pressable>
       <View style={styles.titleRow}>
         <Image source={require("../assets/plane-mark.png")} style={styles.titleMark} contentFit="contain" />
@@ -38,18 +38,14 @@ const styles = StyleSheet.create({
   back: {
     position: "absolute",
     left: 16,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: "#000000",
+    width: 36,
+    height: 36,
     alignItems: "center",
     justifyContent: "center",
   },
-  backText: {
-    fontSize: 24,
-    color: "#000000",
-    fontWeight: "700",
+  backPlane: {
+    width: 34,
+    height: 34,
   },
   titleRow: {
     flexDirection: "row",
