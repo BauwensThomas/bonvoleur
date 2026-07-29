@@ -28,6 +28,12 @@ export default function HomeScreen() {
           contentPosition="bottom"
         />
         <View style={styles.overlay} />
+        <View style={[styles.brandRow, { top: insets.top + 12 }]}>
+          <Image source={require("../assets/plane-mark-white.png")} style={styles.brandMark} contentFit="contain" />
+          <Text style={styles.brandText}>
+            BonVoleur<Text style={styles.brandTextAccent}>.com</Text>
+          </Text>
+        </View>
         <View style={styles.content}>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>NEWSLETTER · DEALS VOLS BE / FR</Text>
@@ -90,6 +96,25 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 24,
     alignItems: "center",
+  },
+  brandRow: {
+    position: "absolute",
+    left: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  brandMark: {
+    width: 22,
+    height: 22,
+  },
+  brandText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  brandTextAccent: {
+    color: "#7dd3fc",
   },
   badge: {
     alignSelf: "center",
