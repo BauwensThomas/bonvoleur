@@ -21,12 +21,16 @@ import TileDecor, { type IconName } from "../components/TileDecor";
 // place (pertinent pour un membre, sert aussi l'upsell premium). La version
 // est fixée en bas de l'écran (hors du scroll), en respectant la zone de
 // sécurité pour ne jamais passer sous les boutons de navigation du téléphone.
-const MENU: { label: string; icon: IconName; accent?: true; route?: string }[] = [
+// "longLabel" : libelle plus long qui passe sur 2 lignes ("Mon abonnement",
+// "Villes populaires") - l'icone decorative doit rester dans les vrais
+// coins (edge) et la tuile un peu plus haute, sinon l'icone recouvre le
+// texte. Les autres tuiles gardent la disposition plus rentree d'origine.
+const MENU: { label: string; icon: IconName; accent?: true; route?: string; longLabel?: true }[] = [
   { label: "Bons plans", icon: "pricetag", accent: true, route: "/deals" },
   { label: "Blog", icon: "book", route: "/blog" },
   { label: "Destinations", icon: "airplane" },
-  { label: "Mon abonnement", icon: "diamond" },
-  { label: "Villes populaires", icon: "business" },
+  { label: "Mon abonnement", icon: "diamond", longLabel: true },
+  { label: "Villes populaires", icon: "business", longLabel: true },
   { label: "Avis", icon: "star" },
   { label: "Partenaires", icon: "people" },
   { label: "Réglages", icon: "settings" },
@@ -80,10 +84,14 @@ export default function DashboardScreen() {
           {MENU.map((item) => (
             <Pressable
               key={item.label}
-              style={[styles.menuTile, item.accent && styles.menuTileAccent]}
+              style={[styles.menuTile, item.accent && styles.menuTileAccent, item.longLabel && styles.menuTileTall]}
               onPress={() => item.route && router.push(item.route as never)}
             >
-              <TileDecor icon={item.icon} color={item.accent ? "rgba(255,255,255,0.3)" : "rgba(14,165,233,0.18)"} />
+              <TileDecor
+                icon={item.icon}
+                color={item.accent ? "rgba(255,255,255,0.3)" : "rgba(14,165,233,0.18)"}
+                edge={item.longLabel}
+              />
               <Text style={[styles.menuTileText, item.accent && styles.menuTileTextAccent]}>{item.label}</Text>
             </Pressable>
           ))}
@@ -184,7 +192,7 @@ const styles = StyleSheet.create({
   },
   menuTile: {
     width: "48%",
-    minHeight: 80,
+    minHeight: 68,
     backgroundColor: "#f8fafc",
     borderWidth: 1,
     borderColor: "#0ea5e9",
@@ -195,6 +203,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     position: "relative",
     overflow: "hidden",
+  },
+  menuTileTall: {
+    minHeight: 80,
   },
   menuTileAccent: {
     backgroundColor: "#0ea5e9",
