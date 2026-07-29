@@ -15,6 +15,7 @@ export interface MyReview {
   name: string;
   comment: string | null;
   status: "pending" | "approved" | "rejected";
+  created_at: string;
 }
 
 export interface ReviewsResult {

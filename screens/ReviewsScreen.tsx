@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useReviews, type Review } from "../hooks/useReviews";
 import { useSession } from "../hooks/useSession";
 import { apiFetch } from "../lib/api";
-import { formatRating } from "../lib/format";
+import { formatArticleDate, formatRating } from "../lib/format";
 import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
 import VersionFooter from "../components/VersionFooter";
@@ -91,6 +91,7 @@ function ReviewCard({ review }: { review: Review }) {
         <Text style={styles.cardStars}>{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</Text>
       </View>
       {review.comment && <Text style={styles.cardComment}>{review.comment}</Text>}
+      <Text style={styles.cardDate}>{formatArticleDate(review.created_at)}</Text>
     </View>
   );
 }
@@ -99,7 +100,7 @@ function ReviewFormOrStatus({
   myReview,
   onSubmitted,
 }: {
-  myReview: { rating: number; name: string; comment: string | null; status: string } | null;
+  myReview: { rating: number; name: string; comment: string | null; status: string; created_at: string } | null;
   onSubmitted: () => void;
 }) {
   const [rating, setRating] = useState(0);
@@ -111,9 +112,12 @@ function ReviewFormOrStatus({
   if (myReview) {
     return (
       <View style={styles.myReviewBox}>
-        <Text style={styles.myReviewTitle}>Ton avis</Text>
+        <Text style={styles.myReviewTitle}>
+          {myReview.name} <Text style={styles.myReviewMoi}>(moi)</Text>
+        </Text>
         <Text style={styles.cardStars}>{"★".repeat(myReview.rating)}{"☆".repeat(5 - myReview.rating)}</Text>
         {myReview.comment && <Text style={styles.cardComment}>{myReview.comment}</Text>}
+        <Text style={styles.cardDate}>{formatArticleDate(myReview.created_at)}</Text>
         {myReview.status === "pending" && (
           <Text style={styles.pendingText}>En attente de validation.</Text>
         )}
@@ -241,6 +245,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 6,
     lineHeight: 19,
+  },
+  cardDate: {
+    color: "#94a3b8",
+    fontSize: 11,
+    marginTop: 8,
+  },
+  myReviewMoi: {
+    color: "#b45309",
+    fontWeight: "700",
   },
   myReviewBox: {
     borderWidth: 1,
