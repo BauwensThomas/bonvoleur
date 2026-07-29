@@ -84,7 +84,7 @@ export default function DashboardScreen() {
           {MENU.map((item) => (
             <Pressable
               key={item.label}
-              style={[styles.menuTile, item.accent && styles.menuTileAccent, item.longLabel && styles.menuTileTall]}
+              style={[styles.menuTile, item.accent && styles.menuTileAccent]}
               onPress={() => item.route && router.push(item.route as never)}
             >
               <TileDecor
@@ -203,9 +203,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     position: "relative",
     overflow: "hidden",
-  },
-  menuTileTall: {
-    minHeight: 80,
   },
   menuTileAccent: {
     backgroundColor: "#0ea5e9",
