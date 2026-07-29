@@ -162,9 +162,10 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 24,
+    alignItems: "center",
   },
   badge: {
-    alignSelf: "flex-start",
+    alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
     borderRadius: 999,
@@ -186,6 +187,7 @@ const styles = StyleSheet.create({
     fontSize: 34,
     fontWeight: "900",
     lineHeight: 38,
+    textAlign: "center",
   },
   headlineAccent: {
     color: "#7dd3fc",
@@ -195,6 +197,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 10,
     maxWidth: 320,
+    textAlign: "center",
   },
   buttonRow: {
     flexDirection: "row",
