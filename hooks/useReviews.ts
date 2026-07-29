@@ -10,6 +10,7 @@ export interface Review {
 }
 
 export interface MyReview {
+  id: string;
   rating: number;
   name: string;
   comment: string | null;

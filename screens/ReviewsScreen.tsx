@@ -44,7 +44,7 @@ export default function ReviewsScreen() {
       ) : (
         <FlatList
           style={styles.list}
-          data={result?.reviews ?? []}
+          data={(result?.reviews ?? []).filter((r) => r.id !== result?.myReview?.id)}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} tintColor="#0ea5e9" />}
@@ -244,8 +244,8 @@ const styles = StyleSheet.create({
   },
   myReviewBox: {
     borderWidth: 1,
-    borderColor: "#fbcfe8",
-    backgroundColor: "#fdf2f8",
+    borderColor: "#fef08a",
+    backgroundColor: "#fefce8",
     borderRadius: 14,
     padding: 14,
     marginBottom: 20,
