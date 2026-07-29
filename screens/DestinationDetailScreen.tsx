@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { StyleSheet, Text, View, Pressable, ScrollView } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
@@ -6,6 +7,7 @@ import { useDestination } from "../hooks/useDestination";
 import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
 import VersionFooter from "../components/VersionFooter";
+import PhotoLightbox from "../components/PhotoLightbox";
 
 // "Vole vers [Rome](https://...)" -> "Vole vers Rome" (retire juste le lien
 // markdown pour l'affichage - simplification volontaire, pas de rendu de
@@ -21,6 +23,15 @@ export default function DestinationDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const insets = useSafeAreaInsets();
   const { destination, loading, notFound, error, refresh } = useDestination(slug ?? "");
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const allPhotos = destination
+    ? [
+        ...(destination.image ? [{ url: destination.image, credit: destination.imageCredit }] : []),
+        ...(destination.photos ?? []),
+      ]
+    : [];
+  const coverOffset = destination?.image ? 1 : 0;
 
   return (
     <View style={styles.container}>
@@ -42,7 +53,9 @@ export default function DestinationDetailScreen() {
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {destination.image && (
-            <Image source={{ uri: destination.image }} style={styles.cover} contentFit="cover" />
+            <Pressable onPress={() => setLightboxIndex(0)}>
+              <Image source={{ uri: destination.image }} style={styles.cover} contentFit="cover" />
+            </Pressable>
           )}
           {destination.image && destination.imageCredit && (
             <Text style={styles.credit}>Photo : {destination.imageCredit.replace(/^[Pp]hoto\s+/, "")}</Text>
@@ -57,12 +70,12 @@ export default function DestinationDetailScreen() {
               contentContainerStyle={styles.gallery}
             >
               {destination.photos.map((p, i) => (
-                <View key={i} style={styles.galleryItem}>
+                <Pressable key={i} style={styles.galleryItem} onPress={() => setLightboxIndex(coverOffset + i)}>
                   <Image source={{ uri: p.url }} style={styles.galleryImage} contentFit="cover" />
                   <Text style={styles.galleryCredit} numberOfLines={1}>
                     {p.credit}
                   </Text>
-                </View>
+                </Pressable>
               ))}
             </ScrollView>
           )}
@@ -128,6 +141,8 @@ export default function DestinationDetailScreen() {
           </View>
         </ScrollView>
       )}
+
+      <PhotoLightbox photos={allPhotos} index={lightboxIndex} onClose={() => setLightboxIndex(null)} />
     </View>
   );
 }
