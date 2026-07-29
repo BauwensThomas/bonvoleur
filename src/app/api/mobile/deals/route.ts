@@ -15,13 +15,17 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
+  // Période de voyage (dateFrom/dateTo) réservée au premium, comme sur le
+  // site web (src/app/compte/page.tsx) - on ignore ces paramètres pour un
+  // gratuit plutôt que de faire confiance à l'app pour ne pas les envoyer.
+  const isPremium = state.tier === "premium";
   const filters: MemberFilters = {
     origin: searchParams.get("origin") ?? undefined,
     destination: searchParams.get("destination") ?? undefined,
     region: searchParams.get("region") ?? undefined,
     maxPrice: searchParams.has("maxPrice") ? Number(searchParams.get("maxPrice")) : undefined,
-    dateFrom: searchParams.get("dateFrom") ?? undefined,
-    dateTo: searchParams.get("dateTo") ?? undefined,
+    dateFrom: isPremium ? searchParams.get("dateFrom") ?? undefined : undefined,
+    dateTo: isPremium ? searchParams.get("dateTo") ?? undefined : undefined,
   };
 
   const result = await getMemberDeals(state.tier, filters);
