@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStats } from "../hooks/useStats";
 import StatsGrid from "../components/StatsGrid";
+import TileDecor from "../components/TileDecor";
 import VersionFooter from "../components/VersionFooter";
 
 // Écran d'accueil (avant connexion) : simple image de fond + texte, comme la
@@ -62,6 +63,7 @@ export default function HomeScreen() {
       <View style={styles.rest}>
         <StatsGrid stats={stats} />
         <Pressable style={styles.howItWorksTile} onPress={() => Linking.openURL(HOW_IT_WORKS_URL)}>
+          <TileDecor icon="help-circle" color="rgba(14,165,233,0.18)" />
           <Text style={styles.howItWorksText}>Comment ça marche</Text>
           <Text style={styles.howItWorksSub}>Voir sur le site →</Text>
         </Pressable>
@@ -183,6 +185,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#0ea5e9",
     backgroundColor: "#f8fafc",
+    position: "relative",
+    overflow: "hidden",
   },
   howItWorksText: {
     color: "#0f172a",
