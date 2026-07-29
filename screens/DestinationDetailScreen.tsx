@@ -50,6 +50,23 @@ export default function DestinationDetailScreen() {
             <Text style={styles.credit}>Photo : {destination.imageCredit.replace(/^[Pp]hoto\s+/, "")}</Text>
           )}
 
+          {destination.photos && destination.photos.length > 0 && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.gallery}
+            >
+              {destination.photos.map((p, i) => (
+                <View key={i} style={styles.galleryItem}>
+                  <Image source={{ uri: p.url }} style={styles.galleryImage} contentFit="cover" />
+                  <Text style={styles.galleryCredit} numberOfLines={1}>
+                    {p.credit}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+          )}
+
           {destination.content && (
             <View style={styles.section}>
               <Text style={styles.intro}>{destination.content.intro}</Text>
@@ -80,18 +97,20 @@ export default function DestinationDetailScreen() {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Aéroports de départ</Text>
-            {destination.origins.map((o) => (
-              <View key={o.originIata} style={styles.originRow}>
-                <Text style={styles.originCity}>{o.originCity}</Text>
-                {o.weekCount === 1 && (
+            {destination.origins
+              .filter((o) => o.weekCount === 1)
+              .map((o) => (
+                <View key={o.originIata} style={styles.originRow}>
+                  <Text style={styles.originCity}>{o.originCity}</Text>
                   <View style={styles.originBadge}>
-                    <Text style={styles.originBadgeText}>Bon plan récent</Text>
+                    <Text style={styles.originBadgeText}>Bon plan actuel</Text>
                   </View>
-                )}
-              </View>
-            ))}
-            {destination.origins.length === 0 && (
-              <Text style={styles.emptyOrigins}>Aucun aéroport surveillé pour cette destination pour le moment.</Text>
+                </View>
+              ))}
+            {destination.origins.filter((o) => o.weekCount === 1).length === 0 && (
+              <Text style={styles.emptyOrigins}>
+                Aucun bon plan actuel vers {destination.destCity}. Reviens bientôt.
+              </Text>
             )}
           </View>
 
@@ -149,6 +168,24 @@ const styles = StyleSheet.create({
   },
   section: {
     marginTop: 24,
+  },
+  gallery: {
+    gap: 10,
+    marginTop: 14,
+  },
+  galleryItem: {
+    width: 130,
+  },
+  galleryImage: {
+    width: 130,
+    height: 90,
+    borderRadius: 12,
+    backgroundColor: "#f1f5f9",
+  },
+  galleryCredit: {
+    color: "#94a3b8",
+    fontSize: 10,
+    marginTop: 4,
   },
   intro: {
     color: "#1e293b",
