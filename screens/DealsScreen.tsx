@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDeals } from "../hooks/useDeals";
 import { useAirports } from "../hooks/useAirports";
@@ -98,8 +99,22 @@ export default function DealsScreen() {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <Image source={require("../assets/plane-mark.png")} style={styles.titleMark} contentFit="contain" />
         <Text style={styles.title}>Mes bons plans</Text>
       </View>
+
+      {result?.tier === "free" && (
+        <Pressable style={styles.upsell} onPress={() => Linking.openURL("https://www.bonvoleur.com/compte")}>
+          <Text style={styles.upsellText}>
+            Tes alertes email couvrent <Text style={styles.upsellBold}>{myAirportNames || "ton aéroport"}</Text>.
+            Tu vois ici <Text style={styles.upsellBold}>tous</Text> les bons plans disponibles - passe premium
+            pour recevoir toutes les alertes par email.
+          </Text>
+          <View style={styles.upsellButton}>
+            <Text style={styles.upsellButtonText}>Voir mon abonnement</Text>
+          </View>
+        </Pressable>
+      )}
 
       <View style={styles.searchRow}>
         <TextInput
@@ -226,27 +241,9 @@ export default function DealsScreen() {
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} tintColor="#0ea5e9" />}
           ListHeaderComponent={
-            <>
-              {result?.lastRefresh && (
-                <Text style={styles.lastRefresh}>Dernière actualisation : {detectedAt(result.lastRefresh)}</Text>
-              )}
-              {result?.tier === "free" && (
-                <Pressable
-                  style={styles.upsell}
-                  onPress={() => Linking.openURL("https://www.bonvoleur.com/compte")}
-                >
-                  <Text style={styles.upsellText}>
-                    Tes alertes email couvrent{" "}
-                    <Text style={styles.upsellBold}>{myAirportNames || "ton aéroport"}</Text>. Tu vois ici{" "}
-                    <Text style={styles.upsellBold}>tous</Text> les bons plans disponibles - passe premium pour
-                    recevoir toutes les alertes par email.
-                  </Text>
-                  <View style={styles.upsellButton}>
-                    <Text style={styles.upsellButtonText}>Voir mon abonnement</Text>
-                  </View>
-                </Pressable>
-              )}
-            </>
+            result?.lastRefresh ? (
+              <Text style={styles.lastRefresh}>Dernière actualisation : {detectedAt(result.lastRefresh)}</Text>
+            ) : null
           }
           ListEmptyComponent={
             <View style={styles.centerBox}>
@@ -280,9 +277,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   header: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
     paddingHorizontal: 16,
     paddingBottom: 12,
+  },
+  titleMark: {
+    width: 20,
+    height: 20,
   },
   title: {
     fontSize: 16,
@@ -459,11 +463,12 @@ const styles = StyleSheet.create({
   },
   upsell: {
     borderWidth: 1,
-    borderColor: "#0ea5e9",
-    backgroundColor: "#f0f9ff",
+    borderColor: "#fbcfe8",
+    backgroundColor: "#fdf2f8",
     borderRadius: 14,
     padding: 16,
-    marginBottom: 16,
+    marginHorizontal: 16,
+    marginBottom: 12,
   },
   upsellText: {
     color: "#334155",
