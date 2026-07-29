@@ -95,7 +95,7 @@ export default function LoginScreen() {
               disabled={!canSubmit}
             >
               {busy === "email" ? (
-                <ActivityIndicator color="#0f172a" />
+                <ActivityIndicator color="#000000" />
               ) : (
                 <Text style={styles.buttonPrimaryText}>Recevoir le lien magique</Text>
               )}
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonPrimaryText: {
-    color: "#0f172a",
+    color: "#000000",
     fontWeight: "700",
     fontSize: 15,
   },
