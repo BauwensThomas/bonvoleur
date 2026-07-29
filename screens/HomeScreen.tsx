@@ -201,11 +201,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   buttonSecondary: {
+    backgroundColor: "#0ea5e9",
     borderRadius: 12,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderWidth: 1.5,
-    borderColor: "#fff",
   },
   buttonSecondaryText: {
     color: "#fff",
