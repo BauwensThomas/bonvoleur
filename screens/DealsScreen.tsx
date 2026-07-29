@@ -33,6 +33,10 @@ function toDisplayDate(d: Date): string {
   return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
 }
 
+function originIata(origin: string): string | undefined {
+  return origin.match(/\(([A-Z]{3})\)/)?.[1];
+}
+
 // Fil des bons plans de l'abonne connecte - equivalent mobile de /compte sur
 // le site web, filtres inclus (meme logique que CompteControls.tsx : depart,
 // region, destination, prix max, tri - adaptes en panneau depliable plutot
@@ -73,11 +77,28 @@ export default function DealsScreen() {
     setDateTo(null);
   }
 
-  const activeFilterCount = [origin, region, maxPriceInput, dateFrom, dateTo].filter(Boolean).length;
+  // Le filtre Depart ne propose QUE les aeroports enregistres par l'abonne
+  // (pas tous les aeroports actifs du site) - en gratuit il n'y en a qu'un
+  // seul (force, pas de choix), en premium potentiellement plusieurs
+  // ("Tous" = combine les siens, ou un en particulier).
+  const myAirports = useMemo(
+    () => airports.filter((a) => homeAirports.includes(a.iata)),
+    [airports, homeAirports],
+  );
+  const singleAirport = myAirports.length <= 1;
+  const effectiveOrigin = singleAirport ? myAirports[0]?.iata ?? "" : origin;
+
+  const activeFilterCount = [
+    !singleAirport && origin,
+    region,
+    maxPriceInput,
+    dateFrom,
+    dateTo,
+  ].filter(Boolean).length;
   const maxPrice = maxPriceInput ? Number(maxPriceInput) : undefined;
 
   const { result, loading, error, refresh } = useDeals({
-    origin: origin || undefined,
+    origin: effectiveOrigin || undefined,
     destination: destination || undefined,
     region: region || undefined,
     maxPrice,
@@ -87,11 +108,21 @@ export default function DealsScreen() {
   const isPremium = result?.tier === "premium";
 
   const deals = useMemo(() => {
-    const list = result?.deals ?? [];
+    let list = result?.deals ?? [];
+    // "Tous" en premium multi-aeroports : le serveur n'a pas recu de filtre
+    // origin (pour ne pas se limiter a un seul), donc on restreint ici aux
+    // aeroports de l'abonne plutot que tous ceux du site.
+    if (!singleAirport && origin === "" && myAirports.length > 0) {
+      const iataSet = new Set(myAirports.map((a) => a.iata));
+      list = list.filter((d) => {
+        const iata = originIata(d.origin);
+        return iata ? iataSet.has(iata) : false;
+      });
+    }
     if (sort === "price-asc") return [...list].sort((a, b) => a.price - b.price);
     if (sort === "price-desc") return [...list].sort((a, b) => b.price - a.price);
     return list;
-  }, [result, sort]);
+  }, [result, sort, singleAirport, origin, myAirports]);
 
   return (
     <View style={styles.container}>
@@ -119,17 +150,18 @@ export default function DealsScreen() {
       {filtersOpen && (
         <View style={styles.filtersPanel}>
           <Text style={styles.filterLabel}>Départ</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-            <Chip label="Tous" active={origin === ""} onPress={() => setOrigin("")} />
-            {airports.map((a) => (
-              <Chip
-                key={a.iata}
-                label={homeAirports.includes(a.iata) ? `★ ${a.city}` : a.city}
-                active={origin === a.iata}
-                onPress={() => setOrigin(a.iata)}
-              />
-            ))}
-          </ScrollView>
+          {singleAirport ? (
+            <View style={styles.chipRow}>
+              <Chip label={myAirports[0]?.city ?? "…"} active onPress={() => {}} />
+            </View>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+              <Chip label="Tous" active={origin === ""} onPress={() => setOrigin("")} />
+              {myAirports.map((a) => (
+                <Chip key={a.iata} label={a.city} active={origin === a.iata} onPress={() => setOrigin(a.iata)} />
+              ))}
+            </ScrollView>
+          )}
 
           <Text style={styles.filterLabel}>Région</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
