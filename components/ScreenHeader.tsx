@@ -15,7 +15,10 @@ export default function ScreenHeader({ title }: { title: string }) {
 
   return (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={[styles.back, { top: insets.top + 8 }]} onPress={() => router.back()}>
+      <Pressable
+        style={[styles.back, { top: insets.top + 8 }]}
+        onPress={() => (router.canGoBack() ? router.back() : router.replace("/dashboard"))}
+      >
         <Text style={styles.backText}>←</Text>
       </Pressable>
       <View style={styles.titleRow}>
