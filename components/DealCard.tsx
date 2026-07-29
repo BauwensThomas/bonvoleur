@@ -71,7 +71,7 @@ export default function DealCard({ deal }: { deal: Deal }) {
 const styles = StyleSheet.create({
   row: {
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    borderBottomColor: "#0ea5e9",
     paddingVertical: 14,
   },
   topRow: {
