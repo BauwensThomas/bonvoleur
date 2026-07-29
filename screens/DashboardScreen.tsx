@@ -31,6 +31,8 @@ const MENU: { label: string; icon: IconName; accent?: true; route?: string }[] =
   { label: "Réglages", icon: "settings" },
 ];
 
+const STAT_DECOR_COLOR = "rgba(202,138,4,0.18)";
+
 export default function DashboardScreen() {
   const stats = useStats();
   const insets = useSafeAreaInsets();
@@ -49,18 +51,22 @@ export default function DashboardScreen() {
 
         <View style={styles.statsCard}>
           <View style={[styles.statCell, styles.statCellRight, styles.statCellBottom]}>
+            <TileDecor icon="pricetag" color={STAT_DECOR_COLOR} />
             <Text style={styles.statValue}>{stats ? stats.liveCount : "-"}</Text>
             <Text style={styles.statLabel}>Bons plans en ce moment</Text>
           </View>
           <View style={[styles.statCell, styles.statCellBottom]}>
+            <TileDecor icon="airplane" color={STAT_DECOR_COLOR} />
             <Text style={styles.statValue}>{stats ? stats.airportsCount : "-"}</Text>
             <Text style={styles.statLabel}>Aéroports de départ</Text>
           </View>
           <View style={[styles.statCell, styles.statCellRight]}>
+            <TileDecor icon="location" color={STAT_DECOR_COLOR} />
             <Text style={styles.statValue}>{stats ? stats.totalDest : "-"}</Text>
             <Text style={styles.statLabel}>Destinations disponibles</Text>
           </View>
           <View style={styles.statCell}>
+            <TileDecor icon="star" color={STAT_DECOR_COLOR} />
             <Text style={styles.statValue}>
               {stats && stats.reviewTotal > 0 ? formatRating(stats.reviewAverage) : "-"}
               {stats && stats.reviewTotal > 0 ? <Text style={styles.statStar}> ★</Text> : null}
@@ -142,6 +148,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 10,
+    position: "relative",
+    overflow: "hidden",
   },
   statCellRight: {
     borderRightWidth: 1,
