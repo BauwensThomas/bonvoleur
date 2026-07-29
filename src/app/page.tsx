@@ -319,7 +319,7 @@ export default async function Home() {
         </section>
 
         {/* ── Comment ça marche (preuve honnête du fonctionnement) ── */}
-        <section className="border-y border-slate-200 bg-white">
+        <section id="comment-ca-marche" className="border-y border-slate-200 bg-white">
           <div className="mx-auto max-w-7xl px-4 py-20">
             <h2 className="text-center text-3xl font-bold tracking-tight">
               Comment ça marche
