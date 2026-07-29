@@ -166,19 +166,20 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   factLabel: {
-    color: "#64748b",
-    fontSize: 11,
+    color: "#0f172a",
+    fontSize: 15,
+    fontWeight: "700",
   },
   factValue: {
-    color: "#0f172a",
-    fontSize: 14,
-    fontWeight: "700",
+    color: "#334155",
+    fontSize: 15,
+    fontWeight: "400",
     lineHeight: 21,
     marginTop: 2,
   },
   airlines: {
     color: "#475569",
-    fontSize: 13,
+    fontSize: 15,
     lineHeight: 21,
     marginTop: 14,
   },
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   },
   tip: {
     color: "#334155",
-    fontSize: 13,
+    fontSize: 15,
     lineHeight: 21,
   },
   sectionTitle: {
