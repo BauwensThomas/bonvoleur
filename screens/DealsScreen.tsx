@@ -152,21 +152,26 @@ export default function DealsScreen() {
             ))}
           </ScrollView>
 
-          <Text style={styles.filterLabel}>Prix max (€)</Text>
-          <TextInput
-            value={maxPriceInput}
-            onChangeText={setMaxPriceInput}
-            placeholder="ex. 100"
-            placeholderTextColor="#94a3b8"
-            keyboardType="number-pad"
-            style={styles.priceInput}
-          />
-
-          <Text style={styles.filterLabel}>Trier par</Text>
-          <View style={styles.chipRow}>
-            <Chip label="Plus récent" active={sort === "recent"} onPress={() => setSort("recent")} />
-            <Chip label="Prix ↑" active={sort === "price-asc"} onPress={() => setSort("price-asc")} />
-            <Chip label="Prix ↓" active={sort === "price-desc"} onPress={() => setSort("price-desc")} />
+          <View style={styles.inlineRow}>
+            <View style={styles.priceCol}>
+              <Text style={styles.filterLabel}>Prix max (€)</Text>
+              <TextInput
+                value={maxPriceInput}
+                onChangeText={setMaxPriceInput}
+                placeholder="ex. 100"
+                placeholderTextColor="#94a3b8"
+                keyboardType="number-pad"
+                style={styles.priceInput}
+              />
+            </View>
+            <View style={styles.sortCol}>
+              <Text style={styles.filterLabel}>Trier par</Text>
+              <View style={styles.chipRow}>
+                <Chip label="Plus récent" active={sort === "recent"} onPress={() => setSort("recent")} />
+                <Chip label="Prix ↑" active={sort === "price-asc"} onPress={() => setSort("price-asc")} />
+                <Chip label="Prix ↓" active={sort === "price-desc"} onPress={() => setSort("price-desc")} />
+              </View>
+            </View>
           </View>
 
           <View style={styles.periodLabelRow}>
@@ -361,6 +366,16 @@ const styles = StyleSheet.create({
   },
   chipTextActive: {
     color: "#fff",
+  },
+  inlineRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  priceCol: {
+    width: 110,
+  },
+  sortCol: {
+    flex: 1,
   },
   priceInput: {
     borderWidth: 1,
