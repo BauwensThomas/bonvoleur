@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, Text, View, Pressable, Linking } from "react-native";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
@@ -11,6 +11,7 @@ import VersionFooter from "../components/VersionFooter";
 // homepage web (src/components/HeroCinematic.tsx), mais sans animation ni 3D -
 // juste une image statique avec le texte par-dessus.
 const HERO_IMAGE = "https://www.bonvoleur.com/hero/04-ville.webp";
+const HOW_IT_WORKS_URL = "https://www.bonvoleur.com/#comment-ca-marche";
 
 export default function HomeScreen() {
   const stats = useStats();
@@ -62,6 +63,10 @@ export default function HomeScreen() {
 
       <View style={styles.rest}>
         <StatsGrid stats={stats} />
+        <Pressable style={styles.howItWorksTile} onPress={() => Linking.openURL(HOW_IT_WORKS_URL)}>
+          <Text style={styles.howItWorksText}>Comment ça marche</Text>
+          <Text style={styles.howItWorksSub}>Voir sur le site →</Text>
+        </Pressable>
         <VersionFooter />
       </View>
     </View>
@@ -170,5 +175,26 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "700",
     fontSize: 15,
+  },
+  howItWorksTile: {
+    alignSelf: "center",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#0ea5e9",
+    backgroundColor: "#f8fafc",
+  },
+  howItWorksText: {
+    color: "#0f172a",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  howItWorksSub: {
+    color: "#0369a1",
+    fontSize: 12,
+    fontWeight: "600",
+    marginTop: 2,
   },
 });
