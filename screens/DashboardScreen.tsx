@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     marginHorizontal: 16,
     marginTop: 8,
-    marginBottom: 32,
+    marginBottom: 44,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "#fbcfe8",
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     marginHorizontal: 16,
-    marginTop: 24,
+    marginTop: 32,
     alignItems: "center",
   },
   logoutButtonText: {
