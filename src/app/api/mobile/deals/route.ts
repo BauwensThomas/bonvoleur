@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getMobileMemberState } from "@/lib/mobile-auth";
 import { getMemberDeals, type MemberFilters } from "@/lib/member-deals";
+import { withCors, corsPreflight } from "@/lib/mobile-cors";
+
+export const OPTIONS = corsPreflight;
 
 // Deals de l'abonné connecté (app mobile) - équivalent bearer-token de
 // /compte (web). Réutilise getMemberDeals() : gating premium/freemium,
@@ -8,7 +11,7 @@ import { getMemberDeals, type MemberFilters } from "@/lib/member-deals";
 export async function GET(req: Request) {
   const state = await getMobileMemberState(req);
   if (state.status !== "member") {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    return withCors(NextResponse.json({ error: "Non autorisé" }, { status: 401 }));
   }
 
   const { searchParams } = new URL(req.url);
@@ -22,5 +25,5 @@ export async function GET(req: Request) {
   };
 
   const result = await getMemberDeals(state.tier, filters);
-  return NextResponse.json(result);
+  return withCors(NextResponse.json(result));
 }

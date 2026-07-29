@@ -5,6 +5,9 @@ import { getHomepageDeals } from "@/lib/homepage";
 import { getDestinations } from "@/lib/routes";
 import { getReviewStats } from "@/lib/reviews";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
+import { withCors, corsPreflight } from "@/lib/mobile-cors";
+
+export const OPTIONS = corsPreflight;
 
 // Stats publiques (écran d'accueil app, avant connexion) - mêmes chiffres que
 // la barre de stats de la homepage web (src/app/page.tsx). Pas d'auth : ce
@@ -42,11 +45,13 @@ export async function GET() {
     d.routes.some((r) => originsPerDest.has(r.destIata))
   ).length;
 
-  return NextResponse.json({
-    liveCount,
-    airportsCount: airports.length,
-    totalDest,
-    reviewAverage: reviewStats.average,
-    reviewTotal: reviewStats.total,
-  });
+  return withCors(
+    NextResponse.json({
+      liveCount,
+      airportsCount: airports.length,
+      totalDest,
+      reviewAverage: reviewStats.average,
+      reviewTotal: reviewStats.total,
+    })
+  );
 }
