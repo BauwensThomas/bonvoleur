@@ -57,6 +57,12 @@ function TileDecor({ icon, color }: { icon: IconName; color: string }) {
         color={color}
         style={[styles.decorIcon, { bottom: -8, left: 14, transform: [{ rotate: "-10deg" }] }]}
       />
+      <Ionicons
+        name={icon}
+        size={20}
+        color={color}
+        style={[styles.decorIcon, { top: -4, right: -4, transform: [{ rotate: "24deg" }] }]}
+      />
     </>
   );
 }
