@@ -49,12 +49,10 @@ export default function HomeScreen() {
           <Text style={styles.subtext}>Deals vérifiés depuis la Belgique et la France.</Text>
 
           <View style={styles.buttonRow}>
-            {/* TEMPORAIRE : navigue direct vers le tableau de bord pour prévisualiser,
-                en attendant la vraie connexion Supabase (email magique + Google). */}
-            <Pressable style={styles.buttonPrimary} onPress={() => router.push("/dashboard")}>
+            <Pressable style={styles.buttonPrimary} onPress={() => router.push("/login")}>
               <Text style={styles.buttonPrimaryText}>S'inscrire</Text>
             </Pressable>
-            <Pressable style={styles.buttonSecondary} onPress={() => router.push("/dashboard")}>
+            <Pressable style={styles.buttonSecondary} onPress={() => router.push("/login")}>
               <Text style={styles.buttonSecondaryText}>Se connecter</Text>
             </Pressable>
           </View>
