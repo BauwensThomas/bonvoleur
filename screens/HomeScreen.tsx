@@ -63,7 +63,7 @@ export default function HomeScreen() {
       <View style={styles.rest}>
         <StatsGrid stats={stats} />
         <Pressable style={styles.howItWorksTile} onPress={() => Linking.openURL(HOW_IT_WORKS_URL)}>
-          <TileDecor icon="help-circle" color="rgba(14,165,233,0.18)" />
+          <TileDecor icon="help-circle" color="rgba(14,165,233,0.18)" variant="single" corner="bottom-right" />
           <Text style={styles.howItWorksText}>Comment ça marche</Text>
           <Text style={styles.howItWorksSub}>Voir sur le site →</Text>
         </Pressable>
