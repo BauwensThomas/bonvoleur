@@ -16,7 +16,7 @@ export default function ScreenHeader({ title }: { title: string }) {
   return (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
       <Pressable style={[styles.back, { top: insets.top + 8 }]} onPress={() => router.back()}>
-        <Text style={styles.backText}>←</Text>
+        <Text style={styles.backText}>{"<"}</Text>
       </Pressable>
       <View style={styles.titleRow}>
         <Image source={require("../assets/plane-mark.png")} style={styles.titleMark} contentFit="contain" />
