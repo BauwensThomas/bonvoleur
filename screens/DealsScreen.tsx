@@ -10,10 +10,12 @@ import {
   TextInput,
   ScrollView,
 } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useDeals, type Deal } from "../hooks/useDeals";
+import { useDeals } from "../hooks/useDeals";
 import { useAirports } from "../hooks/useAirports";
+import { useHomeAirports } from "../hooks/useHomeAirports";
 import { REGIONS } from "../lib/regions";
 import { detectedAt } from "../lib/format";
 import ScreenLoader from "../components/ScreenLoader";
@@ -21,6 +23,15 @@ import DealCard from "../components/DealCard";
 import VersionFooter from "../components/VersionFooter";
 
 type Sort = "recent" | "price-asc" | "price-desc";
+
+// YYYY-MM-DD (parametre API), sans souci de fuseau horaire.
+function toISODate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function toDisplayDate(d: Date): string {
+  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+}
 
 // Fil des bons plans de l'abonne connecte - equivalent mobile de /compte sur
 // le site web, filtres inclus (meme logique que CompteControls.tsx : depart,
@@ -30,6 +41,7 @@ export default function DealsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const airports = useAirports();
+  const homeAirports = useHomeAirports();
 
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [destinationInput, setDestinationInput] = useState("");
@@ -39,6 +51,10 @@ export default function DealsScreen() {
   const [region, setRegion] = useState("");
   const [maxPriceInput, setMaxPriceInput] = useState("");
   const [sort, setSort] = useState<Sort>("recent");
+  const [dateFrom, setDateFrom] = useState<Date | null>(null);
+  const [dateTo, setDateTo] = useState<Date | null>(null);
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showToPicker, setShowToPicker] = useState(false);
 
   function onDestinationChange(value: string) {
     setDestinationInput(value);
@@ -53,9 +69,11 @@ export default function DealsScreen() {
     setRegion("");
     setMaxPriceInput("");
     setSort("recent");
+    setDateFrom(null);
+    setDateTo(null);
   }
 
-  const activeFilterCount = [origin, region, maxPriceInput].filter(Boolean).length;
+  const activeFilterCount = [origin, region, maxPriceInput, dateFrom, dateTo].filter(Boolean).length;
   const maxPrice = maxPriceInput ? Number(maxPriceInput) : undefined;
 
   const { result, loading, error, refresh } = useDeals({
@@ -63,7 +81,10 @@ export default function DealsScreen() {
     destination: destination || undefined,
     region: region || undefined,
     maxPrice,
+    dateFrom: dateFrom ? toISODate(dateFrom) : undefined,
+    dateTo: dateTo ? toISODate(dateTo) : undefined,
   });
+  const isPremium = result?.tier === "premium";
 
   const deals = useMemo(() => {
     const list = result?.deals ?? [];
@@ -101,7 +122,12 @@ export default function DealsScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
             <Chip label="Tous" active={origin === ""} onPress={() => setOrigin("")} />
             {airports.map((a) => (
-              <Chip key={a.iata} label={a.city} active={origin === a.iata} onPress={() => setOrigin(a.iata)} />
+              <Chip
+                key={a.iata}
+                label={homeAirports.includes(a.iata) ? `★ ${a.city}` : a.city}
+                active={origin === a.iata}
+                onPress={() => setOrigin(a.iata)}
+              />
             ))}
           </ScrollView>
 
@@ -129,6 +155,55 @@ export default function DealsScreen() {
             <Chip label="Prix ↑" active={sort === "price-asc"} onPress={() => setSort("price-asc")} />
             <Chip label="Prix ↓" active={sort === "price-desc"} onPress={() => setSort("price-desc")} />
           </View>
+
+          <View style={styles.periodLabelRow}>
+            <Text style={styles.filterLabel}>Période de voyage</Text>
+            {!isPremium && (
+              <View style={styles.premiumBadge}>
+                <Text style={styles.premiumBadgeText}>Réservé au premium</Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.periodRow}>
+            <Pressable
+              style={[styles.dateInput, !isPremium && styles.dateInputDisabled]}
+              disabled={!isPremium}
+              onPress={() => setShowFromPicker(true)}
+            >
+              <Text style={[styles.dateInputText, !isPremium && styles.dateInputTextDisabled]}>
+                {dateFrom ? toDisplayDate(dateFrom) : "du jj/mm/aaaa"}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.dateInput, !isPremium && styles.dateInputDisabled]}
+              disabled={!isPremium}
+              onPress={() => setShowToPicker(true)}
+            >
+              <Text style={[styles.dateInputText, !isPremium && styles.dateInputTextDisabled]}>
+                {dateTo ? toDisplayDate(dateTo) : "au jj/mm/aaaa"}
+              </Text>
+            </Pressable>
+          </View>
+          {showFromPicker && (
+            <DateTimePicker
+              value={dateFrom ?? new Date()}
+              mode="date"
+              onChange={(_event, selected) => {
+                setShowFromPicker(false);
+                if (selected) setDateFrom(selected);
+              }}
+            />
+          )}
+          {showToPicker && (
+            <DateTimePicker
+              value={dateTo ?? new Date()}
+              mode="date"
+              onChange={(_event, selected) => {
+                setShowToPicker(false);
+                if (selected) setDateTo(selected);
+              }}
+            />
+          )}
 
           <Pressable onPress={resetFilters}>
             <Text style={styles.resetLink}>Réinitialiser les filtres</Text>
@@ -311,6 +386,45 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 13,
     marginTop: 14,
+  },
+  periodLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  premiumBadge: {
+    backgroundColor: "#e0f2fe",
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  premiumBadgeText: {
+    color: "#0369a1",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  periodRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  dateInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  dateInputDisabled: {
+    backgroundColor: "#f1f5f9",
+  },
+  dateInputText: {
+    color: "#0f172a",
+    fontSize: 13,
+  },
+  dateInputTextDisabled: {
+    color: "#94a3b8",
   },
   list: {
     flex: 1,

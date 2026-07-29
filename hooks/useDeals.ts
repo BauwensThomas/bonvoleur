@@ -27,6 +27,8 @@ export interface DealFilters {
   destination?: string;
   region?: string;
   maxPrice?: number;
+  dateFrom?: string; // YYYY-MM-DD, reserve premium (ignore cote serveur sinon)
+  dateTo?: string;
 }
 
 // Deals de l'abonne connecte (/api/mobile/deals) - meme gating premium/gratuit
@@ -37,7 +39,7 @@ export function useDeals(filters: DealFilters = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { origin, destination, region, maxPrice } = filters;
+  const { origin, destination, region, maxPrice, dateFrom, dateTo } = filters;
 
   const load = useCallback(async () => {
     setError(null);
@@ -47,6 +49,8 @@ export function useDeals(filters: DealFilters = {}) {
       if (destination) params.set("destination", destination);
       if (region) params.set("region", region);
       if (maxPrice) params.set("maxPrice", String(maxPrice));
+      if (dateFrom) params.set("dateFrom", dateFrom);
+      if (dateTo) params.set("dateTo", dateTo);
       const qs = params.toString();
       const res = await apiFetch(`/api/mobile/deals${qs ? `?${qs}` : ""}`);
       if (!res.ok) throw new Error("request_failed");
@@ -57,7 +61,7 @@ export function useDeals(filters: DealFilters = {}) {
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [origin, destination, region, maxPrice]);
+  }, [origin, destination, region, maxPrice, dateFrom, dateTo]);
 
   useEffect(() => {
     load();
