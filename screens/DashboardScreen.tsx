@@ -29,7 +29,7 @@ const MENU: { label: string; icon: IconName; accent?: true; route?: string; long
   { label: "Bons plans", icon: "pricetag", accent: true, route: "/deals" },
   { label: "Blog", icon: "book", route: "/blog" },
   { label: "Destinations", icon: "airplane", route: "/destinations" },
-  { label: "Mon abonnement", icon: "diamond", longLabel: true },
+  { label: "Mon abonnement", icon: "diamond", longLabel: true, route: "/abonnement" },
   { label: "Villes populaires", icon: "business", longLabel: true },
   { label: "Avis", icon: "star", route: "/avis" },
   { label: "Partenaires", icon: "people" },
