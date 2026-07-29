@@ -23,6 +23,8 @@ export interface Subscriber {
   premium_until?: string | null; // fin de la période payée en cours (ISO)
   premium_cancel_at_period_end?: boolean | null; // résilié -> ne se renouvelle pas
   premium_interval?: string | null; // "month" | "year" (cadence de facturation)
+  push_tokens?: string[]; // jetons Expo Push enregistrés (app mobile, plusieurs appareils possibles)
+  push_enabled?: boolean; // préférence notifications push (defaut: true)
   unsubscribe_token: string; // jeton secret pour la désinscription en 1 clic
   consent_at: string | null;
   unsubscribed_at: string | null;

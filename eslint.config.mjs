@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // App mobile (Expo/React Native) : depot independant, pas ce projet.
+    "bonvoleur-app/**",
   ]),
 ]);
 

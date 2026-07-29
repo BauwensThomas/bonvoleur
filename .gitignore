@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# App mobile (Expo/React Native) : depot Git independant, place ici pour
+# rester a cote du site mais jamais melange au repo Next.js.
+/bonvoleur-app/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
