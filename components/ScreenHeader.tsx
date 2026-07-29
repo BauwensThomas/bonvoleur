@@ -44,10 +44,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   backText: {
-    fontSize: 32,
-    lineHeight: 32,
+    fontSize: 34,
+    lineHeight: 34,
     color: "#0ea5e9",
     fontWeight: "900",
+    textShadowColor: "#0ea5e9",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 2,
   },
   titleRow: {
     flexDirection: "row",
