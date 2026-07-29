@@ -5,8 +5,8 @@ export type IconName = keyof typeof Ionicons.glyphMap;
 
 // Petits dessins decoratifs (dans un conteneur position:"relative" +
 // overflow:"hidden") - amene de la couleur/texture a une tuile en couleur
-// unie. variant="full" (par defaut) : 4 exemplaires disperses, pour les
-// grandes tuiles (menu Dashboard, Deconnexion). variant="single" : un
+// unie. variant="full" (par defaut) : 3 exemplaires disperses, plutot vers
+// l'interieur de la tuile (menu Dashboard). variant="single" : un
 // seul exemplaire, coin choisi via "corner" - pour les petites cases de
 // stats (4 par cadre) ou "Comment ca marche" ou 4 exemplaires surchargeaient trop.
 export default function TileDecor({
@@ -36,27 +36,21 @@ export default function TileDecor({
     <>
       <Ionicons
         name={icon}
-        size={34}
+        size={28}
         color={color}
-        style={[styles.decorIcon, { top: -10, left: -8, transform: [{ rotate: "-20deg" }] }]}
+        style={[styles.decorIcon, { top: 8, left: 10, transform: [{ rotate: "-20deg" }] }]}
       />
       <Ionicons
         name={icon}
         size={18}
         color={color}
-        style={[styles.decorIcon, { bottom: -2, right: 10, transform: [{ rotate: "18deg" }] }]}
+        style={[styles.decorIcon, { bottom: 10, right: 14, transform: [{ rotate: "18deg" }] }]}
       />
       <Ionicons
         name={icon}
-        size={24}
+        size={22}
         color={color}
-        style={[styles.decorIcon, { bottom: -8, left: 14, transform: [{ rotate: "-10deg" }] }]}
-      />
-      <Ionicons
-        name={icon}
-        size={20}
-        color={color}
-        style={[styles.decorIcon, { top: -4, right: -4, transform: [{ rotate: "24deg" }] }]}
+        style={[styles.decorIcon, { top: 8, right: 12, transform: [{ rotate: "20deg" }] }]}
       />
     </>
   );
