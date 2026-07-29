@@ -2,6 +2,7 @@ import Link from "next/link";
 import { site } from "@/lib/site";
 import Logo from "@/components/Logo";
 import CookieSettingsLink from "@/components/CookieSettingsLink";
+import FooterLogout from "@/components/FooterLogout";
 
 export default function Footer() {
   return (
@@ -70,6 +71,7 @@ export default function Footer() {
                 Connexion
               </Link>
             </li>
+            <FooterLogout />
           </ul>
         </div>
         <div>
