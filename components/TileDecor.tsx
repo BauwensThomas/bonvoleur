@@ -36,15 +36,15 @@ export default function TileDecor({
     <>
       <Ionicons
         name={icon}
-        size={28}
+        size={26}
         color={color}
-        style={[styles.decorIcon, { top: 8, left: 10, transform: [{ rotate: "-20deg" }] }]}
+        style={[styles.decorIcon, { top: 2, left: 4, transform: [{ rotate: "-20deg" }] }]}
       />
       <Ionicons
         name={icon}
         size={18}
         color={color}
-        style={[styles.decorIcon, { bottom: 10, right: 14, transform: [{ rotate: "18deg" }] }]}
+        style={[styles.decorIcon, { bottom: 2, right: 4, transform: [{ rotate: "18deg" }] }]}
       />
     </>
   );

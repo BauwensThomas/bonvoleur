@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   },
   menuTile: {
     width: "48%",
-    minHeight: 68,
+    minHeight: 80,
     backgroundColor: "#f8fafc",
     borderWidth: 1,
     borderColor: "#0ea5e9",
