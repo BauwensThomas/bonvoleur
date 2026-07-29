@@ -1,6 +1,7 @@
 import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStats } from "../hooks/useStats";
 import { formatRating } from "../lib/format";
@@ -17,8 +18,8 @@ import VersionFooter from "../components/VersionFooter";
 // place (pertinent pour un membre, sert aussi l'upsell premium). La version
 // est fixée en bas de l'écran (hors du scroll), en respectant la zone de
 // sécurité pour ne jamais passer sous les boutons de navigation du téléphone.
-const MENU = [
-  { label: "Mes bons plans", accent: true },
+const MENU: { label: string; accent?: true; route?: string }[] = [
+  { label: "Mes bons plans", accent: true, route: "/deals" },
   { label: "Blog" },
   { label: "Destinations" },
   { label: "Mon abonnement" },
@@ -31,6 +32,7 @@ const MENU = [
 export default function DashboardScreen() {
   const stats = useStats();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
@@ -67,7 +69,11 @@ export default function DashboardScreen() {
 
         <View style={styles.menuGrid}>
           {MENU.map((item) => (
-            <Pressable key={item.label} style={[styles.menuTile, item.accent && styles.menuTileAccent]}>
+            <Pressable
+              key={item.label}
+              style={[styles.menuTile, item.accent && styles.menuTileAccent]}
+              onPress={() => item.route && router.push(item.route as never)}
+            >
               <Text style={[styles.menuTileText, item.accent && styles.menuTileTextAccent]}>{item.label}</Text>
             </Pressable>
           ))}
