@@ -28,7 +28,7 @@ import TileDecor, { type IconName } from "../components/TileDecor";
 const MENU: { label: string; icon: IconName; accent?: true; route?: string; longLabel?: true }[] = [
   { label: "Bons plans", icon: "pricetag", accent: true, route: "/deals" },
   { label: "Blog", icon: "book", route: "/blog" },
-  { label: "Destinations", icon: "airplane" },
+  { label: "Destinations", icon: "airplane", route: "/destinations" },
   { label: "Mon abonnement", icon: "diamond", longLabel: true },
   { label: "Villes populaires", icon: "business", longLabel: true },
   { label: "Avis", icon: "star" },
