@@ -1,5 +1,6 @@
 import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 import { Image } from "expo-image";
+import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -89,7 +90,7 @@ export default function DashboardScreen() {
         </View>
 
         <Pressable style={styles.logoutButton} onPress={() => supabase.auth.signOut()}>
-          <TileDecor icon="log-out-outline" color="rgba(190,18,60,0.15)" />
+          <Ionicons name="log-out-outline" size={18} color="#be123c" />
           <Text style={styles.logoutButtonText}>Déconnexion</Text>
         </Pressable>
       </ScrollView>
@@ -213,6 +214,7 @@ const styles = StyleSheet.create({
     paddingTop: 6,
   },
   logoutButton: {
+    flexDirection: "row",
     borderWidth: 1,
     borderColor: "#fbcfe8",
     backgroundColor: "#fdf2f8",
@@ -221,8 +223,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 44,
     alignItems: "center",
-    position: "relative",
-    overflow: "hidden",
+    justifyContent: "center",
+    gap: 8,
   },
   logoutButtonText: {
     color: "#be123c",
