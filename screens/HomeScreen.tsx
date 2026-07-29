@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ImageBackground, StyleSheet, Text, View, Pressable, ActivityIndicator } from "react-native";
+import { StyleSheet, Text, View, Pressable, ActivityIndicator } from "react-native";
+import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 
 // Écran d'accueil : simple image de fond + texte, comme la homepage web
@@ -33,8 +34,15 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
-      <ImageBackground source={{ uri: HERO_IMAGE }} style={styles.background} resizeMode="cover">
+      <StatusBar style="dark" />
+      <View style={styles.hero}>
+        {/* contentPosition="bottom" : coupe le ciel en haut de la photo, garde la montagne/la baie */}
+        <Image
+          source={{ uri: HERO_IMAGE }}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          contentPosition="bottom"
+        />
         <View style={styles.overlay} />
         <View style={styles.content}>
           <View style={styles.badge}>
@@ -48,15 +56,20 @@ export default function HomeScreen() {
 
           <Text style={styles.subtext}>Deals vérifiés depuis la Belgique et la France.</Text>
 
-          <Pressable style={styles.button}>
-            <Text style={styles.buttonText}>S'inscrire</Text>
-          </Pressable>
+          <View style={styles.buttonRow}>
+            <Pressable style={styles.buttonPrimary}>
+              <Text style={styles.buttonPrimaryText}>S'inscrire</Text>
+            </Pressable>
+            <Pressable style={styles.buttonSecondary}>
+              <Text style={styles.buttonSecondaryText}>Se connecter</Text>
+            </Pressable>
+          </View>
         </View>
-      </ImageBackground>
+      </View>
 
       <View style={styles.rest}>
         {!stats ? (
-          <ActivityIndicator color="#7dd3fc" style={{ marginTop: 32 }} />
+          <ActivityIndicator color="#0ea5e9" style={{ marginTop: 32 }} />
         ) : (
           <View style={styles.statsGrid}>
             <View style={styles.statTile}>
@@ -90,15 +103,15 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#050d1f",
+    backgroundColor: "#ffffff",
   },
-  background: {
-    height: 420,
-    justifyContent: "flex-start",
+  hero: {
+    height: 340,
+    justifyContent: "center",
   },
   rest: {
     flex: 1,
-    backgroundColor: "#0b1526",
+    backgroundColor: "#ffffff",
   },
   statsGrid: {
     flexDirection: "row",
@@ -108,14 +121,16 @@ const styles = StyleSheet.create({
   },
   statTile: {
     width: "47%",
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
     borderRadius: 14,
     paddingVertical: 18,
     paddingHorizontal: 12,
     alignItems: "center",
   },
   statValue: {
-    color: "#fff",
+    color: "#0f172a",
     fontSize: 26,
     fontWeight: "800",
   },
@@ -124,18 +139,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   statLabel: {
-    color: "rgba(255,255,255,0.65)",
+    color: "#64748b",
     fontSize: 12,
     textAlign: "center",
     marginTop: 6,
   },
   overlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.35)",
   },
   content: {
     paddingHorizontal: 24,
-    paddingTop: 90,
   },
   badge: {
     alignSelf: "flex-start",
@@ -170,15 +184,30 @@ const styles = StyleSheet.create({
     marginTop: 10,
     maxWidth: 320,
   },
-  button: {
-    alignSelf: "flex-start",
-    backgroundColor: "#0ea5e9",
-    borderRadius: 12,
-    paddingHorizontal: 28,
-    paddingVertical: 12,
+  buttonRow: {
+    flexDirection: "row",
+    gap: 10,
     marginTop: 18,
   },
-  buttonText: {
+  buttonPrimary: {
+    backgroundColor: "#0ea5e9",
+    borderRadius: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  buttonPrimaryText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+  buttonSecondary: {
+    borderRadius: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderWidth: 1.5,
+    borderColor: "#fff",
+  },
+  buttonSecondaryText: {
     color: "#fff",
     fontWeight: "700",
     fontSize: 15,
