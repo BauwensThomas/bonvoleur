@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStats } from "../hooks/useStats";
 import StatsGrid from "../components/StatsGrid";
+import VersionFooter from "../components/VersionFooter";
 
 // Écran d'accueil (avant connexion) : simple image de fond + texte, comme la
 // homepage web (src/components/HeroCinematic.tsx), mais sans animation ni 3D -
@@ -61,9 +62,7 @@ export default function HomeScreen() {
 
       <View style={styles.rest}>
         <StatsGrid stats={stats} />
-        <Text style={[styles.version, { marginBottom: Math.max(insets.bottom, 12) + 8 }]}>
-          BonVoleur · Version mobile 1.0
-        </Text>
+        <VersionFooter />
       </View>
     </View>
   );
@@ -82,12 +81,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#ffffff",
     justifyContent: "space-between",
-  },
-  version: {
-    color: "#94a3b8",
-    fontSize: 12,
-    textAlign: "center",
-    marginTop: 8,
   },
   overlay: {
     ...StyleSheet.absoluteFill,
