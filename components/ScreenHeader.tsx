@@ -16,7 +16,7 @@ export default function ScreenHeader({ title }: { title: string }) {
   return (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
       <Pressable style={[styles.back, { top: insets.top + 8 }]} onPress={() => router.back()}>
-        <Image source={require("../assets/plane-back.png")} style={styles.backPlane} contentFit="contain" />
+        <Text style={styles.backText}>←</Text>
       </Pressable>
       <View style={styles.titleRow}>
         <Image source={require("../assets/plane-mark.png")} style={styles.titleMark} contentFit="contain" />
@@ -43,9 +43,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  backPlane: {
-    width: 34,
-    height: 34,
+  backText: {
+    fontSize: 32,
+    lineHeight: 32,
+    color: "#0ea5e9",
+    fontWeight: "900",
   },
   titleRow: {
     flexDirection: "row",
