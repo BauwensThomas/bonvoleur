@@ -153,15 +153,13 @@ const styles = StyleSheet.create({
   intro: {
     color: "#1e293b",
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 26,
   },
   factRow: {
-    flexDirection: "row",
     gap: 12,
     marginTop: 14,
   },
   factItem: {
-    flex: 1,
     borderWidth: 1,
     borderColor: "#0ea5e9",
     borderRadius: 12,
