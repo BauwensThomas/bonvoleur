@@ -5,6 +5,7 @@ import { useDeals } from "../hooks/useDeals";
 import { detectedAt } from "../lib/format";
 import ScreenLoader from "../components/ScreenLoader";
 import DealCard from "../components/DealCard";
+import VersionFooter from "../components/VersionFooter";
 
 // Fil des bons plans de l'abonne connecte - equivalent mobile de /compte sur
 // le site web. Le gating premium/gratuit (nombre de deals, fraicheur) est
@@ -35,9 +36,10 @@ export default function DealsScreen() {
         </View>
       ) : (
         <FlatList
+          style={styles.list}
           data={result?.deals ?? []}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 24 }}
+          contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} tintColor="#0ea5e9" />}
           ListHeaderComponent={
             <>
@@ -73,6 +75,10 @@ export default function DealsScreen() {
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         />
       )}
+
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <VersionFooter safeArea={false} />
+      </View>
     </View>
   );
 }
@@ -101,6 +107,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
     color: "#0f172a",
+  },
+  list: {
+    flex: 1,
+  },
+  listContent: {
+    padding: 16,
+  },
+  footer: {
+    backgroundColor: "#ffffff",
+    paddingTop: 6,
   },
   centerBox: {
     flex: 1,

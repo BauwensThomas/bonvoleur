@@ -14,6 +14,7 @@ import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { sendMagicLink, signInWithGoogle } from "../lib/auth";
+import VersionFooter from "../components/VersionFooter";
 
 // Ecran de connexion : lien magique par email (le meme mecanisme que le site
 // web) ou Google. Pas de mot de passe - coherent avec l'auth existante.
@@ -116,9 +117,9 @@ export default function LoginScreen() {
           </>
         )}
 
-        <Pressable style={styles.back} onPress={() => router.back()}>
-          <Text style={styles.backText}>← Retour</Text>
-        </Pressable>
+        <View style={styles.footer}>
+          <VersionFooter safeArea={false} />
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -228,14 +229,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 20,
   },
-  back: {
+  footer: {
     marginTop: "auto",
-    alignSelf: "center",
-    paddingVertical: 12,
-  },
-  backText: {
-    color: "#64748b",
-    fontSize: 14,
-    fontWeight: "600",
   },
 });
