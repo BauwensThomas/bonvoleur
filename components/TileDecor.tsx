@@ -3,11 +3,32 @@ import { Ionicons } from "@expo/vector-icons";
 
 export type IconName = keyof typeof Ionicons.glyphMap;
 
-// Petits dessins decoratifs disperses (tailles/angles/positions varies) dans
-// un conteneur position:"relative" + overflow:"hidden" - amene de la
-// couleur/texture a une tuile en couleur unie, reutilise sur les tuiles du
-// Dashboard, les cadres de stats et le bouton de deconnexion.
-export default function TileDecor({ icon, color }: { icon: IconName; color: string }) {
+// Petits dessins decoratifs (dans un conteneur position:"relative" +
+// overflow:"hidden") - amene de la couleur/texture a une tuile en couleur
+// unie. variant="full" (par defaut) : 4 exemplaires disperses, pour les
+// grandes tuiles (menu Dashboard, Comment ca marche, Deconnexion).
+// variant="single" : un seul, en haut a droite - pour les petites cases de
+// stats (4 par cadre) ou 4 exemplaires surchargeaient trop.
+export default function TileDecor({
+  icon,
+  color,
+  variant = "full",
+}: {
+  icon: IconName;
+  color: string;
+  variant?: "full" | "single";
+}) {
+  if (variant === "single") {
+    return (
+      <Ionicons
+        name={icon}
+        size={28}
+        color={color}
+        style={[styles.decorIcon, { top: -6, right: -6, transform: [{ rotate: "18deg" }] }]}
+      />
+    );
+  }
+
   return (
     <>
       <Ionicons

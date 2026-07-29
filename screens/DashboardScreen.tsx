@@ -51,22 +51,22 @@ export default function DashboardScreen() {
 
         <View style={styles.statsCard}>
           <View style={[styles.statCell, styles.statCellRight, styles.statCellBottom]}>
-            <TileDecor icon="pricetag" color={STAT_DECOR_COLOR} />
+            <TileDecor icon="pricetag" color={STAT_DECOR_COLOR} variant="single" />
             <Text style={styles.statValue}>{stats ? stats.liveCount : "-"}</Text>
             <Text style={styles.statLabel}>Bons plans en ce moment</Text>
           </View>
           <View style={[styles.statCell, styles.statCellBottom]}>
-            <TileDecor icon="airplane" color={STAT_DECOR_COLOR} />
+            <TileDecor icon="airplane" color={STAT_DECOR_COLOR} variant="single" />
             <Text style={styles.statValue}>{stats ? stats.airportsCount : "-"}</Text>
             <Text style={styles.statLabel}>Aéroports de départ</Text>
           </View>
           <View style={[styles.statCell, styles.statCellRight]}>
-            <TileDecor icon="location" color={STAT_DECOR_COLOR} />
+            <TileDecor icon="location" color={STAT_DECOR_COLOR} variant="single" />
             <Text style={styles.statValue}>{stats ? stats.totalDest : "-"}</Text>
             <Text style={styles.statLabel}>Destinations disponibles</Text>
           </View>
           <View style={styles.statCell}>
-            <TileDecor icon="star" color={STAT_DECOR_COLOR} />
+            <TileDecor icon="star" color={STAT_DECOR_COLOR} variant="single" />
             <Text style={styles.statValue}>
               {stats && stats.reviewTotal > 0 ? formatRating(stats.reviewAverage) : "-"}
               {stats && stats.reviewTotal > 0 ? <Text style={styles.statStar}> ★</Text> : null}

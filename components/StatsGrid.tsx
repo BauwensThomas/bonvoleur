@@ -13,22 +13,22 @@ export default function StatsGrid({ stats }: { stats: Stats | null }) {
   return (
     <View style={styles.grid}>
       <View style={styles.tile}>
-        <TileDecor icon="pricetag" color={DECOR_COLOR} />
+        <TileDecor icon="pricetag" color={DECOR_COLOR} variant="single" />
         <Text style={styles.value}>{stats.liveCount}</Text>
         <Text style={styles.label}>Bons plans en ce moment</Text>
       </View>
       <View style={styles.tile}>
-        <TileDecor icon="airplane" color={DECOR_COLOR} />
+        <TileDecor icon="airplane" color={DECOR_COLOR} variant="single" />
         <Text style={styles.value}>{stats.airportsCount}</Text>
         <Text style={styles.label}>Aéroports de départ</Text>
       </View>
       <View style={styles.tile}>
-        <TileDecor icon="location" color={DECOR_COLOR} />
+        <TileDecor icon="location" color={DECOR_COLOR} variant="single" />
         <Text style={styles.value}>{stats.totalDest}</Text>
         <Text style={styles.label}>Destinations disponibles</Text>
       </View>
       <View style={styles.tile}>
-        <TileDecor icon="star" color={DECOR_COLOR} />
+        <TileDecor icon="star" color={DECOR_COLOR} variant="single" />
         <Text style={styles.value}>
           {stats.reviewTotal > 0 ? formatRating(stats.reviewAverage) : "-"}
           {stats.reviewTotal > 0 && <Text style={styles.star}> ★</Text>}
