@@ -27,7 +27,14 @@ export async function GET(req: Request) {
   if (state.status === "member") {
     const mine = await findOne("reviews", (r) => r.subscriber_id === state.subscriber.id);
     myReview = mine
-      ? { id: mine.id, rating: mine.rating, name: mine.name, comment: mine.comment, status: mine.status }
+      ? {
+          id: mine.id,
+          rating: mine.rating,
+          name: mine.name,
+          comment: mine.comment,
+          status: mine.status,
+          created_at: mine.created_at,
+        }
       : null;
   }
 
