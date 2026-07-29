@@ -29,6 +29,7 @@ export default function HomeScreen() {
           </Pressable>
         </View>
       </ImageBackground>
+      <View style={styles.rest} />
     </View>
   );
 }
@@ -39,8 +40,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#050d1f",
   },
   background: {
-    flex: 1,
+    height: 420,
     justifyContent: "flex-start",
+  },
+  rest: {
+    flex: 1,
+    backgroundColor: "#050d1f",
   },
   overlay: {
     ...StyleSheet.absoluteFill,
