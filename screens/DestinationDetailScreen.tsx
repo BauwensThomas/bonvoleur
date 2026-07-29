@@ -173,11 +173,13 @@ const styles = StyleSheet.create({
     color: "#0f172a",
     fontSize: 14,
     fontWeight: "700",
+    lineHeight: 21,
     marginTop: 2,
   },
   airlines: {
     color: "#475569",
     fontSize: 13,
+    lineHeight: 21,
     marginTop: 14,
   },
   tips: {
@@ -187,7 +189,7 @@ const styles = StyleSheet.create({
   tip: {
     color: "#334155",
     fontSize: 13,
-    lineHeight: 19,
+    lineHeight: 21,
   },
   sectionTitle: {
     color: "#0f172a",
@@ -235,7 +237,7 @@ const styles = StyleSheet.create({
     color: "#475569",
     fontSize: 13,
     marginTop: 4,
-    lineHeight: 19,
+    lineHeight: 21,
   },
   centerBox: {
     flex: 1,
