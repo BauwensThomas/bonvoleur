@@ -44,11 +44,11 @@ export default function DestinationDetailScreen() {
           {destination.image && (
             <Image source={{ uri: destination.image }} style={styles.cover} contentFit="cover" />
           )}
-          <Text style={styles.title}>{destination.destCity}</Text>
-          <Text style={styles.region}>{destination.region}</Text>
           {destination.image && destination.imageCredit && (
             <Text style={styles.credit}>Photo : {destination.imageCredit.replace(/^[Pp]hoto\s+/, "")}</Text>
           )}
+          <Text style={styles.title}>{destination.destCity}</Text>
+          <Text style={styles.region}>{destination.region}</Text>
 
           {destination.photos && destination.photos.length > 0 && (
             <ScrollView
@@ -95,24 +95,21 @@ export default function DestinationDetailScreen() {
             </View>
           )}
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Aéroports de départ</Text>
-            {destination.origins
-              .filter((o) => o.weekCount === 1)
-              .map((o) => (
-                <View key={o.originIata} style={styles.originRow}>
-                  <Text style={styles.originCity}>{o.originCity}</Text>
-                  <View style={styles.originBadge}>
-                    <Text style={styles.originBadgeText}>Bon plan actuel</Text>
+          {destination.origins.filter((o) => o.weekCount === 1).length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Aéroports de départ</Text>
+              {destination.origins
+                .filter((o) => o.weekCount === 1)
+                .map((o) => (
+                  <View key={o.originIata} style={styles.originRow}>
+                    <Text style={styles.originCity}>{o.originCity}</Text>
+                    <View style={styles.originBadge}>
+                      <Text style={styles.originBadgeText}>Bon plan actuel</Text>
+                    </View>
                   </View>
-                </View>
-              ))}
-            {destination.origins.filter((o) => o.weekCount === 1).length === 0 && (
-              <Text style={styles.emptyOrigins}>
-                Aucun bon plan actuel vers {destination.destCity}. Reviens bientôt.
-              </Text>
-            )}
-          </View>
+                ))}
+            </View>
+          )}
 
           {destination.faq.length > 0 && (
             <View style={styles.section}>
@@ -165,6 +162,7 @@ const styles = StyleSheet.create({
     color: "#94a3b8",
     fontSize: 11,
     marginTop: 4,
+    textAlign: "right",
   },
   section: {
     marginTop: 24,
@@ -258,10 +256,6 @@ const styles = StyleSheet.create({
     color: "#92400e",
     fontSize: 11,
     fontWeight: "700",
-  },
-  emptyOrigins: {
-    color: "#64748b",
-    fontSize: 13,
   },
   faqItem: {
     marginBottom: 14,
