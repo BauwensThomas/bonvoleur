@@ -21,3 +21,20 @@ export function detectedAt(iso: string): string {
     minute: "2-digit",
   });
 }
+
+// Date d'article, relative jusqu'à 7 jours puis absolue courte - même règle
+// que formatArticleDate() côté site web (src/lib/dates.ts). Utilisé sur la
+// liste du blog et les cartes "À lire aussi".
+export function formatArticleDate(iso: string): string {
+  const diffDays = Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays <= 0) return "aujourd'hui";
+  if (diffDays === 1) return "hier";
+  if (diffDays <= 7) return `il y a ${diffDays} jours`;
+  return new Date(iso).toLocaleDateString("fr-BE", { day: "numeric", month: "short", year: "numeric" });
+}
+
+// Date d'article, toujours absolue et complète ("12 juillet 2026") - même
+// règle que la page d'article côté site web (src/app/blog/[slug]/page.tsx).
+export function formatArticleDateLong(iso: string): string {
+  return new Date(iso).toLocaleDateString("fr-BE", { day: "numeric", month: "long", year: "numeric" });
+}

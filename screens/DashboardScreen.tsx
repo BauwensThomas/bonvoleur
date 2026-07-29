@@ -21,7 +21,7 @@ import VersionFooter from "../components/VersionFooter";
 // sécurité pour ne jamais passer sous les boutons de navigation du téléphone.
 const MENU: { label: string; accent?: true; route?: string }[] = [
   { label: "Bons plans", accent: true, route: "/deals" },
-  { label: "Blog" },
+  { label: "Blog", route: "/blog" },
   { label: "Destinations" },
   { label: "Mon abonnement" },
   { label: "Villes populaires" },
@@ -79,12 +79,13 @@ export default function DashboardScreen() {
             </Pressable>
           ))}
         </View>
-      </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         <Pressable style={styles.logoutButton} onPress={() => supabase.auth.signOut()}>
           <Text style={styles.logoutButtonText}>Déconnexion</Text>
         </Pressable>
+      </ScrollView>
+
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         <VersionFooter safeArea={false} />
       </View>
     </View>
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     marginHorizontal: 16,
     marginTop: 8,
-    marginBottom: 40,
+    marginBottom: 32,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "#fbcfe8",
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
   statCell: {
     width: "50%",
     alignItems: "center",
-    paddingVertical: 18,
+    paddingVertical: 12,
     paddingHorizontal: 10,
   },
   statCellRight: {
@@ -171,12 +172,12 @@ const styles = StyleSheet.create({
   },
   menuTile: {
     width: "48%",
-    minHeight: 92,
+    minHeight: 68,
     backgroundColor: "#f8fafc",
     borderWidth: 1,
     borderColor: "#0ea5e9",
     borderRadius: 14,
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 12,
     alignItems: "center",
     justifyContent: "center",
@@ -197,14 +198,15 @@ const styles = StyleSheet.create({
   footer: {
     backgroundColor: "#ffffff",
     paddingTop: 6,
-    paddingHorizontal: 16,
   },
   logoutButton: {
     borderWidth: 1,
     borderColor: "#fbcfe8",
     backgroundColor: "#fdf2f8",
     borderRadius: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
+    marginHorizontal: 16,
+    marginTop: 24,
     alignItems: "center",
   },
   logoutButtonText: {
