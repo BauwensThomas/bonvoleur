@@ -267,7 +267,9 @@ export default function DealsScreen() {
               </Text>
             </View>
           }
-          renderItem={({ item }) => <DealCard deal={item} />}
+          renderItem={({ item, index }) => (
+            <DealCard deal={item} isFirst={index === 0} isLast={index === deals.length - 1} />
+          )}
         />
       )}
 

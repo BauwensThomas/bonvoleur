@@ -17,15 +17,26 @@ function destinationSlug(destination: string): string {
 
 // Meme densite d'info que la vue "Liste" de /compte cote site web (rangees
 // fines separees d'un filet, pas de grosses cartes) - plus adapte a un
-// ecran de telephone qu'une grille de cartes avec image.
-export default function DealCard({ deal }: { deal: Deal }) {
+// ecran de telephone qu'une grille de cartes avec image. isFirst/isLast
+// ferment un seul cadre autour de toute la liste (comme le site :
+// "divide-y overflow-hidden rounded-2xl border") plutot que des rangees
+// flottantes independantes.
+export default function DealCard({
+  deal,
+  isFirst,
+  isLast,
+}: {
+  deal: Deal;
+  isFirst?: boolean;
+  isLast?: boolean;
+}) {
   const pct =
     deal.normal_price && deal.normal_price > 0
       ? Math.round(100 - (deal.price / deal.normal_price) * 100)
       : null;
 
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, isFirst && styles.rowFirst, isLast && styles.rowLast]}>
       <View style={styles.topRow}>
         <View style={styles.info}>
           <Text style={styles.route}>
@@ -70,9 +81,22 @@ export default function DealCard({ deal }: { deal: Deal }) {
 
 const styles = StyleSheet.create({
   row: {
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
     borderBottomWidth: 1,
-    borderBottomColor: "#0ea5e9",
+    borderColor: "#0ea5e9",
+    backgroundColor: "#fff",
     paddingVertical: 14,
+    paddingHorizontal: 14,
+  },
+  rowFirst: {
+    borderTopWidth: 1,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  rowLast: {
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
   },
   topRow: {
     flexDirection: "row",
