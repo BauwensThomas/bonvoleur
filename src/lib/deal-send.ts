@@ -97,7 +97,7 @@ function reviewBlock(token?: string): string {
     .map((n) => `<a href="${reviewUrl(token, n)}">&#9733;</a>`)
     .join("");
   return `<tr><td style="padding:18px 32px 4px;text-align:center;background:#fffbeb;border-bottom:1px solid #fde68a;">
-    <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#92400e;">Tu nous donnes combien d'étoiles ?</p>
+    <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#92400e;">Ton avis nous intéresse, tu nous mets combien d'étoiles ?</p>
     <div class="bv-stars" style="direction:rtl;unicode-bidi:bidi-override;">${stars}</div>
   </td></tr>`;
 }

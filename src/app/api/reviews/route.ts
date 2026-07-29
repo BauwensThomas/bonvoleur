@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { findOne, insert, update } from "@/lib/db";
+import { sendEmail } from "@/lib/email";
+import { newReviewAlertEmail } from "@/lib/email-templates";
 
 // Soumission publique d'un avis (formulaire /avis, après clic sur une étoile
 // dans l'email). Jeton = unsubscribe_token de l'abonné : identifie qui note
@@ -43,6 +45,13 @@ export async function POST(req: Request) {
       comment,
       status: "pending",
     });
+  }
+
+  // Notifie l'admin par email - ne doit jamais faire échouer la soumission.
+  try {
+    await sendEmail(newReviewAlertEmail(rating, name, comment));
+  } catch (e) {
+    console.error("[reviews] notification admin échouée:", e);
   }
 
   return NextResponse.json({ ok: true });

@@ -270,6 +270,34 @@ export function dealsAlertEmail(
   };
 }
 
+// Email ADMIN interne : nouvel avis client en attente de validation.
+export function newReviewAlertEmail(
+  rating: number,
+  name: string,
+  comment: string | null,
+): EmailMessage {
+  const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+  const hero = emailHero(
+    "#fffbeb",
+    `<p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:.06em;">Nouvel avis</p>
+     <p style="margin:0;font-size:22px;font-weight:800;color:#78350f;line-height:1.2;">${stars}</p>`,
+  );
+
+  const body = emailContent(
+    `<p style="margin:0 0 4px;color:#475569;"><strong>${escapeHtml(name)}</strong> vient de laisser un avis en attente de validation.</p>
+     ${comment ? `<p style="margin:12px 0;padding:12px 16px;background:#f8fafc;border-radius:8px;color:#334155;font-style:italic;">"${escapeHtml(comment)}"</p>` : ""}
+     ${ctaButton("Valider l'avis", `${site.url}/admin/reviews`, "#d97706")}`,
+  );
+
+  return {
+    to: site.email,
+    subject: `Nouvel avis (${rating}/5) de ${name} - en attente de validation`,
+    html: emailLayout(hero + body),
+    text: `Nouvel avis de ${name} (${rating}/5) en attente de validation.${comment ? `\n"${comment}"` : ""}\n\nValider : ${site.url}/admin/reviews`,
+    replyTo: site.email,
+  };
+}
+
 // Newsletter blog hebdomadaire.
 type NewsletterPost = Pick<Post, "slug" | "title" | "excerpt" | "cover_image">;
 
