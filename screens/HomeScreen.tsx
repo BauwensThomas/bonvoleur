@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { StyleSheet, Text, View, Pressable, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Écran d'accueil : simple image de fond + texte, comme la homepage web
 // (src/components/HeroCinematic.tsx), mais sans animation ni 3D - juste
@@ -24,6 +25,7 @@ function formatRating(n: number): string {
 
 export default function HomeScreen() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     fetch("https://www.bonvoleur.com/api/mobile/stats")
@@ -95,7 +97,9 @@ export default function HomeScreen() {
             </View>
           </View>
         )}
-        <Text style={styles.version}>BonVoleur · Version mobile 1.0</Text>
+        <Text style={[styles.version, { marginBottom: Math.max(insets.bottom, 12) + 8 }]}>
+          BonVoleur · Version mobile 1.0
+        </Text>
       </View>
     </View>
   );
@@ -113,6 +117,7 @@ const styles = StyleSheet.create({
   rest: {
     flex: 1,
     backgroundColor: "#ffffff",
+    justifyContent: "space-between",
   },
   statsGrid: {
     flexDirection: "row",
@@ -150,7 +155,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: "center",
     marginTop: 8,
-    marginBottom: 24,
   },
   overlay: {
     ...StyleSheet.absoluteFill,
