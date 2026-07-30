@@ -236,8 +236,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   menuTileAccent: {
-    backgroundColor: "#38bdf8",
-    borderColor: "#38bdf8",
+    backgroundColor: "#7dd3fc",
   },
   menuTileText: {
     color: "#0f172a",
