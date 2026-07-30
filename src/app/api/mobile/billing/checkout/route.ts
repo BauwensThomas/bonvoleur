@@ -16,7 +16,11 @@ export async function POST(req: Request) {
   if (state.status !== "member") {
     return withCors(NextResponse.json({ error: "Non autorisé" }, { status: 401 }));
   }
-  if (state.tier === "premium") {
+  // Un compte premium avec un vrai client Stripe a déjà un abonnement payant
+  // en cours - rien à créer. Un premium SANS client Stripe (accordé
+  // manuellement, ex. compte de test admin) peut démarrer un vrai abonnement
+  // payant comme un gratuit.
+  if (state.tier === "premium" && state.subscriber.stripe_customer_id) {
     return withCors(NextResponse.json({ error: "Déjà premium." }, { status: 400 }));
   }
 
