@@ -27,6 +27,22 @@ module.exports = {
         monochromeImage: "./assets/android-icon-monochrome.png",
       },
       predictiveBackGestureEnabled: false,
+      // Android App Links : le retour Stripe (success_url/return_url =
+      // site.canonicalBase + "/compte...") ouvre l'app au lieu du navigateur.
+      // autoVerify:true declenche la verification du domaine via
+      // /.well-known/assetlinks.json (public/.well-known/assetlinks.json,
+      // empreinte SHA256 du certificat de signature genere localement).
+      intentFilters: [
+        {
+          action: "VIEW",
+          autoVerify: true,
+          data: [
+            { scheme: "https", host: "www.bonvoleur.com", pathPrefix: "/compte" },
+            { scheme: "https", host: "bonvoleur.com", pathPrefix: "/compte" },
+          ],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+      ],
     },
     web: {
       favicon: "./assets/favicon.png",
