@@ -23,7 +23,14 @@ export async function isAuthenticated(): Promise<boolean> {
 
 // À appeler au début d'une route API admin (défense en profondeur, en plus
 // du proxy). Retourne une réponse 401 si non authentifié, sinon null.
-export async function requireAdmin(): Promise<NextResponse | null> {
+// Si `req` est fourni, accepte AUSSI un jeton bearer (Authorization: Bearer
+// <ADMIN_TOKEN>) en plus du cookie de session - nécessaire pour les agents
+// automatisés (ex. content-publisher) qui n'ont pas de session navigateur.
+export async function requireAdmin(req?: Request): Promise<NextResponse | null> {
   if (await isAuthenticated()) return null;
+  if (req) {
+    const auth = req.headers.get("authorization");
+    if (auth === `Bearer ${adminToken()}`) return null;
+  }
   return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 }

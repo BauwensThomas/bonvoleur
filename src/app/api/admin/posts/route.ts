@@ -24,7 +24,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const unauth = await requireAdmin();
+  const unauth = await requireAdmin(req);
   if (unauth) return unauth;
   const b = await req.json();
   if (!b.title) {
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const unauth = await requireAdmin();
+    const unauth = await requireAdmin(req);
     if (unauth) return unauth;
     const b = await req.json();
     if (!b.id) return NextResponse.json({ error: "id requis." }, { status: 400 });
