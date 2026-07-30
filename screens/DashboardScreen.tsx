@@ -124,7 +124,7 @@ export default function DashboardScreen() {
         </View>
 
         <Pressable style={styles.shareButton} onPress={shareApp}>
-          <Ionicons name="share-social-outline" size={18} color="#0369a1" />
+          <Ionicons name="share-social-outline" size={18} color="#15803d" />
           <Text style={styles.shareButtonText}>Partager</Text>
         </Pressable>
 
@@ -255,8 +255,8 @@ const styles = StyleSheet.create({
   shareButton: {
     flexDirection: "row",
     borderWidth: 1,
-    borderColor: "#0ea5e9",
-    backgroundColor: "#f0f9ff",
+    borderColor: "#86efac",
+    backgroundColor: "#f0fdf4",
     borderRadius: 12,
     paddingVertical: 12,
     marginHorizontal: 16,
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   shareButtonText: {
-    color: "#0369a1",
+    color: "#15803d",
     fontWeight: "700",
     fontSize: 14,
   },
