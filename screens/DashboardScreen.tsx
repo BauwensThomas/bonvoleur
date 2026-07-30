@@ -32,7 +32,7 @@ const MENU: { label: string; icon: IconName; accent?: true; route?: string; long
   { label: "Mon abonnement", icon: "diamond", longLabel: true, route: "/abonnement" },
   { label: "Villes populaires", icon: "business", longLabel: true, route: "/villes-populaires" },
   { label: "Avis", icon: "star", route: "/avis" },
-  { label: "Partenaires", icon: "people" },
+  { label: "Partenaires", icon: "people", route: "/partenaires" },
   { label: "Réglages", icon: "settings" },
 ];
 
