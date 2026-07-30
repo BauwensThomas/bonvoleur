@@ -12,6 +12,7 @@ export interface PopularDestination {
 // villes avec le plus d'aeroports de depart ayant un bon plan actif.
 export function usePopularDestinations() {
   const [destinations, setDestinations] = useState<PopularDestination[] | null>(null);
+  const [totalDestinations, setTotalDestinations] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,6 +23,7 @@ export function usePopularDestinations() {
       if (!res.ok) throw new Error("request_failed");
       const data = await res.json();
       setDestinations(data.destinations ?? []);
+      setTotalDestinations(data.totalDestinations ?? 0);
     } catch {
       setError("Impossible de charger les villes populaires. Vérifie ta connexion et réessaie.");
     } finally {
@@ -33,5 +35,5 @@ export function usePopularDestinations() {
     load();
   }, [load]);
 
-  return { destinations, loading, error, refresh: load };
+  return { destinations, totalDestinations, loading, error, refresh: load };
 }

@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View, Pressable, FlatList, RefreshControl } from "react-native";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePopularDestinations } from "../hooks/usePopularDestinations";
 import ScreenHeader from "../components/ScreenHeader";
@@ -12,7 +13,8 @@ import VersionFooter from "../components/VersionFooter";
 // session requise, meme fiche destination que la tuile "Destinations".
 export default function PopularDestinationsScreen() {
   const insets = useSafeAreaInsets();
-  const { destinations, loading, error, refresh } = usePopularDestinations();
+  const router = useRouter();
+  const { destinations, totalDestinations, loading, error, refresh } = usePopularDestinations();
 
   return (
     <View style={styles.container}>
@@ -43,6 +45,13 @@ export default function PopularDestinationsScreen() {
             <View style={styles.centerBox}>
               <Text style={styles.emptyText}>Aucune ville populaire pour l&apos;instant.</Text>
             </View>
+          }
+          ListFooterComponent={
+            totalDestinations > (destinations?.length ?? 0) ? (
+              <Pressable style={styles.seeAllButton} onPress={() => router.push("/destinations" as never)}>
+                <Text style={styles.seeAllButtonText}>Voir toutes les destinations ({totalDestinations})</Text>
+              </Pressable>
+            ) : null
           }
           renderItem={({ item }) => <PopularDestinationCard destination={item} />}
         />
@@ -75,6 +84,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: "center",
     marginBottom: 14,
+  },
+  seeAllButton: {
+    borderWidth: 1,
+    borderColor: "#0ea5e9",
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginTop: 4,
+  },
+  seeAllButtonText: {
+    color: "#0369a1",
+    fontWeight: "700",
+    fontSize: 14,
   },
   footer: {
     backgroundColor: "#ffffff",
