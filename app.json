@@ -28,6 +28,7 @@
       "expo-image",
       "expo-secure-store",
       "expo-web-browser",
+      "expo-notifications",
       "@react-native-community/datetimepicker"
     ]
   }

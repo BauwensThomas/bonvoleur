@@ -7,6 +7,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStats } from "../hooks/useStats";
 import { formatRating } from "../lib/format";
 import { supabase } from "../lib/supabase";
+import { apiFetch } from "../lib/api";
+import { registerForPushNotificationsAsync } from "../lib/push";
 import VersionFooter from "../components/VersionFooter";
 import TileDecor, { type IconName } from "../components/TileDecor";
 
@@ -42,6 +44,21 @@ export default function DashboardScreen() {
   const stats = useStats();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+
+  async function logout() {
+    // Retire le jeton push AVANT de couper la session (l'API a besoin du
+    // jeton bearer, effacé par signOut()) - sinon cet appareil resterait
+    // notifie pour un compte dont il est deconnecte.
+    const pushToken = await registerForPushNotificationsAsync();
+    if (pushToken) {
+      await apiFetch("/api/push/unregister", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: pushToken }),
+      }).catch(() => {});
+    }
+    await supabase.auth.signOut();
+  }
 
   return (
     <View style={styles.container}>
@@ -97,7 +114,7 @@ export default function DashboardScreen() {
           ))}
         </View>
 
-        <Pressable style={styles.logoutButton} onPress={() => supabase.auth.signOut()}>
+        <Pressable style={styles.logoutButton} onPress={logout}>
           <Ionicons name="log-out-outline" size={18} color="#be123c" />
           <Text style={styles.logoutButtonText}>Déconnexion</Text>
         </Pressable>
