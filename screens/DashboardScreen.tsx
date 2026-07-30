@@ -125,7 +125,7 @@ export default function DashboardScreen() {
 
         <Pressable style={styles.shareButton} onPress={shareApp}>
           <Ionicons name="share-social-outline" size={18} color="#0369a1" />
-          <Text style={styles.shareButtonText}>Partager BonVoleur</Text>
+          <Text style={styles.shareButtonText}>Partager</Text>
         </Pressable>
 
         <Pressable style={styles.logoutButton} onPress={logout}>
