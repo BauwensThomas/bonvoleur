@@ -87,6 +87,13 @@ function PreferencesSection() {
       .map((iata) => ({ iata, city: iata, disabled: true })),
   ];
 
+  const savedAirports = new Set(prefs.home_airports.map((a) => a.toUpperCase()));
+  const airportsDirty =
+    selected.length !== savedAirports.size || selected.some((a) => !savedAirports.has(a));
+  const frequencyDirty = frequency !== prefs.email_frequency;
+  const newsletterDirty = newsletter !== prefs.newsletter;
+  const pushDirty = pushEnabled !== prefs.push_enabled;
+
   function toggleAirport(iata: string) {
     if (isPremium) {
       setSelected((cur) => (cur.includes(iata) ? cur.filter((c) => c !== iata) : [...cur, iata]));
@@ -137,6 +144,7 @@ function PreferencesSection() {
             );
           })}
         </View>
+        {airportsDirty && <SaveButton busy={status === "saving"} onPress={onSave} />}
       </View>
 
       <View style={styles.prefsBox}>
@@ -144,26 +152,36 @@ function PreferencesSection() {
         <RadioRow label="Tous les jours (premium)" active={frequency === "daily"} disabled={!isPremium} onPress={() => setFrequency("daily")} />
         <RadioRow label="Une fois par semaine" active={frequency === "weekly"} onPress={() => setFrequency("weekly")} />
         <RadioRow label="En pause (aucun email)" active={frequency === "none"} onPress={() => setFrequency("none")} />
+        {frequencyDirty && <SaveButton busy={status === "saving"} onPress={onSave} />}
       </View>
 
       <View style={styles.prefsBox}>
         <Text style={styles.sectionTitle}>Newsletter du blog</Text>
         <CheckRow label="Recevoir la newsletter" checked={newsletter} onPress={() => setNewsletter((v) => !v)} />
+        {newsletterDirty && <SaveButton busy={status === "saving"} onPress={onSave} />}
       </View>
 
       <View style={styles.prefsBox}>
         <Text style={styles.sectionTitle}>Notifications push</Text>
         <CheckRow label="Recevoir les notifications push" checked={pushEnabled} onPress={() => setPushEnabled((v) => !v)} />
+        {pushDirty && <SaveButton busy={status === "saving"} onPress={onSave} />}
       </View>
 
       {message ? (
         <Text style={status === "error" ? styles.errorText : styles.successText}>{message}</Text>
       ) : null}
-
-      <Pressable style={styles.saveButton} onPress={onSave} disabled={status === "saving"}>
-        {status === "saving" ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Enregistrer</Text>}
-      </Pressable>
     </>
+  );
+}
+
+// Chaque cadre a son propre bouton, mais ils appellent tous le meme onSave()
+// (l'API /api/mobile/preferences remplace l'objet entier, pas de sauvegarde
+// partielle possible) - peu importe lequel est presse, tout est enregistre.
+function SaveButton({ busy, onPress }: { busy: boolean; onPress: () => void }) {
+  return (
+    <Pressable style={styles.saveButton} onPress={onPress} disabled={busy}>
+      {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Enregistrer</Text>}
+    </Pressable>
   );
 }
 
