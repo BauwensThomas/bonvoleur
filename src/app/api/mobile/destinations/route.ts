@@ -18,6 +18,11 @@ export const OPTIONS = corsPreflight;
 // deal actif), incoherence reelement rencontree (ex. Rio : 1 aeroport
 // affiche sur la liste, 0 sur la fiche car son unique route n'a plus de
 // deal chaud cette semaine).
+//
+// Regroupement par VILLE de destination (pas par code IATA) : une ville
+// multi-aeroports comme Rome (FCO/CIA) peut voir le scanner utiliser des
+// codes differents (voire un code generique "ROM") selon le scrape - grouper
+// par IATA loupait de vrais deals recents (bug reel trouve le 2026-07-30).
 export async function GET() {
   const activeIatas = await getActiveAirportCodes();
   const allDeals = await getAll("deals");
@@ -32,17 +37,17 @@ export async function GET() {
     return now - new Date(seenAt).getTime() <= FRESH_MAX_MS;
   });
 
-  const originsPerDest = new Map<string, Set<string>>();
+  const originsPerDestCity = new Map<string, Set<string>>();
   for (const d of liveDeals) {
-    const destIata = d.destination.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
+    const destCity = d.destination.replace(/\s*\([A-Z]{3}\)\s*$/, "").trim().toLowerCase();
     const origIata = d.origin.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
-    if (!destIata || !origIata) continue;
-    if (!originsPerDest.has(destIata)) originsPerDest.set(destIata, new Set());
-    originsPerDest.get(destIata)!.add(origIata);
+    if (!destCity || !origIata) continue;
+    if (!originsPerDestCity.has(destCity)) originsPerDestCity.set(destCity, new Set());
+    originsPerDestCity.get(destCity)!.add(origIata);
   }
 
   const destinations = (await getDestinations()).map((d) => {
-    const live = originsPerDest.get(d.destIata);
+    const live = originsPerDestCity.get(d.destCity.toLowerCase());
     const originCount = new Set(
       d.routes.filter((r) => activeIatas.has(r.originIata) && live?.has(r.originIata)).map((r) => r.originIata)
     ).size;

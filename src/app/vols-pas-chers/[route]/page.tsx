@@ -77,16 +77,22 @@ export async function generateMetadata({
 }
 
 // Preuve sociale par aéroport. Non-membres : deals > 5 jours. Membres : tous.
+// Matche par VILLE de destination (pas par code IATA) : une ville comme Rome
+// est desservie par plusieurs aéroports (FCO, CIA) et le scanner peut même
+// utiliser un code générique ("ROM") selon le scrape - matcher par IATA
+// laissait passer à côté de vrais deals récents (bug réel trouvé le
+// 2026-07-30, cf. mémoire mobile project_blog_image_rehost.md).
 async function proofFor(
   originIata: string,
-  destIata: string
+  destCity: string
 ): Promise<{ weekCount: number }> {
   try {
     const todayStr = new Date().toISOString().slice(0, 10);
+    const cityLower = destCity.toLowerCase();
     const all = (await getAll("deals")).filter((d) => {
       if (d.is_hot === false) return false;
       if (!d.origin.toUpperCase().includes(`(${originIata})`)) return false;
-      if (!d.destination.toUpperCase().includes(`(${destIata})`)) return false;
+      if (!d.destination.toLowerCase().startsWith(cityLower)) return false;
       const dep = (d.dates ?? "").match(/\d{4}-\d{2}-\d{2}/)?.[0];
       if (dep && dep < todayStr) return false;
       return true;
@@ -235,7 +241,7 @@ export default async function DestinationPage({
   const isMember = member.status === "member";
   const airports: AirportProof[] = await Promise.all(
     uniqueRoutes.map(async (r) => {
-      const { weekCount } = await proofFor(r.originIata, dest.destIata);
+      const { weekCount } = await proofFor(r.originIata, dest.destCity);
       return { originCity: r.originCity, originIata: r.originIata, weekCount };
     })
   );

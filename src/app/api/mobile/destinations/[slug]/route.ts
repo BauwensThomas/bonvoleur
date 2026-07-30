@@ -10,13 +10,19 @@ export const OPTIONS = corsPreflight;
 
 // Preuve sociale par aeroport (deal frais cette semaine) - meme regle que
 // proofFor() dans src/app/vols-pas-chers/[route]/page.tsx.
-async function weekCountFor(originIata: string, destIata: string): Promise<0 | 1> {
+// Matche par VILLE de destination (pas par code IATA) : une ville comme Rome
+// est desservie par plusieurs aeroports (FCO, CIA) et le scanner peut meme
+// utiliser un code generique ("ROM") selon le scrape - matcher par IATA
+// laissait passer a cote de vrais deals recents (bug reel trouve le
+// 2026-07-30 sur Rome, cf. project_blog_image_rehost.md / memoire mobile).
+async function weekCountFor(originIata: string, destCity: string): Promise<0 | 1> {
   try {
     const todayStr = new Date().toISOString().slice(0, 10);
+    const cityLower = destCity.toLowerCase();
     const all = (await getAll("deals")).filter((d) => {
       if (d.is_hot === false) return false;
       if (!d.origin.toUpperCase().includes(`(${originIata})`)) return false;
-      if (!d.destination.toUpperCase().includes(`(${destIata})`)) return false;
+      if (!d.destination.toLowerCase().startsWith(cityLower)) return false;
       const dep = (d.dates ?? "").match(/\d{4}-\d{2}-\d{2}/)?.[0];
       if (dep && dep < todayStr) return false;
       return true;
@@ -74,7 +80,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     uniqueRoutes.map(async (r) => ({
       originIata: r.originIata,
       originCity: r.originCity,
-      weekCount: await weekCountFor(r.originIata, dest.destIata),
+      weekCount: await weekCountFor(r.originIata, dest.destCity),
     }))
   );
 
