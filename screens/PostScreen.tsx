@@ -40,17 +40,17 @@ export default function PostScreen() {
           {post.cover_image && (
             <Image source={{ uri: post.cover_image }} style={styles.cover} contentFit="cover" />
           )}
-
-          <Text style={styles.title}>{post.title}</Text>
-          <Text style={styles.meta}>
-            {post.author} · {formatArticleDateLong(post.published_at ?? post.created_at)} ·{" "}
-            {post.reading_minutes} min de lecture
-          </Text>
           {post.cover_image && post.cover_image_credit && (
             <Text style={styles.credit}>
               Photo : {post.cover_image_credit.replace(/^[Pp]hoto\s+/, "")}
             </Text>
           )}
+
+          <Text style={styles.title}>{post.title}</Text>
+          <Text style={styles.author}>{post.author}</Text>
+          <Text style={styles.meta}>
+            {formatArticleDateLong(post.published_at ?? post.created_at)} · {post.reading_minutes} min de lecture
+          </Text>
 
           <View style={styles.markdown}>
             <Markdown style={markdownStyles}>{post.content}</Markdown>
@@ -108,15 +108,22 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     marginTop: 16,
   },
+  author: {
+    color: "#0f172a",
+    fontSize: 13,
+    fontWeight: "700",
+    marginTop: 6,
+  },
   meta: {
     color: "#64748b",
     fontSize: 13,
-    marginTop: 6,
+    marginTop: 2,
   },
   credit: {
     color: "#94a3b8",
     fontSize: 11,
     marginTop: 4,
+    textAlign: "right",
   },
   markdown: {
     marginTop: 20,
