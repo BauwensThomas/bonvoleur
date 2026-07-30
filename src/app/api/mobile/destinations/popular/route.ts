@@ -56,5 +56,5 @@ export async function GET() {
     .slice(0, FEATURED)
     .map((d) => ({ slug: d.slug, city: d.destCity, image: d.image }));
 
-  return withCors(NextResponse.json({ destinations }));
+  return withCors(NextResponse.json({ destinations, totalDestinations: destGroups.length }));
 }
