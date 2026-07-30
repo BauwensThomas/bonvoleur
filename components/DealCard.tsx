@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View, Pressable, Linking } from "react-native";
+import { useRouter } from "expo-router";
 import type { Deal } from "../hooks/useDeals";
 import { formatDealDates, detectedAt } from "../lib/format";
 
@@ -32,6 +33,7 @@ export default function DealCard({
   isFirst?: boolean;
   isLast?: boolean;
 }) {
+  const router = useRouter();
   const pct =
     deal.normal_price && deal.normal_price > 0
       ? Math.round(100 - (deal.price / deal.normal_price) * 100)
@@ -75,7 +77,7 @@ export default function DealCard({
       <View style={styles.buttonsRow}>
         <Pressable
           style={styles.infoButton}
-          onPress={() => Linking.openURL(`https://www.bonvoleur.com/vols-pas-chers/${destinationSlug(deal.destination)}`)}
+          onPress={() => router.push(`/destinations/${destinationSlug(deal.destination)}` as never)}
         >
           <Text style={styles.infoButtonText}>Infos</Text>
         </Pressable>
