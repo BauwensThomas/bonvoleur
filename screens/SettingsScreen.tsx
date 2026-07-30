@@ -114,46 +114,56 @@ function PreferencesSection() {
   }
 
   return (
-    <View style={styles.prefsBox}>
-      <Text style={styles.sectionTitle}>{isPremium ? "Tes aéroports de départ" : "Ton aéroport de départ"}</Text>
-      <Text style={styles.sectionHint}>
-        {isPremium ? "Tu peux en suivre plusieurs (avantage premium)." : "En gratuit : un seul aéroport."}
-      </Text>
-      <View style={styles.chipWrap}>
-        {airportOptions.map((a) => {
-          const on = selected.includes(a.iata);
-          return (
-            <Pressable
-              key={a.iata}
-              style={[styles.chip, on && styles.chipActive, a.disabled && styles.chipDisabled]}
-              onPress={() => !a.disabled && toggleAirport(a.iata)}
-              disabled={a.disabled}
-            >
-              <Text style={[styles.chipText, on && styles.chipTextActive]}>
-                {a.city} ({a.iata}){a.disabled ? " · désactivé" : ""}
-              </Text>
-            </Pressable>
-          );
-        })}
+    <>
+      <View style={styles.prefsBox}>
+        <Text style={styles.sectionTitle}>{isPremium ? "Tes aéroports de départ" : "Ton aéroport de départ"}</Text>
+        <Text style={styles.sectionHint}>
+          {isPremium ? "Tu peux en suivre plusieurs (avantage premium)." : "En gratuit : un seul aéroport."}
+        </Text>
+        <View style={styles.chipWrap}>
+          {airportOptions.map((a) => {
+            const on = selected.includes(a.iata);
+            return (
+              <Pressable
+                key={a.iata}
+                style={[styles.chip, on && styles.chipActive, a.disabled && styles.chipDisabled]}
+                onPress={() => !a.disabled && toggleAirport(a.iata)}
+                disabled={a.disabled}
+              >
+                <Text style={[styles.chipText, on && styles.chipTextActive]}>
+                  {a.city} ({a.iata}){a.disabled ? " · désactivé" : ""}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
 
-      <Text style={styles.sectionTitle}>Fréquence des emails</Text>
-      <RadioRow label="Tous les jours (premium)" active={frequency === "daily"} disabled={!isPremium} onPress={() => setFrequency("daily")} />
-      <RadioRow label="Une fois par semaine" active={frequency === "weekly"} onPress={() => setFrequency("weekly")} />
-      <RadioRow label="En pause (aucun email)" active={frequency === "none"} onPress={() => setFrequency("none")} />
+      <View style={styles.prefsBox}>
+        <Text style={styles.sectionTitle}>Fréquence des emails</Text>
+        <RadioRow label="Tous les jours (premium)" active={frequency === "daily"} disabled={!isPremium} onPress={() => setFrequency("daily")} />
+        <RadioRow label="Une fois par semaine" active={frequency === "weekly"} onPress={() => setFrequency("weekly")} />
+        <RadioRow label="En pause (aucun email)" active={frequency === "none"} onPress={() => setFrequency("none")} />
+      </View>
 
-      <Text style={styles.sectionTitle}>Newsletter du blog</Text>
-      <CheckRow label="Recevoir la newsletter" checked={newsletter} onPress={() => setNewsletter((v) => !v)} />
+      <View style={styles.prefsBox}>
+        <Text style={styles.sectionTitle}>Newsletter du blog</Text>
+        <CheckRow label="Recevoir la newsletter" checked={newsletter} onPress={() => setNewsletter((v) => !v)} />
+      </View>
 
-      <Text style={styles.sectionTitle}>Notifications push</Text>
-      <CheckRow label="Recevoir les notifications push" checked={pushEnabled} onPress={() => setPushEnabled((v) => !v)} />
+      <View style={styles.prefsBox}>
+        <Text style={styles.sectionTitle}>Notifications push</Text>
+        <CheckRow label="Recevoir les notifications push" checked={pushEnabled} onPress={() => setPushEnabled((v) => !v)} />
+      </View>
 
-      {message ? <Text style={status === "error" ? styles.errorText : styles.successText}>{message}</Text> : null}
+      {message ? (
+        <Text style={status === "error" ? styles.errorText : styles.successText}>{message}</Text>
+      ) : null}
 
       <Pressable style={styles.saveButton} onPress={onSave} disabled={status === "saving"}>
         {status === "saving" ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Enregistrer</Text>}
       </Pressable>
-    </View>
+    </>
   );
 }
 
@@ -223,13 +233,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f9ff",
     borderRadius: 14,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 12,
   },
   sectionTitle: {
     color: "#0f172a",
     fontSize: 15,
     fontWeight: "800",
-    marginTop: 14,
   },
   sectionHint: {
     color: "#64748b",
