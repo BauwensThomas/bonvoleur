@@ -47,10 +47,10 @@ export default function SubscriptionScreen() {
             </View>
           </View>
 
-          {result.tier === "premium" ? (
+          {result.tier === "premium" && result.has_stripe_customer ? (
             <PremiumBox session={result} />
           ) : (
-            <FreeBox onUpgraded={refresh} />
+            <UpgradeBox alreadyPremium={result.tier === "premium"} onUpgraded={refresh} />
           )}
         </ScrollView>
       )}
@@ -78,8 +78,8 @@ function PremiumBox({
       const data = await res.json();
       if (!res.ok || !data.url) throw new Error(data.error ?? "Erreur");
       await Linking.openURL(data.url);
-    } catch {
-      setError("Impossible d'ouvrir la gestion de l'abonnement.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Impossible d'ouvrir la gestion de l'abonnement.");
     } finally {
       setBusy(false);
     }
@@ -107,7 +107,7 @@ function PremiumBox({
   );
 }
 
-function FreeBox({ onUpgraded }: { onUpgraded: () => void }) {
+function UpgradeBox({ alreadyPremium, onUpgraded }: { alreadyPremium: boolean; onUpgraded: () => void }) {
   const { result: deals } = useDeals();
   const [promoCode, setPromoCode] = useState("");
   const [waived, setWaived] = useState(false);
@@ -138,14 +138,20 @@ function FreeBox({ onUpgraded }: { onUpgraded: () => void }) {
   return (
     <View style={styles.box}>
       <Text style={styles.boxText}>
-        Passe premium : <Text style={styles.bold}>tous</Text> les bons plans en direct (sans les{" "}
-        {FREE_DELAY_DAYS} jours de retard), le filtre par période de voyage et un email par jour.
-        {deals && deals.liveLockedForFree > 0 && (
+        {alreadyPremium ? (
+          "Ton accès premium est actif mais aucun paiement n'est enregistré (accordé manuellement). Démarre un abonnement payant ci-dessous pour qu'il continue au-delà de sa date d'expiration."
+        ) : (
           <>
-            {" "}
-            Actuellement <Text style={styles.bold}>{deals.total}</Text> bon
-            {deals.total > 1 ? "s" : ""} plan{deals.total > 1 ? "s" : ""} réservé
-            {deals.total > 1 ? "s" : ""} au premium.
+            Passe premium : <Text style={styles.bold}>tous</Text> les bons plans en direct (sans les{" "}
+            {FREE_DELAY_DAYS} jours de retard), le filtre par période de voyage et un email par jour.
+            {deals && deals.liveLockedForFree > 0 && (
+              <>
+                {" "}
+                Actuellement <Text style={styles.bold}>{deals.total}</Text> bon
+                {deals.total > 1 ? "s" : ""} plan{deals.total > 1 ? "s" : ""} réservé
+                {deals.total > 1 ? "s" : ""} au premium.
+              </>
+            )}
           </>
         )}
       </Text>
