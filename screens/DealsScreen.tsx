@@ -11,12 +11,14 @@ import {
   ScrollView,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDeals } from "../hooks/useDeals";
 import { useAirports } from "../hooks/useAirports";
 import { useHomeAirports } from "../hooks/useHomeAirports";
 import { REGIONS } from "../lib/regions";
 import { detectedAt } from "../lib/format";
+import { FREE_DELAY_DAYS, FREE_MAX_DEALS } from "../lib/constants";
 import ScreenLoader from "../components/ScreenLoader";
 import DealCard from "../components/DealCard";
 import ScreenHeader from "../components/ScreenHeader";
@@ -39,6 +41,7 @@ function toDisplayDate(d: Date): string {
 // qu'une rangee de 6 champs, pas assez de place sur un ecran de telephone).
 export default function DealsScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const airports = useAirports();
   const homeAirports = useHomeAirports();
 
@@ -124,12 +127,13 @@ export default function DealsScreen() {
           ListHeaderComponent={
             <>
               {result?.tier === "free" && (
-                <Pressable style={styles.upsell} onPress={() => Linking.openURL("https://www.bonvoleur.com/compte")}>
+                <Pressable style={styles.upsell} onPress={() => router.push("/abonnement" as never)}>
                   <Text style={styles.upsellText}>
                     Tes alertes email couvrent{" "}
-                    <Text style={styles.upsellBold}>{myAirportNames || "ton aéroport"}</Text>. Tu vois ici{" "}
-                    <Text style={styles.upsellBold}>tous</Text> les bons plans disponibles - passe premium pour
-                    recevoir toutes les alertes par email.
+                    <Text style={styles.upsellBold}>{myAirportNames || "ton aéroport"}</Text>. En gratuit, tu vois
+                    ici jusqu&apos;à <Text style={styles.upsellBold}>{FREE_MAX_DEALS}</Text> bons plans avec{" "}
+                    <Text style={styles.upsellBold}>{FREE_DELAY_DAYS} jours de retard</Text> - passe premium pour
+                    tout voir en direct et recevoir toutes les alertes par email.
                   </Text>
                   <View style={styles.upsellButton}>
                     <Text style={styles.upsellButtonText}>Voir mon abonnement</Text>
@@ -260,7 +264,12 @@ export default function DealsScreen() {
             </View>
           }
           renderItem={({ item, index }) => (
-            <DealCard deal={item} isFirst={index === 0} isLast={index === deals.length - 1} />
+            <DealCard
+              deal={item}
+              tier={result?.tier ?? "free"}
+              isFirst={index === 0}
+              isLast={index === deals.length - 1}
+            />
           )}
         />
       )}
@@ -456,8 +465,8 @@ const styles = StyleSheet.create({
   },
   upsell: {
     borderWidth: 1,
-    borderColor: "#fbcfe8",
-    backgroundColor: "#fdf2f8",
+    borderColor: "#fef08a",
+    backgroundColor: "#fefce8",
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,

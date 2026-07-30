@@ -23,10 +23,12 @@ function destinationSlug(destination: string): string {
 // flottantes independantes.
 export default function DealCard({
   deal,
+  tier,
   isFirst,
   isLast,
 }: {
   deal: Deal;
+  tier: "free" | "premium";
   isFirst?: boolean;
   isLast?: boolean;
 }) {
@@ -34,6 +36,12 @@ export default function DealCard({
     deal.normal_price && deal.normal_price > 0
       ? Math.round(100 - (deal.price / deal.normal_price) * 100)
       : null;
+  // Premium voit la date de derniere republication (deal "en direct"), gratuit
+  // voit TOUJOURS la date de decouverte d'origine - meme regle que
+  // src/app/compte/page.tsx cote site. Montrer published_at a un gratuit
+  // masquerait le delai de 4 jours (le scanner republie/rafraichit le deal
+  // sans que ca change son anciennete reelle pour ce niveau d'acces).
+  const detectedDate = tier === "premium" ? deal.published_at ?? deal.created_at : deal.created_at;
 
   return (
     <View style={[styles.row, isFirst && styles.rowFirst, isLast && styles.rowLast]}>
@@ -46,8 +54,8 @@ export default function DealCard({
             {deal.dates ? formatDealDates(deal.dates) : ""}
             {deal.airline ? ` · ${deal.airline}` : ""}
           </Text>
-          {deal.published_at && (
-            <Text style={styles.detected}>Déniché le {detectedAt(deal.published_at)}</Text>
+          {detectedDate && (
+            <Text style={styles.detected}>Déniché le {detectedAt(detectedDate)}</Text>
           )}
         </View>
 

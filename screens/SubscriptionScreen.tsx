@@ -6,6 +6,7 @@ import { useMemberSession } from "../hooks/useMemberSession";
 import { useDeals } from "../hooks/useDeals";
 import { apiFetch, API_BASE } from "../lib/api";
 import { formatArticleDateLong } from "../lib/format";
+import { FREE_DELAY_DAYS } from "../lib/constants";
 import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
 import VersionFooter from "../components/VersionFooter";
@@ -15,10 +16,6 @@ import VersionFooter from "../components/VersionFooter";
 // plan : pas de Google Play Billing) - on récupère juste l'URL Stripe via
 // /api/mobile/billing/{checkout,portal} et on l'ouvre dans le navigateur du
 // téléphone (Linking.openURL), comme le fait déjà "Comment ça marche".
-// FREE_DELAY_HOURS = 96h = 4 jours côté site (src/lib/member-deals.ts) - pas
-// exposé par l'API, valeur reprise en dur, à garder synchronisée si elle change.
-const FREE_DELAY_DAYS = 4;
-
 export default function SubscriptionScreen() {
   const insets = useSafeAreaInsets();
   const { result, loading, error, refresh } = useMemberSession();
