@@ -30,7 +30,8 @@ export async function POST(req: Request) {
     // une erreur CORS, masquant la vraie cause. On l'attrape pour renvoyer un
     // message exploitable (ex. configuration du portail Stripe manquante).
     console.error("[mobile billing portal]", e);
-    const message = e instanceof Error ? e.message : "Erreur inconnue.";
-    return withCors(NextResponse.json({ error: message }, { status: 500 }));
+    return withCors(
+      NextResponse.json({ error: "Le portail de facturation n'a pas pu s'ouvrir." }, { status: 500 })
+    );
   }
 }

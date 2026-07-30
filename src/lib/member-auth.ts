@@ -1,6 +1,6 @@
 import "server-only";
 import { createSupabaseServer } from "@/lib/supabase/server";
-import { findOne } from "@/lib/db";
+import { findOne, update } from "@/lib/db";
 import type { Subscriber, Tier } from "@/lib/types";
 
 export type MemberState =
@@ -28,7 +28,20 @@ export async function resolveMemberState(
   // NB : `unsubscribed_at` (emails coupés) ne bloque PAS l'accès au compte :
   // l'abonné garde son espace et son premium, il a juste arrêté les emails.
 
-  const tier: Tier = sub.tier === "premium" ? "premium" : "free";
+  let tier: Tier = sub.tier === "premium" ? "premium" : "free";
+
+  // Filet de sécurité : le webhook Stripe est la SEULE source qui repasse un
+  // compte à `free` (annulation, fin d'abonnement). Si ce webhook n'arrive
+  // jamais (panne, incident réseau côté Stripe ou nous), rien d'autre ne
+  // corrige `tier` - un abonné pourrait rester premium indéfiniment après la
+  // fin réelle de son abonnement. `premium_until` (date de fin de période,
+  // mise à jour à chaque renouvellement) sert de repli : si elle est dans le
+  // passé, on ne fait plus confiance à `tier` seul.
+  if (tier === "premium" && sub.premium_until && new Date(sub.premium_until) < new Date()) {
+    tier = "free";
+    await update("subscribers", sub.id, { tier: "free" }).catch(() => {});
+  }
+
   return { status: "member", email: e, tier, subscriber: sub };
 }
 

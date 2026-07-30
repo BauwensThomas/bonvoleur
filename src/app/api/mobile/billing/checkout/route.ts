@@ -84,7 +84,8 @@ export async function POST(req: Request) {
     // try/catch, une exception ici renvoie un 500 sans en-têtes CORS, que le
     // navigateur affiche comme une erreur CORS trompeuse.
     console.error("[mobile billing checkout]", e);
-    const message = e instanceof Error ? e.message : "Erreur inconnue.";
-    return withCors(NextResponse.json({ error: message }, { status: 500 }));
+    return withCors(
+      NextResponse.json({ error: "Le paiement n'a pas pu démarrer." }, { status: 500 })
+    );
   }
 }
