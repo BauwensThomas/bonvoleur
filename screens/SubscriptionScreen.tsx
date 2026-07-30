@@ -35,14 +35,7 @@ export default function SubscriptionScreen() {
         </View>
       ) : (
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-          <View style={styles.badgeRow}>
-            <Text style={styles.badgeLabel}>Compte</Text>
-            <View style={[styles.badge, result.tier === "premium" && styles.badgePremium]}>
-              <Text style={[styles.badgeText, result.tier === "premium" && styles.badgeTextPremium]}>
-                {result.tier === "premium" ? "Premium" : "Gratuit"}
-              </Text>
-            </View>
-          </View>
+          <InfoCard label="Type d'abonnement" value={result.tier === "premium" ? "Premium" : "Freemium"} highlight />
 
           {result.tier === "premium" && result.has_stripe_customer ? (
             <PremiumBox session={result} />
@@ -83,15 +76,23 @@ function PremiumBox({
   }
 
   return (
-    <View style={styles.box}>
-      <Text style={styles.boxText}>Bons plans actualisés plusieurs fois par jour.</Text>
+    <>
+      <View style={styles.box}>
+        <Text style={styles.boxText}>Bons plans actualisés plusieurs fois par jour.</Text>
+      </View>
+
       {session.premium_until && (
-        <Text style={styles.boxHighlight}>
-          {session.premium_cancel_at_period_end
-            ? `Premium jusqu'au ${formatArticleDateLong(session.premium_until)} (résilié, ne se renouvellera pas).`
-            : `Premium actif · renouvellement automatique ${session.premium_interval === "year" ? "annuel" : "mensuel"} le ${formatArticleDateLong(session.premium_until)}.`}
-        </Text>
+        <InfoCard label="Date de fin d'abonnement" value={formatArticleDateLong(session.premium_until)} />
       )}
+
+      {session.premium_until && (
+        <InfoCard
+          label="Renouvellement auto"
+          value={session.premium_cancel_at_period_end ? "Non" : "Oui"}
+          valueColor={session.premium_cancel_at_period_end ? "#be123c" : "#15803d"}
+        />
+      )}
+
       {error && <Text style={styles.formError}>{error}</Text>}
       <Pressable style={styles.outlineButton} onPress={openPortal} disabled={busy}>
         {busy ? (
@@ -100,6 +101,25 @@ function PremiumBox({
           <Text style={styles.outlineButtonText}>Gérer mon abonnement</Text>
         )}
       </Pressable>
+    </>
+  );
+}
+
+function InfoCard({
+  label,
+  value,
+  valueColor,
+  highlight,
+}: {
+  label: string;
+  value: string;
+  valueColor?: string;
+  highlight?: boolean;
+}) {
+  return (
+    <View style={[styles.infoCard, highlight && styles.infoCardHighlight]}>
+      <Text style={styles.infoCardLabel}>{label}</Text>
+      <Text style={[styles.infoCardValue, valueColor ? { color: valueColor } : null]}>{value}</Text>
     </View>
   );
 }
@@ -219,32 +239,29 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     paddingTop: 6,
   },
-  badgeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 16,
+  infoCard: {
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#f8fafc",
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 12,
   },
-  badgeLabel: {
+  infoCardHighlight: {
+    borderColor: "#0ea5e9",
+    backgroundColor: "#f0f9ff",
+  },
+  infoCardLabel: {
     color: "#64748b",
-    fontSize: 14,
-  },
-  badge: {
-    backgroundColor: "#f1f5f9",
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  badgePremium: {
-    backgroundColor: "#e0f2fe",
-  },
-  badgeText: {
-    color: "#475569",
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "600",
   },
-  badgeTextPremium: {
-    color: "#0369a1",
+  infoCardValue: {
+    color: "#0f172a",
+    fontSize: 16,
+    fontWeight: "800",
+    marginTop: 2,
   },
   box: {
     borderWidth: 1,
@@ -252,6 +269,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f9ff",
     borderRadius: 14,
     padding: 16,
+    marginBottom: 12,
   },
   boxText: {
     color: "#334155",
