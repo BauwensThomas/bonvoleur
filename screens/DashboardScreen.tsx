@@ -246,9 +246,9 @@ const styles = StyleSheet.create({
   },
   menuTileTextAccent: {
     color: "#fff",
-    textShadowColor: "rgba(0,0,0,0.35)",
+    textShadowColor: "rgba(0,0,0,0.6)",
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textShadowRadius: 3,
   },
   footer: {
     backgroundColor: "#ffffff",
