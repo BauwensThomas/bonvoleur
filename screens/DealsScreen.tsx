@@ -42,7 +42,10 @@ function toDisplayDate(d: Date): string {
 export default function DealsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { destination: destinationParam } = useLocalSearchParams<{ destination?: string }>();
+  const { destination: destinationParam, origin: originParam } = useLocalSearchParams<{
+    destination?: string;
+    origin?: string;
+  }>();
   const airports = useAirports();
   const homeAirports = useHomeAirports();
 
@@ -50,7 +53,7 @@ export default function DealsScreen() {
   const [destinationInput, setDestinationInput] = useState(destinationParam ?? "");
   const [destination, setDestination] = useState(destinationParam ?? "");
   const destTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [origin, setOrigin] = useState("");
+  const [origin, setOrigin] = useState(originParam ?? "");
   const [region, setRegion] = useState("");
   const [maxPriceInput, setMaxPriceInput] = useState("");
   const [sort, setSort] = useState<Sort>("recent");

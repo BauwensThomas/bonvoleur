@@ -66,19 +66,6 @@ export default function DestinationDetailScreen() {
           <Text style={styles.title}>{destination.destCity}</Text>
           <Text style={styles.region}>{destination.region}</Text>
 
-          <Pressable
-            style={styles.ctaButton}
-            onPress={() =>
-              session
-                ? router.push(`/deals?destination=${encodeURIComponent(destination.destCity)}` as never)
-                : router.push("/login" as never)
-            }
-          >
-            <Text style={styles.ctaButtonText}>
-              {session ? `Voir mes bons plans ${destination.destCity}` : `Recevoir les bons plans ${destination.destCity}`}
-            </Text>
-          </Pressable>
-
           {destination.photos && destination.photos.length > 0 && (
             <ScrollView
               horizontal
@@ -130,12 +117,22 @@ export default function DestinationDetailScreen() {
               {destination.origins
                 .filter((o) => o.weekCount === 1)
                 .map((o) => (
-                  <View key={o.originIata} style={styles.originRow}>
+                  <Pressable
+                    key={o.originIata}
+                    style={styles.originRow}
+                    onPress={() =>
+                      session
+                        ? router.push(
+                            `/deals?destination=${encodeURIComponent(destination.destCity)}&origin=${o.originIata}` as never
+                          )
+                        : router.push("/login" as never)
+                    }
+                  >
                     <Text style={styles.originCity}>{o.originCity}</Text>
                     <View style={styles.originBadge}>
                       <Text style={styles.originBadgeText}>Bon plan actuel</Text>
                     </View>
-                  </View>
+                  </Pressable>
                 ))}
             </View>
           )}
@@ -194,18 +191,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 4,
     textAlign: "right",
-  },
-  ctaButton: {
-    backgroundColor: "#0ea5e9",
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginTop: 14,
-  },
-  ctaButtonText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 14,
   },
   section: {
     marginTop: 24,
