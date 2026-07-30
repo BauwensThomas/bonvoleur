@@ -42,3 +42,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# outils Claude Code (config locale, pas destinee a etre publique)
+/.claude/
+CLAUDE.md
+AGENTS.md
+PLAYSTORE.md
