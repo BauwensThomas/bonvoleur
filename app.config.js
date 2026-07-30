@@ -50,6 +50,7 @@ module.exports = {
     plugins: [
       "expo-router",
       "expo-status-bar",
+      "expo-font",
       "expo-image",
       "expo-secure-store",
       "expo-web-browser",
