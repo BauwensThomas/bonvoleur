@@ -40,6 +40,7 @@ export default function SubscriptionScreen() {
               <Text style={styles.boxText}>Bons plans actualisés plusieurs fois par jour.</Text>
             </View>
           )}
+          {result.tier === "free" && <FreeIntroBox />}
 
           <InfoCard label="Type d'abonnement" value={result.tier === "premium" ? "Premium" : "Freemium"} />
 
@@ -124,8 +125,27 @@ function InfoCard({
   );
 }
 
-function UpgradeBox({ alreadyPremium, onUpgraded }: { alreadyPremium: boolean; onUpgraded: () => void }) {
+function FreeIntroBox() {
   const { result: deals } = useDeals();
+  return (
+    <View style={styles.box}>
+      <Text style={styles.boxText}>
+        Passe premium : <Text style={styles.bold}>tous</Text> les bons plans en direct (sans les{" "}
+        {FREE_DELAY_DAYS} jours de retard), le filtre par période de voyage et un email par jour.
+        {deals && deals.liveLockedForFree > 0 && (
+          <>
+            {" "}
+            Actuellement <Text style={styles.bold}>{deals.total}</Text> bon
+            {deals.total > 1 ? "s" : ""} plan{deals.total > 1 ? "s" : ""} réservé
+            {deals.total > 1 ? "s" : ""} au premium.
+          </>
+        )}
+      </Text>
+    </View>
+  );
+}
+
+function UpgradeBox({ alreadyPremium, onUpgraded }: { alreadyPremium: boolean; onUpgraded: () => void }) {
   const [promoCode, setPromoCode] = useState("");
   const [waived, setWaived] = useState(false);
   const [busyPlan, setBusyPlan] = useState<"monthly" | "yearly" | null>(null);
@@ -154,24 +174,13 @@ function UpgradeBox({ alreadyPremium, onUpgraded }: { alreadyPremium: boolean; o
 
   return (
     <View style={styles.box}>
-      <Text style={styles.boxText}>
-        {alreadyPremium ? (
-          "Ton accès premium est actif mais aucun paiement n'est enregistré (accordé manuellement). Démarre un abonnement payant ci-dessous pour qu'il continue au-delà de sa date d'expiration."
-        ) : (
-          <>
-            Passe premium : <Text style={styles.bold}>tous</Text> les bons plans en direct (sans les{" "}
-            {FREE_DELAY_DAYS} jours de retard), le filtre par période de voyage et un email par jour.
-            {deals && deals.liveLockedForFree > 0 && (
-              <>
-                {" "}
-                Actuellement <Text style={styles.bold}>{deals.total}</Text> bon
-                {deals.total > 1 ? "s" : ""} plan{deals.total > 1 ? "s" : ""} réservé
-                {deals.total > 1 ? "s" : ""} au premium.
-              </>
-            )}
-          </>
-        )}
-      </Text>
+      {alreadyPremium && (
+        <Text style={styles.boxText}>
+          Ton accès premium est actif mais aucun paiement n&apos;est enregistré (accordé manuellement).
+          Démarre un abonnement payant ci-dessous pour qu&apos;il continue au-delà de sa date
+          d&apos;expiration.
+        </Text>
+      )}
 
       <TextInput
         value={promoCode}
