@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
+import { ScrollView, StyleSheet, Text, View, Pressable, Share } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStats } from "../hooks/useStats";
 import { formatRating } from "../lib/format";
 import { supabase } from "../lib/supabase";
-import { apiFetch } from "../lib/api";
+import { apiFetch, API_BASE } from "../lib/api";
 import { registerForPushNotificationsAsync } from "../lib/push";
 import VersionFooter from "../components/VersionFooter";
 import TileDecor, { type IconName } from "../components/TileDecor";
@@ -58,6 +58,15 @@ export default function DashboardScreen() {
       }).catch(() => {});
     }
     await supabase.auth.signOut();
+  }
+
+  // TODO(playstore) : remplacer par le lien de la fiche Play Store une fois
+  // l'app publiee (voir project_mobile_app.md / plan mobile, Phase 3) - pour
+  // l'instant on partage le site, seul lien reellement disponible.
+  function shareApp() {
+    Share.share({
+      message: `Découvre BonVoleur, l'app qui déniche les vols pas chers depuis la Belgique et la France : ${API_BASE}`,
+    }).catch(() => {});
   }
 
   return (
@@ -113,6 +122,11 @@ export default function DashboardScreen() {
             </Pressable>
           ))}
         </View>
+
+        <Pressable style={styles.shareButton} onPress={shareApp}>
+          <Ionicons name="share-social-outline" size={18} color="#0369a1" />
+          <Text style={styles.shareButtonText}>Partager BonVoleur</Text>
+        </Pressable>
 
         <Pressable style={styles.logoutButton} onPress={logout}>
           <Ionicons name="log-out-outline" size={18} color="#be123c" />
@@ -238,6 +252,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     paddingTop: 6,
   },
+  shareButton: {
+    flexDirection: "row",
+    borderWidth: 1,
+    borderColor: "#0ea5e9",
+    backgroundColor: "#f0f9ff",
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginHorizontal: 16,
+    marginTop: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  shareButtonText: {
+    color: "#0369a1",
+    fontWeight: "700",
+    fontSize: 14,
+  },
   logoutButton: {
     flexDirection: "row",
     borderWidth: 1,
@@ -246,7 +278,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     marginHorizontal: 16,
-    marginTop: 44,
+    marginTop: 16,
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
