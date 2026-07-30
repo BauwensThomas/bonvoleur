@@ -30,6 +30,13 @@
       "expo-web-browser",
       "expo-notifications",
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b441eec0-fdda-4019-b2d4-e7621c6abee3"
+      }
+    },
+    "owner": "thozma"
   }
 }
