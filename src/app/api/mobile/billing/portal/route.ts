@@ -15,13 +15,22 @@ export async function POST(req: Request) {
     return withCors(NextResponse.json({ error: "Non autorisé" }, { status: 401 }));
   }
 
-  const session = await stripe().billingPortal.sessions.create({
-    customer: state.subscriber.stripe_customer_id,
-    return_url: `${site.canonicalBase}/compte`,
-    ...(process.env.STRIPE_PORTAL_CONFIG_ID
-      ? { configuration: process.env.STRIPE_PORTAL_CONFIG_ID }
-      : {}),
-  });
-
-  return withCors(NextResponse.json({ url: session.url }));
+  try {
+    const session = await stripe().billingPortal.sessions.create({
+      customer: state.subscriber.stripe_customer_id,
+      return_url: `${site.canonicalBase}/compte`,
+      ...(process.env.STRIPE_PORTAL_CONFIG_ID
+        ? { configuration: process.env.STRIPE_PORTAL_CONFIG_ID }
+        : {}),
+    });
+    return withCors(NextResponse.json({ url: session.url }));
+  } catch (e) {
+    // Une exception non attrapée ici renvoie un 500 Next.js SANS en-têtes
+    // CORS (withCors() jamais atteint) - le navigateur l'affiche alors comme
+    // une erreur CORS, masquant la vraie cause. On l'attrape pour renvoyer un
+    // message exploitable (ex. configuration du portail Stripe manquante).
+    console.error("[mobile billing portal]", e);
+    const message = e instanceof Error ? e.message : "Erreur inconnue.";
+    return withCors(NextResponse.json({ error: message }, { status: 500 }));
+  }
 }
