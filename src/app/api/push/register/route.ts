@@ -23,9 +23,10 @@ export async function POST(req: Request) {
 
   const tokens = new Set(state.subscriber.push_tokens ?? []);
   tokens.add(token);
-  // Plafond raisonnable d'appareils par compte (evite une croissance illimitee
-  // du tableau si un client boucle sur cette route) - garde les N plus recents.
-  const capped = Array.from(tokens).slice(-10);
+  // Plafond volontairement bas (hygiene + anti-partage de compte en famille,
+  // pas juste anti-abus technique) - garde les N plus recents. Suffisant pour
+  // un usage personnel normal (telephone + tablette, changement d'appareil).
+  const capped = Array.from(tokens).slice(-3);
   await update("subscribers", state.subscriber.id, { push_tokens: capped });
 
   return withCors(NextResponse.json({ ok: true }));
