@@ -7,7 +7,7 @@
 // le dossier donc le chemin relatif marche directement.
 module.exports = {
   expo: {
-    name: "bonvoleur-app",
+    name: "BonVoleur",
     slug: "bonvoleur-app",
     scheme: "bonvoleur",
     version: "1.0.0",
