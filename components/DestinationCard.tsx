@@ -17,7 +17,9 @@ export default function DestinationCard({ destination }: { destination: Destinat
       <View style={styles.overlay}>
         <Text style={styles.city}>{destination.destCity}</Text>
         <Text style={styles.meta}>
-          {destination.originCount} aéroport{destination.originCount > 1 ? "s" : ""} de départ
+          {destination.originCount > 0
+            ? `${destination.originCount} aéroport${destination.originCount > 1 ? "s" : ""} de départ`
+            : "Aucun bon plan pour le moment"}
         </Text>
       </View>
     </Pressable>
