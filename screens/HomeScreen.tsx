@@ -49,14 +49,9 @@ export default function HomeScreen() {
 
           <Text style={styles.subtext}>Deals vérifiés depuis la Belgique et la France.</Text>
 
-          <View style={styles.buttonRow}>
-            <Pressable style={styles.buttonPrimary} onPress={() => router.push("/login")}>
-              <Text style={styles.buttonPrimaryText}>S'inscrire</Text>
-            </Pressable>
-            <Pressable style={styles.buttonSecondary} onPress={() => router.push("/login")}>
-              <Text style={styles.buttonSecondaryText}>Se connecter</Text>
-            </Pressable>
-          </View>
+          <Pressable style={styles.buttonPrimary} onPress={() => router.push("/login")}>
+            <Text style={styles.buttonPrimaryText}>S&apos;inscrire / Connexion</Text>
+          </Pressable>
         </View>
       </View>
 
@@ -124,6 +119,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.1)",
     paddingHorizontal: 14,
     paddingVertical: 6,
+    marginTop: 32,
     marginBottom: 20,
   },
   badgeText: {
@@ -149,29 +145,14 @@ const styles = StyleSheet.create({
     maxWidth: 320,
     textAlign: "center",
   },
-  buttonRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: 18,
-  },
   buttonPrimary: {
     backgroundColor: "#0ea5e9",
     borderRadius: 12,
     paddingHorizontal: 24,
     paddingVertical: 12,
+    marginTop: 18,
   },
   buttonPrimaryText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 15,
-  },
-  buttonSecondary: {
-    backgroundColor: "#0ea5e9",
-    borderRadius: 12,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  buttonSecondaryText: {
     color: "#fff",
     fontWeight: "700",
     fontSize: 15,
