@@ -53,7 +53,17 @@ module.exports = {
       "expo-image",
       "expo-secure-store",
       "expo-web-browser",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          // Icone de notification Android : DOIT etre une silhouette blanche
+          // sur fond transparent (pas de couleur) - Android teinte cette
+          // silhouette avec `color` au lieu de l'afficher telle quelle.
+          // Sans ce reglage, Android affiche un rond generique par defaut.
+          icon: "./assets/plane-mark-white.png",
+          color: "#0ea5e9",
+        },
+      ],
       "@react-native-community/datetimepicker",
     ],
     extra: {
