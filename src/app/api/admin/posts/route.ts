@@ -34,6 +34,19 @@ export async function POST(req: Request) {
   const clash = await findOne("posts", (p) => p.slug === slug);
   if (clash) slug = `${slug}-${Date.now().toString(36)}`;
 
+  // Ré-héberge l'image sur Supabase si c'est une URL externe (Unsplash, etc.)
+  // - même garde-fou qu'en PUT, mais ici DÈS LA CRÉATION : un post créé déjà
+  // "published" (ex. par l'agent content-publisher) ne passe jamais par PUT,
+  // donc sans ça son image reste un lien Unsplash brut indéfiniment.
+  let coverImage = b.cover_image ?? null;
+  if (coverImage && !String(coverImage).includes("/storage/v1/object/public/photos/")) {
+    try {
+      coverImage = (await rehostImage(coverImage, "articles", slug)) ?? coverImage;
+    } catch (e) {
+      console.error("[admin/posts] rehostImage échoué, URL conservée :", e);
+    }
+  }
+
   const now = new Date().toISOString();
   const status = b.status === "published" ? "published" : "draft";
   const row = await insert("posts", {
@@ -42,7 +55,7 @@ export async function POST(req: Request) {
     excerpt: b.excerpt ?? "",
     content: b.content ?? "",
     faq: Array.isArray(b.faq) ? b.faq : [],
-    cover_image: b.cover_image ?? null,
+    cover_image: coverImage,
     cover_image_credit: b.cover_image_credit ?? null,
     meta_title: b.meta_title ?? null,
     meta_description: b.meta_description ?? null,
