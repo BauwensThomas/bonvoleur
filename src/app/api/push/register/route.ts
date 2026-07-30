@@ -15,13 +15,18 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => null);
   const token = typeof body?.token === "string" ? body.token.trim() : "";
-  if (!token) {
-    return withCors(NextResponse.json({ error: "Jeton manquant." }, { status: 400 }));
+  // Un vrai jeton Expo Push tient largement dans 200 caracteres
+  // ("ExponentPushToken[...]") - borne defensive contre un abus du champ.
+  if (!token || token.length > 200) {
+    return withCors(NextResponse.json({ error: "Jeton invalide." }, { status: 400 }));
   }
 
   const tokens = new Set(state.subscriber.push_tokens ?? []);
   tokens.add(token);
-  await update("subscribers", state.subscriber.id, { push_tokens: Array.from(tokens) });
+  // Plafond raisonnable d'appareils par compte (evite une croissance illimitee
+  // du tableau si un client boucle sur cette route) - garde les N plus recents.
+  const capped = Array.from(tokens).slice(-10);
+  await update("subscribers", state.subscriber.id, { push_tokens: capped });
 
   return withCors(NextResponse.json({ ok: true }));
 }
