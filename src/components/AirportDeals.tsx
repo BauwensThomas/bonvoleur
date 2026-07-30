@@ -30,6 +30,11 @@ export default function AirportDeals({
     .filter((x, i, arr) => arr.findIndex((a) => a.originIata === x.originIata) === i);
   const [active, setActive] = useState(ordered[0]?.originIata ?? "");
   const a = ordered.find((x) => x.originIata === active) ?? ordered[0];
+  // Le lien doit refléter l'aéroport de départ actuellement sélectionné dans
+  // les onglets, sinon on atterrit sur /compte avec "Départ : Tous" au lieu
+  // du bon aéroport - même bug corrigé côté app mobile.
+  const activeCtaHref =
+    isMember && a ? `${ctaHref}${ctaHref.includes("?") ? "&" : "?"}origin=${a.originIata}` : ctaHref;
 
   // Aucun aéroport n'a de bon plan pour cette destination : un seul message.
   if (!a) {
@@ -81,7 +86,7 @@ export default function AirportDeals({
             moment, réservé aux inscrits.
           </p>
           <a
-            href={ctaHref}
+            href={activeCtaHref}
             className="shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
           >
             {isMember ? "Voir le bon plan" : "Recevoir les bons plans"}
