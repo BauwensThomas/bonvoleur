@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.bonvoleur.app",
+      "sha256_cert_fingerprints": [
+        "B5:E8:47:13:F0:E2:A7:3E:B2:D4:03:57:7D:4E:DF:EE:BD:15:A4:82:98:80:BF:67:7F:28:CD:D5:94:71:BB:8D"
+      ]
+    }
+  }
+]
