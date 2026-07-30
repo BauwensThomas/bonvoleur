@@ -148,7 +148,7 @@ function PreferencesSection() {
       <Text style={styles.sectionTitle}>Notifications push</Text>
       <CheckRow label="Recevoir les notifications push" checked={pushEnabled} onPress={() => setPushEnabled((v) => !v)} />
 
-      {message && <Text style={status === "error" ? styles.errorText : styles.successText}>{message}</Text>}
+      {message ? <Text style={status === "error" ? styles.errorText : styles.successText}>{message}</Text> : null}
 
       <Pressable style={styles.saveButton} onPress={onSave} disabled={status === "saving"}>
         {status === "saving" ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Enregistrer</Text>}
