@@ -41,7 +41,7 @@ export default function SubscriptionScreen() {
             </View>
           )}
 
-          <InfoCard label="Type d'abonnement" value={result.tier === "premium" ? "Premium" : "Freemium"} highlight />
+          <InfoCard label="Type d'abonnement" value={result.tier === "premium" ? "Premium" : "Freemium"} />
 
           {result.tier === "premium" && result.has_stripe_customer ? (
             <PremiumBox session={result} />
@@ -111,15 +111,13 @@ function InfoCard({
   label,
   value,
   valueColor,
-  highlight,
 }: {
   label: string;
   value: string;
   valueColor?: string;
-  highlight?: boolean;
 }) {
   return (
-    <View style={[styles.infoCard, highlight && styles.infoCardHighlight]}>
+    <View style={styles.infoCard}>
       <Text style={styles.infoCardLabel}>{label}</Text>
       <Text style={[styles.infoCardValue, valueColor ? { color: valueColor } : null]}>{value}</Text>
     </View>
@@ -243,16 +241,12 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    backgroundColor: "#f8fafc",
+    borderColor: "#0ea5e9",
+    backgroundColor: "#f0f9ff",
     borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 16,
     marginBottom: 12,
-  },
-  infoCardHighlight: {
-    borderColor: "#0ea5e9",
-    backgroundColor: "#f0f9ff",
   },
   infoCardLabel: {
     color: "#0f172a",
