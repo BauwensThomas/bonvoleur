@@ -35,6 +35,12 @@ export default function SubscriptionScreen() {
         </View>
       ) : (
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+          {result.tier === "premium" && (
+            <View style={styles.box}>
+              <Text style={styles.boxText}>Bons plans actualisés plusieurs fois par jour.</Text>
+            </View>
+          )}
+
           <InfoCard label="Type d'abonnement" value={result.tier === "premium" ? "Premium" : "Freemium"} highlight />
 
           {result.tier === "premium" && result.has_stripe_customer ? (
@@ -77,10 +83,6 @@ function PremiumBox({
 
   return (
     <>
-      <View style={styles.box}>
-        <Text style={styles.boxText}>Bons plans actualisés plusieurs fois par jour.</Text>
-      </View>
-
       {session.premium_until && (
         <InfoCard label="Date de fin d'abonnement" value={formatArticleDateLong(session.premium_until)} />
       )}
@@ -253,14 +255,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f9ff",
   },
   infoCardLabel: {
-    color: "#64748b",
+    color: "#0f172a",
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "800",
   },
   infoCardValue: {
-    color: "#0f172a",
+    color: "#334155",
     fontSize: 16,
-    fontWeight: "800",
+    fontWeight: "400",
     marginTop: 2,
   },
   box: {
