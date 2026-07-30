@@ -256,12 +256,12 @@ const styles = StyleSheet.create({
   },
   infoCardLabel: {
     color: "#0f172a",
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: "800",
   },
   infoCardValue: {
     color: "#334155",
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "400",
     marginTop: 2,
   },
