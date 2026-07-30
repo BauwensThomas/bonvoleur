@@ -9,7 +9,10 @@ export default function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !session) router.replace("/login");
+    // Apres deconnexion depuis le Dashboard, retour a l'accueil (pas
+    // directement au formulaire de connexion) - l'utilisateur a quitte
+    // l'app, pas juste sa session expiree en cours de tache.
+    if (!loading && !session) router.replace("/");
   }, [loading, session, router]);
 
   if (loading || !session) return <ScreenLoader />;

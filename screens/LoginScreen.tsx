@@ -44,7 +44,13 @@ export default function LoginScreen() {
     const { error } = await signInWithGoogle();
     setBusy(null);
     if (error) setError(error);
-    else router.replace("/dashboard");
+    else {
+      // Vide la pile de navigation (Accueil/Connexion) avant de rejoindre le
+      // Dashboard - sinon le bouton retour du telephone ramene a l'ecran de
+      // connexion apres une connexion reussie.
+      if (router.canDismiss()) router.dismissAll();
+      router.replace("/dashboard");
+    }
   }
 
   return (

@@ -18,7 +18,13 @@ export default function AuthCallback() {
     }
     supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
       if (error) setError("Lien de connexion invalide ou expiré.");
-      else router.replace("/dashboard");
+      else {
+        // Vide la pile de navigation (Accueil/Connexion/ce callback) avant de
+        // rejoindre le Dashboard - sinon le bouton retour du telephone
+        // ramene a l'ecran de connexion apres une connexion reussie.
+        if (router.canDismiss()) router.dismissAll();
+        router.replace("/dashboard");
+      }
     });
   }, [code, router]);
 
