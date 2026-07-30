@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { StyleSheet, Text, View, Pressable, ScrollView } from "react-native";
 import { Image } from "expo-image";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDestination } from "../hooks/useDestination";
+import { useSession } from "../hooks/useSession";
 import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
 import VersionFooter from "../components/VersionFooter";
@@ -22,6 +23,8 @@ function stripMdLinks(text: string): string {
 export default function DestinationDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { session } = useSession();
   const { destination, loading, notFound, error, refresh } = useDestination(slug ?? "");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -62,6 +65,19 @@ export default function DestinationDetailScreen() {
           )}
           <Text style={styles.title}>{destination.destCity}</Text>
           <Text style={styles.region}>{destination.region}</Text>
+
+          <Pressable
+            style={styles.ctaButton}
+            onPress={() =>
+              session
+                ? router.push(`/deals?destination=${encodeURIComponent(destination.destCity)}` as never)
+                : router.push("/login" as never)
+            }
+          >
+            <Text style={styles.ctaButtonText}>
+              {session ? `Voir mes bons plans ${destination.destCity}` : `Recevoir les bons plans ${destination.destCity}`}
+            </Text>
+          </Pressable>
 
           {destination.photos && destination.photos.length > 0 && (
             <ScrollView
@@ -178,6 +194,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 4,
     textAlign: "right",
+  },
+  ctaButton: {
+    backgroundColor: "#0ea5e9",
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginTop: 14,
+  },
+  ctaButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 14,
   },
   section: {
     marginTop: 24,

@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDeals } from "../hooks/useDeals";
 import { useAirports } from "../hooks/useAirports";
@@ -42,12 +42,13 @@ function toDisplayDate(d: Date): string {
 export default function DealsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { destination: destinationParam } = useLocalSearchParams<{ destination?: string }>();
   const airports = useAirports();
   const homeAirports = useHomeAirports();
 
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [destinationInput, setDestinationInput] = useState("");
-  const [destination, setDestination] = useState("");
+  const [destinationInput, setDestinationInput] = useState(destinationParam ?? "");
+  const [destination, setDestination] = useState(destinationParam ?? "");
   const destTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [origin, setOrigin] = useState("");
   const [region, setRegion] = useState("");
