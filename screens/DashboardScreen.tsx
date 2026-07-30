@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStats } from "../hooks/useStats";
 import { formatRating } from "../lib/format";
 import { supabase } from "../lib/supabase";
-import { apiFetch, API_BASE } from "../lib/api";
+import { apiFetch } from "../lib/api";
 import { registerForPushNotificationsAsync } from "../lib/push";
 import VersionFooter from "../components/VersionFooter";
 import TileDecor, { type IconName } from "../components/TileDecor";
@@ -60,12 +60,13 @@ export default function DashboardScreen() {
     await supabase.auth.signOut();
   }
 
-  // TODO(playstore) : remplacer par le lien de la fiche Play Store une fois
-  // l'app publiee (voir project_mobile_app.md / plan mobile, Phase 3) - pour
-  // l'instant on partage le site, seul lien reellement disponible.
+  // Lien deterministe (base sur le package name, package name -> URL fixe
+  // du Play Store), correct meme avant publication - il suffira de patienter
+  // que Google approuve la fiche pour qu'il devienne fonctionnel.
+  const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.bonvoleur.app";
   function shareApp() {
     Share.share({
-      message: `Découvre BonVoleur, l'app qui déniche les vols pas chers depuis la Belgique et la France : ${API_BASE}`,
+      message: `Découvre BonVoleur, l'app qui déniche les vols pas chers depuis la Belgique et la France : ${PLAY_STORE_URL}`,
     }).catch(() => {});
   }
 
