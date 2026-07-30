@@ -105,6 +105,16 @@ export interface Send {
   created_at: string;
 }
 
+// Anti-doublon dedie au push (separe de `sends`, qui ne sert qu'a l'email) -
+// voir src/lib/push-send.ts. Cadence decouplee de l'email (a chaque scan).
+export interface PushSend {
+  id: string;
+  deal_id: string;
+  subscriber_id: string;
+  sent_at: string;
+  created_at: string;
+}
+
 export interface FaqItem {
   question: string;
   answer: string;
@@ -180,6 +190,7 @@ export interface Tables {
   airports: Airport;
   referrals: Referral;
   sends: Send;
+  push_sends: PushSend;
   posts: Post;
   admins: Admin;
   partners: Partner;
