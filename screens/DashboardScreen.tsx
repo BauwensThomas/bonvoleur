@@ -33,7 +33,7 @@ const MENU: { label: string; icon: IconName; accent?: true; route?: string; long
   { label: "Villes populaires", icon: "business", longLabel: true, route: "/villes-populaires" },
   { label: "Avis", icon: "star", route: "/avis" },
   { label: "Partenaires", icon: "people", route: "/partenaires" },
-  { label: "Réglages", icon: "settings" },
+  { label: "Réglages", icon: "settings", route: "/reglages" },
 ];
 
 const STAT_DECOR_COLOR = "rgba(202,138,4,0.18)";
