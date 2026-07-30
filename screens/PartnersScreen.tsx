@@ -56,9 +56,13 @@ export default function PartnersScreen() {
 function PartnerCard({ partner }: { partner: Partner }) {
   return (
     <Pressable style={styles.card} onPress={() => Linking.openURL(partner.url)}>
-      {partner.logo && <Image source={{ uri: partner.logo }} style={styles.logo} contentFit="contain" />}
-      <Text style={styles.category}>{partner.category}</Text>
-      <Text style={styles.name}>{partner.name}</Text>
+      <View style={styles.cardTop}>
+        <View style={styles.cardText}>
+          <Text style={styles.category}>{partner.category}</Text>
+          <Text style={styles.name}>{partner.name}</Text>
+        </View>
+        {partner.logo && <Image source={{ uri: partner.logo }} style={styles.logo} contentFit="contain" />}
+      </View>
       <Text style={styles.description}>{partner.description}</Text>
     </Pressable>
   );
@@ -88,10 +92,18 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: "#fff",
   },
+  cardTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  cardText: {
+    flex: 1,
+  },
   logo: {
-    width: 120,
-    height: 32,
-    marginBottom: 8,
+    width: 80,
+    height: 28,
   },
   category: {
     color: "#0369a1",
