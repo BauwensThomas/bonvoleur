@@ -48,6 +48,14 @@ export async function proxy(req: NextRequest) {
     const token = req.cookies.get(ADMIN_COOKIE)?.value;
     if (token === expectedToken()) return NextResponse.next();
 
+    // Jeton bearer (agents automatisés, ex. content-publisher) - sans ça, le
+    // proxy bloque la requête AVANT qu'elle n'atteigne la route, même si
+    // celle-ci accepte elle-même le bearer via requireAdmin(req).
+    const auth = req.headers.get("authorization");
+    if (pathname.startsWith("/api/") && auth === `Bearer ${expectedToken()}`) {
+      return NextResponse.next();
+    }
+
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
