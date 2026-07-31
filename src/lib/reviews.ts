@@ -5,11 +5,11 @@ import { site } from "./site";
 import { getAll } from "./db";
 import type { Review } from "./types";
 
-// Lien de notation en 1 clic depuis l'email, sécurisé par le jeton de
-// l'abonné (même jeton que désinscription/tracking d'ouverture).
-export function reviewUrl(token: string, rating: number): string {
-  const t = encodeURIComponent(token);
-  return `${site.url}/avis?token=${t}&note=${rating}`;
+// Lien vers la page de notation, note pré-sélectionnée. Identifie l'abonné
+// via sa session (connexion requise sur /avis), pas via un jeton dans l'URL -
+// un simple clic depuis l'email amène à se connecter si besoin.
+export function reviewUrl(rating: number): string {
+  return `${site.url}/avis?note=${rating}`;
 }
 
 // Format FR : entier si rond (5 -> "5"), sinon 1 décimale avec virgule (4.5 -> "4,5").

@@ -86,15 +86,15 @@ function spacer(): string {
 // scrollent pas jusqu'en bas de l'email ne le verraient jamais ailleurs).
 // 5 liens fixes (1 par note) : pas de JS possible en email, chaque étoile est
 // un lien direct vers /avis avec la note pré-remplie.
-function reviewBlock(token?: string): string {
-  if (!token) return "";
+function reviewBlock(alreadyReviewed: boolean): string {
+  if (alreadyReviewed) return "";
   // Ordre DOM inversé (5..1) + direction:rtl -> affichage visuel 1..5, pour
   // profiter du hack CSS ":hover ~" (survoler la 4e étoile allume les 4
   // premières). Fonctionne dans les clients qui supportent :hover (Apple
   // Mail, Gmail web/app) ; dégradation propre ailleurs (étoiles grises,
   // toujours cliquables) puisqu'aucune n'est pré-remplie par défaut.
   const stars = [5, 4, 3, 2, 1]
-    .map((n) => `<a href="${reviewUrl(token, n)}">&#9733;</a>`)
+    .map((n) => `<a href="${reviewUrl(n)}">&#9733;</a>`)
     .join("");
   return `<tr><td style="padding:18px 32px 4px;text-align:center;background:#fffbeb;border-bottom:1px solid #fde68a;">
     <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#92400e;">Ton avis nous intéresse.</p>
@@ -117,6 +117,7 @@ export function teaserDigestHtml(
   unsubscribeUrl: string,
   trackingToken?: string,
   deactivatedAirports?: { iata: string; city: string }[],
+  alreadyReviewed = false,
 ): string {
   const hasDeals = groups.length > 0;
   const intro = hasDeals
@@ -143,8 +144,8 @@ export function teaserDigestHtml(
     )
     .join("");
   const body = hasDeals
-    ? reviewBlock(trackingToken) + intro + hurryLine + sections + deactivatedSection + accountCta(accountUrl) + spacer()
-    : reviewBlock(trackingToken) + intro + deactivatedSection + accountCta(accountUrl) + spacer();
+    ? reviewBlock(alreadyReviewed) + intro + hurryLine + sections + deactivatedSection + accountCta(accountUrl) + spacer()
+    : reviewBlock(alreadyReviewed) + intro + deactivatedSection + accountCta(accountUrl) + spacer();
   return emailLayout(body, unsubscribeUrl, trackingToken);
 }
 
@@ -364,6 +365,11 @@ export async function sendScheduledDigest(
   const alreadySent = new Set(
     sends.map((s) => `${s.deal_id}|${s.subscriber_id}`)
   );
+  // Un abonné qui a déjà laissé un avis (peu importe son statut) ne doit
+  // plus voir le bloc "Ton avis nous intéresse" dans ses prochains emails.
+  const reviewedSubscriberIds = new Set(
+    (await getAll("reviews")).map((r) => r.subscriber_id)
+  );
   // Dernier envoi par abonné (pour le plafond par période).
   const lastSentAt = new Map<string, number>();
   // Premier envoi par abonné + ouvertures (pour la sunset policy).
@@ -465,7 +471,14 @@ export async function sendScheduledDigest(
       msg: {
         to: sub.email,
         subject,
-        html: teaserDigestHtml(groups, accountUrl, unsubscribeUrl, sub.unsubscribe_token ?? undefined, deactivatedInSub),
+        html: teaserDigestHtml(
+          groups,
+          accountUrl,
+          unsubscribeUrl,
+          sub.unsubscribe_token ?? undefined,
+          deactivatedInSub,
+          reviewedSubscriberIds.has(sub.id),
+        ),
         text:
           groups
             .map(

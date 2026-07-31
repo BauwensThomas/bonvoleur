@@ -6,7 +6,7 @@ import { createSupabaseBrowser } from "@/lib/supabase/client";
 // Connexion abonné : « Continuer avec Google » + magic link par email.
 // Session longue gérée par Supabase ; l'utilisateur ne se reconnecte pas à
 // chaque visite.
-export default function LoginForm() {
+export default function LoginForm({ next }: { next?: string } = {}) {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -15,7 +15,7 @@ export default function LoginForm() {
   const supabase = createSupabaseBrowser();
   const redirectTo =
     typeof window !== "undefined"
-      ? `${window.location.origin}/auth/callback`
+      ? `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`
       : undefined;
 
   async function google() {

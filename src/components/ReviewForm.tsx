@@ -4,10 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function ReviewForm({
-  token,
   initialRating,
 }: {
-  token: string;
   initialRating: number;
 }) {
   const [rating, setRating] = useState(initialRating);
@@ -36,7 +34,7 @@ export default function ReviewForm({
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, rating, name, comment }),
+        body: JSON.stringify({ rating, name, comment }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
