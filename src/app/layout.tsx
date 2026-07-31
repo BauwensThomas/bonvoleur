@@ -53,6 +53,13 @@ export default function RootLayout({
       className={`${rubik.variable} ${nunito.variable} h-full antialiased`}
     >
       <head>
+        {/* Google AdSense — verification de propriete du site, doit etre dans
+            le <head> statique de CHAQUE page (pas seulement la homepage). */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3549294158319032"
+          crossOrigin="anonymous"
+        />
         {/* Travelpayouts Drive — doit être dans le HTML statique pour la vérification */}
         <script
           {...{ nowprocket: "", "seraph-accel-crit": "1" }}
