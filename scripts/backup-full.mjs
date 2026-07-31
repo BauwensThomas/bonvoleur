@@ -173,7 +173,53 @@ if (SB && KEY) {
   console.warn("SUPABASE_URL / SERVICE_ROLE absents : Storage ignoré.");
 }
 
-// --- 3) Rotation : ne garder que les 10 sauvegardes les plus récentes ---
+// --- 3) Compression : regroupe tables/db/storage de CE run dans un seul .zip ---
+// Storage contient des centaines de fichiers individuels - le zip économise
+// beaucoup de place et simplifie la rotation (1 fichier au lieu de 3+N).
+const zipPath = `backups/backup-${stamp}.zip`;
+const toZip = ["tables", "db", "storage"]
+  .map((p) => `backups/${p}-${stamp}${p === "db" ? ".sql" : p === "tables" ? ".json" : ""}`);
+try {
+  const { access } = await import("node:fs/promises");
+  const existing = [];
+  for (const p of toZip) {
+    try {
+      await access(p);
+      existing.push(p);
+    } catch {
+      /* absent (étape précédente ignorée/échouée) - on zippe le reste */
+    }
+  }
+  if (existing.length > 0) {
+    const psPaths = existing.map((p) => `"${p.replace(/\//g, "\\")}"`).join(",");
+    const code = await new Promise((resolve) => {
+      const p = spawn(
+        "powershell",
+        [
+          "-NoProfile",
+          "-Command",
+          `Compress-Archive -Path ${psPaths} -DestinationPath "${zipPath.replace(/\//g, "\\")}" -Force`,
+        ],
+        { stdio: ["ignore", "inherit", "inherit"] }
+      );
+      p.on("error", (e) => {
+        console.error("Compress-Archive introuvable ou erreur:", e.message);
+        resolve(1);
+      });
+      p.on("close", resolve);
+    });
+    if (code === 0) {
+      console.log(`Compression -> ${zipPath}`);
+      for (const p of existing) await rm(p, { recursive: true, force: true });
+    } else {
+      console.error("  Compression échouée (code " + code + ") - fichiers non compressés conservés.");
+    }
+  }
+} catch (err) {
+  console.error("Compression:", err.message);
+}
+
+// --- 4) Rotation : ne garder que les 10 sauvegardes les plus récentes ---
 // On purge seulement si la sauvegarde courante a réussi (sinon on ne touche pas
 // aux anciennes, qui restent le filet de sécurité).
 const KEEP = 10;
@@ -183,7 +229,7 @@ if (ok) {
     const stampOf = (name) => {
       const s = name.replace(/^(tables-|db-|storage-|backup-)/, "");
       if (s === name) return null; // pas un fichier de sauvegarde
-      return s.replace(/\.(json|sql)$/, "");
+      return s.replace(/\.(json|sql|zip)$/, "");
     };
     const stamps = [...new Set(entries.map(stampOf).filter(Boolean))]
       .sort()
