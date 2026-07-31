@@ -78,11 +78,11 @@ export default function Confidentialite() {
               Tes données ne sont jamais vendues. Elles sont traitées par des
               prestataires techniques : Vercel (hébergement), Supabase (base de
               données et authentification), Google (connexion « Continuer avec
-              Google »), Resend ou Brevo (envoi des emails), Stripe (paiement
-              premium), Travelpayouts / Aviasales (liens d&apos;affiliation),
-              ainsi que des outils de mesure d&apos;audience. Certains sont situés
-              hors UE (États-Unis) avec les garanties appropriées (clauses
-              contractuelles types).
+              Google » et régie publicitaire Google AdSense), Resend ou Brevo
+              (envoi des emails), Stripe (paiement premium), Travelpayouts /
+              Aviasales (liens d&apos;affiliation), ainsi que des outils de
+              mesure d&apos;audience. Certains sont situés hors UE (États-Unis)
+              avec les garanties appropriées (clauses contractuelles types).
             </p>
           </section>
 
@@ -106,6 +106,33 @@ export default function Confidentialite() {
               d&apos;accepter ou de refuser : ils ne se déclenchent qu&apos;après
               ton acceptation. Tu peux revenir sur ton choix à tout moment via
               « Gérer les cookies » en bas de page.
+            </p>
+            <p className="mt-2">
+              Le site affiche des annonces publicitaires via{" "}
+              <strong>Google AdSense</strong>. Si tu acceptes les cookies
+              publicitaires, Google et ses partenaires peuvent utiliser des
+              cookies pour te montrer des annonces basées sur tes visites sur ce
+              site et d&apos;autres sites. Tu peux personnaliser ou désactiver
+              les annonces basées sur centres d&apos;intérêt sur{" "}
+              <a
+                className="underline"
+                href="https://adssettings.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                adssettings.google.com
+              </a>
+              , et en savoir plus sur l&apos;utilisation des données par Google
+              sur{" "}
+              <a
+                className="underline"
+                href="https://policies.google.com/technologies/partner-sites"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                policies.google.com/technologies/partner-sites
+              </a>
+              .
             </p>
           </section>
 
