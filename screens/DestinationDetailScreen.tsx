@@ -8,6 +8,7 @@ import { useSession } from "../hooks/useSession";
 import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
 import VersionFooter from "../components/VersionFooter";
+import BannerAdSlot from "../components/BannerAdSlot";
 import PhotoLightbox from "../components/PhotoLightbox";
 
 // "Vole vers [Rome](https://...)" -> "Vole vers Rome" (retire juste le lien
@@ -149,6 +150,7 @@ export default function DestinationDetailScreen() {
             </View>
           )}
 
+          <BannerAdSlot />
           <View style={{ paddingBottom: Math.max(insets.bottom, 12) }}>
             <VersionFooter safeArea={false} />
           </View>

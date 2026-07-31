@@ -5,6 +5,7 @@ import { usePopularDestinations } from "../hooks/usePopularDestinations";
 import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
 import PopularDestinationCard from "../components/PopularDestinationCard";
+import BannerAdSlot from "../components/BannerAdSlot";
 import VersionFooter from "../components/VersionFooter";
 
 // Villes populaires - equivalent mobile de la section "Destinations
@@ -58,6 +59,7 @@ export default function PopularDestinationsScreen() {
       )}
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <BannerAdSlot />
         <VersionFooter safeArea={false} />
       </View>
     </View>

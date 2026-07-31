@@ -1,16 +1,34 @@
 import { StyleSheet, Text, View, Pressable, FlatList, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { usePosts } from "../hooks/usePosts";
+import { usePosts, type PostSummary } from "../hooks/usePosts";
+import { useMemberSession } from "../hooks/useMemberSession";
 import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
 import PostCard from "../components/PostCard";
+import NativeAdCard from "../components/NativeAdCard";
 import VersionFooter from "../components/VersionFooter";
+
+type ListItem = { kind: "post"; post: PostSummary } | { kind: "ad"; key: string };
+
+// Une pub native tous les 4 articles - jamais pour les abonnes premium
+// (avantage premium, decision explicite).
+const AD_INTERVAL = 4;
 
 // Liste des articles publies - equivalent mobile de /blog sur le site web.
 // Public (comme le site), pas de session requise pour consulter.
 export default function BlogScreen() {
   const insets = useSafeAreaInsets();
   const { posts, loading, error, refresh } = usePosts();
+  const { result: session } = useMemberSession();
+  const isPremium = session?.tier === "premium";
+
+  const items: ListItem[] = [];
+  (posts ?? []).forEach((post, i) => {
+    items.push({ kind: "post", post });
+    if (!isPremium && (i + 1) % AD_INTERVAL === 0) {
+      items.push({ kind: "ad", key: `ad-${post.id}` });
+    }
+  });
 
   return (
     <View style={styles.container}>
@@ -28,8 +46,8 @@ export default function BlogScreen() {
       ) : (
         <FlatList
           style={styles.list}
-          data={posts ?? []}
-          keyExtractor={(item) => item.id}
+          data={items}
+          keyExtractor={(item) => (item.kind === "post" ? item.post.id : item.key)}
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} tintColor="#0ea5e9" />}
           ListEmptyComponent={
@@ -37,7 +55,9 @@ export default function BlogScreen() {
               <Text style={styles.emptyText}>Aucun article pour l&apos;instant.</Text>
             </View>
           }
-          renderItem={({ item }) => <PostCard post={item} />}
+          renderItem={({ item }) =>
+            item.kind === "post" ? <PostCard post={item.post} /> : <NativeAdCard />
+          }
           ItemSeparatorComponent={() => <View style={{ height: 14 }} />}
         />
       )}

@@ -10,6 +10,7 @@ import { supabase } from "../lib/supabase";
 import { apiFetch } from "../lib/api";
 import { registerForPushNotificationsAsync } from "../lib/push";
 import VersionFooter from "../components/VersionFooter";
+import BannerAdSlot from "../components/BannerAdSlot";
 import TileDecor, { type IconName } from "../components/TileDecor";
 
 // Écran d'accueil APRÈS connexion : pas d'image hero (c'est l'écran avant
@@ -123,6 +124,8 @@ export default function DashboardScreen() {
             </Pressable>
           ))}
         </View>
+
+        <BannerAdSlot />
 
         <Pressable style={styles.shareButton} onPress={shareApp}>
           <Ionicons name="share-social-outline" size={18} color="#15803d" />

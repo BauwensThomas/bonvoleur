@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View, Pressable, ScrollView, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { AdsConsent } from "react-native-google-mobile-ads";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { API_BASE } from "../lib/api";
 import { useSession } from "../hooks/useSession";
@@ -44,6 +45,16 @@ export default function SettingsScreen() {
             <Ionicons name="open-outline" size={18} color="#0369a1" />
           </Pressable>
         ))}
+
+        {/* Exige par les regles Google (RGPD/UE) : l'utilisateur doit pouvoir
+            revenir sur son choix de consentement pub a tout moment. */}
+        <Pressable
+          style={styles.row}
+          onPress={() => AdsConsent.showPrivacyOptionsForm().catch(() => {})}
+        >
+          <Text style={styles.rowText}>Préférences publicitaires</Text>
+          <Ionicons name="chevron-forward" size={18} color="#0369a1" />
+        </Pressable>
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>

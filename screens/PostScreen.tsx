@@ -8,6 +8,7 @@ import { formatArticleDateLong } from "../lib/format";
 import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
 import PostCard from "../components/PostCard";
+import BannerAdSlot from "../components/BannerAdSlot";
 import VersionFooter from "../components/VersionFooter";
 
 // Article complet - equivalent mobile de /blog/[slug] sur le site web.
@@ -79,6 +80,7 @@ export default function PostScreen() {
             </View>
           )}
 
+          <BannerAdSlot />
           <View style={{ paddingBottom: Math.max(insets.bottom, 12) }}>
             <VersionFooter safeArea={false} />
           </View>

@@ -22,6 +22,7 @@ import { FREE_DELAY_DAYS, FREE_MAX_DEALS } from "../lib/constants";
 import ScreenLoader from "../components/ScreenLoader";
 import DealCard from "../components/DealCard";
 import ScreenHeader from "../components/ScreenHeader";
+import BannerAdSlot from "../components/BannerAdSlot";
 import VersionFooter from "../components/VersionFooter";
 
 type Sort = "recent" | "price-asc" | "price-desc";
@@ -279,6 +280,7 @@ export default function DealsScreen() {
       )}
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <BannerAdSlot />
         <VersionFooter safeArea={false} />
       </View>
     </View>

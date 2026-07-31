@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Stack, useRouter } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as Notifications from "expo-notifications";
+import mobileAds, { AdsConsent } from "react-native-google-mobile-ads";
 import { usePushRegistration } from "../hooks/usePushRegistration";
 
 // Affiche l'alerte meme si l'app est au premier plan (comportement par
@@ -27,6 +28,21 @@ export default function RootLayout() {
     });
     return () => sub.remove();
   }, [router]);
+
+  useEffect(() => {
+    // RGPD (UE/UK/Suisse) : recueille le consentement AVANT d'initialiser le
+    // SDK pub - le formulaire de Google (UMP) ne s'affiche que si vraiment
+    // requis (geolocalisation de l'appareil), sinon cet appel ne fait rien.
+    (async () => {
+      try {
+        await AdsConsent.requestInfoUpdate();
+        await AdsConsent.loadAndShowConsentFormIfRequired();
+      } catch {
+        // Le consentement echoue rarement mais ne doit jamais bloquer l'app.
+      }
+      await mobileAds().initialize();
+    })();
+  }, []);
 
   return (
     <SafeAreaProvider>

@@ -6,6 +6,7 @@ import { REGIONS } from "../lib/regions";
 import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
 import DestinationCard from "../components/DestinationCard";
+import BannerAdSlot from "../components/BannerAdSlot";
 import VersionFooter from "../components/VersionFooter";
 
 // Liste des destinations - equivalent mobile de /vols-pas-chers sur le site
@@ -76,6 +77,7 @@ export default function DestinationsScreen() {
       )}
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <BannerAdSlot />
         <VersionFooter safeArea={false} />
       </View>
     </View>

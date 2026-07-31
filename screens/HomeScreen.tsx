@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStats } from "../hooks/useStats";
 import StatsGrid from "../components/StatsGrid";
 import TileDecor from "../components/TileDecor";
+import BannerAdSlot from "../components/BannerAdSlot";
 import VersionFooter from "../components/VersionFooter";
 
 // Écran d'accueil (avant connexion) : simple image de fond + texte, comme la
@@ -62,6 +63,7 @@ export default function HomeScreen() {
           <Text style={styles.howItWorksText}>Comment ça marche</Text>
           <Text style={styles.howItWorksSub}>Voir sur le site →</Text>
         </Pressable>
+        <BannerAdSlot />
         <VersionFooter />
       </View>
     </View>

@@ -131,7 +131,8 @@ function FreeIntroBox() {
     <View style={styles.box}>
       <Text style={styles.boxText}>
         Passe premium : <Text style={styles.bold}>tous</Text> les bons plans en direct (sans les{" "}
-        {FREE_DELAY_DAYS} jours de retard), le filtre par période de voyage et un email par jour.
+        {FREE_DELAY_DAYS} jours de retard), le filtre par période de voyage, un email par jour et{" "}
+        <Text style={styles.bold}>l&apos;app sans publicité</Text>.
         {deals && deals.liveLockedForFree > 0 && (
           <>
             {" "}

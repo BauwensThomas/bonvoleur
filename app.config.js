@@ -75,6 +75,12 @@ module.exports = {
         },
       ],
       "@react-native-community/datetimepicker",
+      [
+        "react-native-google-mobile-ads",
+        {
+          androidAppId: "ca-app-pub-3549294158319032~5588353652",
+        },
+      ],
     ],
     extra: {
       router: {},

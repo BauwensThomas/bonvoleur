@@ -17,6 +17,7 @@ import { apiFetch } from "../lib/api";
 import { formatArticleDate, formatRating } from "../lib/format";
 import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
+import BannerAdSlot from "../components/BannerAdSlot";
 import VersionFooter from "../components/VersionFooter";
 
 // Avis clients - equivalent mobile de la section "Ce qu'ils en pensent" de
@@ -77,6 +78,7 @@ export default function ReviewsScreen() {
       )}
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <BannerAdSlot />
         <VersionFooter safeArea={false} />
       </View>
     </View>

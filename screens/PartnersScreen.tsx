@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePartners, type Partner } from "../hooks/usePartners";
 import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
+import BannerAdSlot from "../components/BannerAdSlot";
 import VersionFooter from "../components/VersionFooter";
 
 // Partenaires - equivalent mobile de la section "Nos partenaires voyage" de
@@ -47,6 +48,7 @@ export default function PartnersScreen() {
       )}
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <BannerAdSlot />
         <VersionFooter safeArea={false} />
       </View>
     </View>
