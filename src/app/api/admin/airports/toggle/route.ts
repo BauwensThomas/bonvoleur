@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@supabase/supabase-js";
+import { notifyAirportDeactivated } from "@/lib/airport-deactivation";
+
+// Envoi email+push à tous les abonnés de l'aéroport désactivé peut prendre
+// plus que le délai par défaut d'une route Next.js si l'aéroport est populaire.
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   const unauth = await requireAdmin();
@@ -18,6 +23,16 @@ export async function POST(req: Request) {
   );
   const { error } = await sb.from("airports").update({ active }).eq("iata", iata);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Désactivation : alerte immédiate (email + push) aux abonnés concernés.
+  // Ne fait jamais échouer le toggle lui-même si l'envoi échoue.
+  if (!active) {
+    try {
+      await notifyAirportDeactivated(iata);
+    } catch (e) {
+      console.error("[admin/airports/toggle] notification désactivation échouée:", e);
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }

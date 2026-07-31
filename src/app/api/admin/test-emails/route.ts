@@ -9,6 +9,7 @@ import {
   accountDeletedEmail,
   dealsAlertEmail,
   blogNewsletterEmail,
+  airportDeactivatedEmail,
 } from "@/lib/email-templates";
 import { teaserDigestHtml } from "@/lib/deal-send";
 import { site } from "@/lib/site";
@@ -59,7 +60,7 @@ const FAKE_POSTS = [
 ];
 
 export async function POST(req: Request) {
-  const denied = await requireAdmin();
+  const denied = await requireAdmin(req);
   if (denied) return denied;
 
   const results: { name: string; ok: boolean; error?: string }[] = [];
@@ -119,6 +120,15 @@ export async function POST(req: Request) {
   } catch (e) {
     results.push({ name: "11. Digest Freemium", ok: false, error: String(e) });
   }
+
+  await send(
+    "12. Aeroport desactive (premium, aeroports restants)",
+    airportDeactivatedEmail(TO, "Charleroi", ["Bruxelles", "Lyon"], FAKE_UNSUB),
+  );
+  await send(
+    "13. Aeroport desactive (freemium, plus aucun actif)",
+    airportDeactivatedEmail(TO, "Charleroi", [], FAKE_UNSUB),
+  );
 
   const allOk = results.every((r) => r.ok);
   return NextResponse.json({ ok: allOk, sent: TO, results });

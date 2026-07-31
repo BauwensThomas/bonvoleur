@@ -298,6 +298,42 @@ export function newReviewAlertEmail(
   };
 }
 
+// Alerte immédiate (pas le digest habituel) envoyée à un abonné dont
+// l'aéroport suivi vient d'être désactivé par l'admin - en plus du bandeau
+// jaune déjà présent dans le prochain digest (rappel passif), celle-ci
+// prévient tout de suite plutôt que d'attendre le prochain envoi programmé.
+export function airportDeactivatedEmail(
+  to: string,
+  city: string,
+  remainingCities: string[],
+  unsubscribeUrl: string,
+): EmailMessage {
+  const hero = emailHero(
+    "#fef9c3",
+    `<p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#a16207;text-transform:uppercase;letter-spacing:.06em;">Aéroport désactivé</p>
+     <p style="margin:0;font-size:22px;font-weight:800;color:#713f12;line-height:1.2;">${escapeHtml(city)} temporairement indisponible</p>`,
+  );
+
+  const remainingLine = remainingCities.length > 0
+    ? `<p style="margin:12px 0 0;color:#475569;">Tu continues de recevoir des bons plans pour <strong>${remainingCities.map(escapeHtml).join(", ")}</strong>. Tu peux aussi ajouter un aéroport supplémentaire.</p>`
+    : "";
+
+  const body = emailContent(
+    `<p style="margin:0;color:#334155;">Pas assez de bons plans disponibles au départ de <strong>${escapeHtml(city)}</strong> en ce moment - on a désactivé cet aéroport temporairement.</p>
+     ${remainingLine}
+     <p style="margin:12px 0 0;color:#334155;">Choisis un autre aéroport pour continuer à recevoir des bons plans.</p>
+     ${ctaButton("Mettre à jour mes préférences", `${site.url}/compte/preferences`, "#d97706")}`,
+  );
+
+  return {
+    to,
+    subject: `Ton aéroport ${city} a été désactivé temporairement`,
+    html: emailLayout(hero + body, unsubscribeUrl),
+    text: `${city} a été désactivé temporairement (pas assez de bons plans disponibles).${remainingCities.length ? ` Tu continues de recevoir des bons plans pour ${remainingCities.join(", ")}.` : ""} Choisis un autre aéroport : ${site.url}/compte/preferences`,
+    replyTo: site.email,
+  };
+}
+
 // Newsletter blog hebdomadaire.
 type NewsletterPost = Pick<Post, "slug" | "title" | "excerpt" | "cover_image">;
 
