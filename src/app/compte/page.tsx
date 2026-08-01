@@ -16,7 +16,7 @@ import ResendConfirmationForm from "@/components/ResendConfirmationForm";
 import { formatDealDates } from "@/lib/dates";
 import { getAdsEnabled } from "@/lib/settings";
 import { AD_SLOTS } from "@/lib/ads";
-import AdUnit from "@/components/AdUnit";
+import AdSlot from "@/components/AdSlot";
 
 // "Lisbonne (LIS)" -> "lisbonne" (slug de la fiche destination).
 function destSlugOf(label: string): string {
@@ -315,7 +315,7 @@ export default async function Compte({
 
         {adsEnabled && tier !== "premium" && (
           <div className="mt-5">
-            <AdUnit slot={AD_SLOTS.displayContent} format="auto" fullWidthResponsive />
+            <AdSlot slot={AD_SLOTS.displayContent} format="auto" fullWidthResponsive />
           </div>
         )}
 

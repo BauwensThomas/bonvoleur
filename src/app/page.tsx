@@ -19,7 +19,8 @@ import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { getReviewStats, formatRating } from "@/lib/reviews";
 import { formatArticleDate } from "@/lib/dates";
 import { getAdsEnabled } from "@/lib/settings";
-import HomeAdSlot from "@/components/HomeAdSlot";
+import { AD_SLOTS } from "@/lib/ads";
+import AdSlot from "@/components/AdSlot";
 
 // "Lisbonne (LIS)" -> "lisbonne" (slug de la fiche /vols-pas-chers).
 function destSlugOf(label: string): string {
@@ -550,7 +551,7 @@ export default async function Home() {
 
       {adsEnabled && (
         <div className="mx-auto w-full max-w-3xl px-4 py-6">
-          <HomeAdSlot />
+          <AdSlot slot={AD_SLOTS.displayContent} format="auto" fullWidthResponsive />
         </div>
       )}
 

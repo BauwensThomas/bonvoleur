@@ -22,7 +22,7 @@ import {
 import { getActiveAirportCodes } from "@/lib/airports";
 import { getAdsEnabled } from "@/lib/settings";
 import { AD_SLOTS } from "@/lib/ads";
-import AdUnit from "@/components/AdUnit";
+import AdSlot from "@/components/AdSlot";
 
 
 function parseMd(text: string): string {
@@ -410,7 +410,7 @@ export default async function DestinationPage({
 
         {adsEnabled && (
           <div className="mt-12">
-            <AdUnit slot={AD_SLOTS.displayContent} format="auto" fullWidthResponsive />
+            <AdSlot slot={AD_SLOTS.displayContent} format="auto" fullWidthResponsive />
           </div>
         )}
 

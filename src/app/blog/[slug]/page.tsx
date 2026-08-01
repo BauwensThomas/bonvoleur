@@ -10,7 +10,7 @@ import { site } from "@/lib/site";
 import { formatArticleDate } from "@/lib/dates";
 import { getAdsEnabled } from "@/lib/settings";
 import { AD_SLOTS } from "@/lib/ads";
-import AdUnit from "@/components/AdUnit";
+import AdSlot from "@/components/AdSlot";
 
 export const revalidate = 60;
 
@@ -180,7 +180,7 @@ export default async function BlogPost({
 
         {adsEnabled && (
           <div className="my-8">
-            <AdUnit slot={AD_SLOTS.inArticleBlog} format="fluid" layout="in-article" />
+            <AdSlot slot={AD_SLOTS.inArticleBlog} format="fluid" layout="in-article" />
           </div>
         )}
 
