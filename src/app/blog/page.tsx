@@ -10,6 +10,9 @@ import { AD_SLOTS } from "@/lib/ads";
 import AdUnit from "@/components/AdUnit";
 
 const AD_INTERVAL = 6;
+// La 1ere pub arrive plus tot que le rythme de croisiere (sinon la liste
+// parait vide avant de voir une seule pub), puis on retombe sur AD_INTERVAL.
+const AD_FIRST = 3;
 
 export const dynamic = "force-dynamic";
 
@@ -76,7 +79,9 @@ export default async function BlogIndex() {
                     </div>
                   </div>
                 </Link>
-                {adsEnabled && (i + 1) % AD_INTERVAL === 0 && (
+                {adsEnabled &&
+                  (i + 1 === AD_FIRST ||
+                    (i + 1 > AD_FIRST && (i + 1 - AD_FIRST) % AD_INTERVAL === 0)) && (
                   <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                     <span className="absolute left-3 top-2 z-10 rounded bg-slate-900/70 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
                       Publicité

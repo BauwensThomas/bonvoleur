@@ -9,6 +9,10 @@ import AdUnit from "./AdUnit";
 // grille responsive (voir memoire/discussion : pas de hauteur fixe possible
 // pour un bloc In-feed, donc pas de calage parfait par ecran).
 const AD_INTERVAL = 16;
+// La 1ere pub arrive plus tot que le rythme de croisiere (sinon l'ecran
+// parait vide avant de voir une seule pub) : ~2 rangees desktop, puis on
+// retombe sur AD_INTERVAL.
+const AD_FIRST = 8;
 
 interface Origin {
   city: string;
@@ -54,7 +58,9 @@ export default function DestinationsGrid({
               {d.city}
             </span>
           </Link>
-          {adsEnabled && (i + 1) % AD_INTERVAL === 0 && (
+          {adsEnabled &&
+            (i + 1 === AD_FIRST ||
+              (i + 1 > AD_FIRST && (i + 1 - AD_FIRST) % AD_INTERVAL === 0)) && (
             <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <span className="absolute left-3 top-2 z-10 rounded bg-slate-900/70 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
                 Publicité
