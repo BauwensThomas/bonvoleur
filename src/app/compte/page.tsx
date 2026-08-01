@@ -14,6 +14,9 @@ import CompteControls from "@/components/CompteControls";
 import PromoCodeInput from "@/components/PromoCodeInput";
 import ResendConfirmationForm from "@/components/ResendConfirmationForm";
 import { formatDealDates } from "@/lib/dates";
+import { getAdsEnabled } from "@/lib/settings";
+import { AD_SLOTS } from "@/lib/ads";
+import AdUnit from "@/components/AdUnit";
 
 // "Lisbonne (LIS)" -> "lisbonne" (slug de la fiche destination).
 function destSlugOf(label: string): string {
@@ -139,7 +142,7 @@ export default async function Compte({
   const from = tier === "premium" ? sp.from ?? "" : "";
   const to = tier === "premium" ? sp.to ?? "" : "";
 
-  const [{ deals, total, liveLockedForFree, lastRefresh }, pool, activeAirports] =
+  const [{ deals, total, liveLockedForFree, lastRefresh }, pool, activeAirports, adsEnabled] =
     await Promise.all([
       getMemberDeals(tier, {
         origin: origin || undefined,
@@ -151,6 +154,7 @@ export default async function Compte({
       }),
       getMemberDeals(tier, {}),
       getActiveAirports(),
+      getAdsEnabled(),
     ]);
 
   // Tri demande (le defaut "recent" est deja applique par getMemberDeals).
@@ -306,6 +310,12 @@ export default async function Compte({
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {adsEnabled && tier !== "premium" && (
+          <div className="mt-5">
+            <AdUnit slot={AD_SLOTS.displayContent} format="auto" fullWidthResponsive />
           </div>
         )}
 

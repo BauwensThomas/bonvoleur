@@ -12,8 +12,10 @@ const REGION_ORDER: string[] = [...REGIONS, "Autre"];
 // Recherche + filtre par région au-dessus de la grille de destinations.
 export default function DestinationsExplorer({
   destinations,
+  adsEnabled,
 }: {
   destinations: ExplorerDestination[];
+  adsEnabled?: boolean;
 }) {
   const [q, setQ] = useState("");
   const [region, setRegion] = useState("Toutes");
@@ -70,7 +72,7 @@ export default function DestinationsExplorer({
 
       <div className="mt-6">
         {filtered.length > 0 ? (
-          <DestinationsGrid destinations={filtered} />
+          <DestinationsGrid destinations={filtered} adsEnabled={adsEnabled} />
         ) : (
           <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
             Aucune destination ne correspond à ta recherche.

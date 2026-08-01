@@ -78,7 +78,8 @@ export default function Confidentialite() {
               Tes données ne sont jamais vendues. Elles sont traitées par des
               prestataires techniques : Vercel (hébergement), Supabase (base de
               données et authentification), Google (connexion « Continuer avec
-              Google » et régie publicitaire Google AdSense), Resend ou Brevo
+              Google » et régies publicitaires Google AdSense sur le site et
+              Google AdMob sur l&apos;application mobile), Resend ou Brevo
               (envoi des emails), Stripe (paiement premium), Travelpayouts /
               Aviasales (liens d&apos;affiliation), ainsi que des outils de
               mesure d&apos;audience. Certains sont situés hors UE (États-Unis)
@@ -133,6 +134,15 @@ export default function Confidentialite() {
                 policies.google.com/technologies/partner-sites
               </a>
               .
+            </p>
+            <p className="mt-2">
+              Sur l&apos;<strong>application mobile</strong>, les annonces sont
+              gérées par <strong>Google AdMob</strong>. Un écran de
+              consentement s&apos;affiche au premier lancement si tu es
+              situé(e) dans l&apos;UE, au Royaume-Uni ou en Suisse ; tu peux
+              revenir sur ton choix à tout moment depuis Réglages &gt;
+              Préférences publicitaires dans l&apos;app. Les abonnés premium
+              ne voient aucune publicité dans l&apos;application.
             </p>
           </section>
 

@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
+import { Fragment } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getAll } from "@/lib/db";
 import { formatArticleDate } from "@/lib/dates";
+import { getAdsEnabled } from "@/lib/settings";
+import { AD_SLOTS } from "@/lib/ads";
+import AdUnit from "@/components/AdUnit";
+
+const AD_INTERVAL = 6;
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogIndex() {
-  const all = await getAll("posts");
+  const [all, adsEnabled] = await Promise.all([getAll("posts"), getAdsEnabled()]);
   const posts = all
     .filter((p) => p.status === "published")
     .sort((a, b) =>
@@ -41,35 +47,50 @@ export default async function BlogIndex() {
           </p>
         ) : (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {posts.map((p) => (
-              <Link
-                key={p.id}
-                href={`/blog/${p.slug}`}
-                className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
-              >
-                {p.cover_image && (
-                  <div
-                    className="h-40 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                    style={{ backgroundImage: `url(${p.cover_image})` }}
-                  />
-                )}
-                <div className="flex flex-1 flex-col p-5">
-                  <h2 className="text-lg font-semibold line-clamp-2 min-h-14">
-                    {p.title}
-                  </h2>
-                  <p className="mt-2 text-sm text-slate-600 line-clamp-3 min-h-15">
-                    {p.excerpt}
-                  </p>
-                  <div className="mt-auto flex items-center justify-between pt-3">
-                    <span className="text-sm font-medium text-brand">
-                      Lire l&apos;article
-                    </span>
-                    <span className="text-xs text-slate-900">
-                      {formatArticleDate(p.published_at ?? p.created_at)}
-                    </span>
+            {posts.map((p, i) => (
+              <Fragment key={p.id}>
+                <Link
+                  href={`/blog/${p.slug}`}
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
+                >
+                  {p.cover_image && (
+                    <div
+                      className="h-40 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                      style={{ backgroundImage: `url(${p.cover_image})` }}
+                    />
+                  )}
+                  <div className="flex flex-1 flex-col p-5">
+                    <h2 className="text-lg font-semibold line-clamp-2 min-h-14">
+                      {p.title}
+                    </h2>
+                    <p className="mt-2 text-sm text-slate-600 line-clamp-3 min-h-15">
+                      {p.excerpt}
+                    </p>
+                    <div className="mt-auto flex items-center justify-between pt-3">
+                      <span className="text-sm font-medium text-brand">
+                        Lire l&apos;article
+                      </span>
+                      <span className="text-xs text-slate-900">
+                        {formatArticleDate(p.published_at ?? p.created_at)}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+                {adsEnabled && (i + 1) % AD_INTERVAL === 0 && (
+                  <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <span className="absolute left-3 top-2 z-10 rounded bg-slate-900/70 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                      Publicité
+                    </span>
+                    <div className="pt-7">
+                      <AdUnit
+                        slot={AD_SLOTS.inFeedBlog.slot}
+                        layoutKey={AD_SLOTS.inFeedBlog.layoutKey}
+                        format="fluid"
+                      />
+                    </div>
+                  </div>
+                )}
+              </Fragment>
             ))}
           </div>
         )}

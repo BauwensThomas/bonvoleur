@@ -18,6 +18,8 @@ import { getAll } from "@/lib/db";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { getReviewStats, formatRating } from "@/lib/reviews";
 import { formatArticleDate } from "@/lib/dates";
+import { getAdsEnabled } from "@/lib/settings";
+import HomeAdSlot from "@/components/HomeAdSlot";
 
 // "Lisbonne (LIS)" -> "lisbonne" (slug de la fiche /vols-pas-chers).
 function destSlugOf(label: string): string {
@@ -65,11 +67,12 @@ const features = [
 
 export default async function Home() {
   // Vitrine "teaser" : route + prix uniquement (aucune info actionnable).
-  const [{ teaserDeals, liveCount }, airports, allSubscribers, reviewStats] = await Promise.all([
+  const [{ teaserDeals, liveCount }, airports, allSubscribers, reviewStats, adsEnabled] = await Promise.all([
     getHomepageDeals(),
     getActiveAirports(),
     getAll("subscribers"),
     getReviewStats(),
+    getAdsEnabled(),
   ]);
   const premiumCount = allSubscribers.filter((s) => s.tier === "premium").length;
   const subscriberTierById = new Map(allSubscribers.map((s) => [s.id, s.tier]));
@@ -544,6 +547,12 @@ export default async function Home() {
           </div>
         </section>
       </main>
+
+      {adsEnabled && (
+        <div className="mx-auto w-full max-w-3xl px-4 py-6">
+          <HomeAdSlot />
+        </div>
+      )}
 
       <Footer />
     </>

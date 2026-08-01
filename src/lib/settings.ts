@@ -35,6 +35,13 @@ export async function getDefaultDestImage(): Promise<string> {
   return (await getSetting("default_dest_image")) || DEFAULT_DEST_IMAGE;
 }
 
+// Interrupteur global des publicités AdSense - desactive par defaut (le
+// compte n'est pas encore approuve par Google au moment de l'implementation).
+// Controle depuis /admin, sans avoir a toucher au code pour tout couper.
+export async function getAdsEnabled(): Promise<boolean> {
+  return (await getSetting("ads_enabled")) === "true";
+}
+
 // Liste tous les fichiers du dossier destinations/ -> map path -> taille en octets.
 export async function getStorageDestFiles(): Promise<Record<string, number>> {
   try {

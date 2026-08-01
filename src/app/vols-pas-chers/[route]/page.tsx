@@ -20,6 +20,9 @@ import {
   destinationSlug,
 } from "@/lib/routes";
 import { getActiveAirportCodes } from "@/lib/airports";
+import { getAdsEnabled } from "@/lib/settings";
+import { AD_SLOTS } from "@/lib/ads";
+import AdUnit from "@/components/AdUnit";
 
 
 function parseMd(text: string): string {
@@ -223,6 +226,7 @@ export default async function DestinationPage({
 
   const content = dest.content;
   const image = dest.image ?? DEFAULT_DEST_IMAGE;
+  const adsEnabled = await getAdsEnabled();
   const onSite = await getActiveAirportCodes();
   const siteRoutes = dest.routes.filter((r) => onSite.has(r.originIata));
 
@@ -403,6 +407,12 @@ export default async function DestinationPage({
             </section>
           ) : null;
         })()}
+
+        {adsEnabled && (
+          <div className="mt-12">
+            <AdUnit slot={AD_SLOTS.displayContent} format="auto" fullWidthResponsive />
+          </div>
+        )}
 
         {/* FAQ */}
         <section className="mt-12">

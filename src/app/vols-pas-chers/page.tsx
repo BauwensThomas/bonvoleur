@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import DestinationsExplorer from "@/components/DestinationsExplorer";
 import { site } from "@/lib/site";
 import { getDestinations } from "@/lib/routes";
+import { getAdsEnabled } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,11 @@ export const metadata: Metadata = {
 };
 
 export default async function VolsPasChersIndex() {
-  const destinations = (await getDestinations()).map((d) => ({
+  const [destinationsRaw, adsEnabled] = await Promise.all([
+    getDestinations(),
+    getAdsEnabled(),
+  ]);
+  const destinations = destinationsRaw.map((d) => ({
     city: d.destCity,
     slug: d.slug,
     image: d.image,
@@ -54,7 +59,7 @@ export default async function VolsPasChersIndex() {
             <h2 className="text-xl font-semibold text-slate-800 mb-4">
               Toutes nos destinations
             </h2>
-            <DestinationsExplorer destinations={destinations} />
+            <DestinationsExplorer destinations={destinations} adsEnabled={adsEnabled} />
           </div>
         ) : (
           <p className="mt-10 text-slate-500">

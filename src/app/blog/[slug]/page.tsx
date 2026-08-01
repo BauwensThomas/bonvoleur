@@ -8,6 +8,9 @@ import Footer from "@/components/Footer";
 import { findOne, getAll } from "@/lib/db";
 import { site } from "@/lib/site";
 import { formatArticleDate } from "@/lib/dates";
+import { getAdsEnabled } from "@/lib/settings";
+import { AD_SLOTS } from "@/lib/ads";
+import AdUnit from "@/components/AdUnit";
 
 export const revalidate = 60;
 
@@ -59,7 +62,10 @@ export default async function BlogPost({
   params: Promise<Params>;
 }) {
   const { slug } = await params;
-  const post = await findOne("posts", (p) => p.slug === slug);
+  const [post, adsEnabled] = await Promise.all([
+    findOne("posts", (p) => p.slug === slug),
+    getAdsEnabled(),
+  ]);
   if (!post || post.status !== "published") notFound();
 
   const allPosts = (await getAll("posts"))
@@ -171,6 +177,12 @@ export default async function BlogPost({
             {post.content}
           </ReactMarkdown>
         </article>
+
+        {adsEnabled && (
+          <div className="my-8">
+            <AdUnit slot={AD_SLOTS.inArticleBlog} format="fluid" layout="in-article" />
+          </div>
+        )}
 
         {faq.length > 0 && (
           <section className="mt-10">

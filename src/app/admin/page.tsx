@@ -4,6 +4,8 @@ import { getMemberDeals } from "@/lib/member-deals";
 import { getScannerRuns } from "@/lib/github-actions";
 import { getDestinations } from "@/lib/routes";
 import { formatRating } from "@/lib/reviews";
+import { getAdsEnabled } from "@/lib/settings";
+import AdsToggleBtn from "@/components/admin/AdsToggleBtn";
 
 function Stat({ label, value, href }: { label: string; value: number; href: string }) {
   return (
@@ -18,7 +20,7 @@ function Stat({ label, value, href }: { label: string; value: number; href: stri
 }
 
 export default async function AdminDashboard() {
-  const [subscribers, memberDeals, posts, partners, runs, scanner, airports, destinations, reviews] =
+  const [subscribers, memberDeals, posts, partners, runs, scanner, airports, destinations, reviews, adsEnabled] =
     await Promise.all([
       getAll("subscribers"),
       getMemberDeals("premium"),
@@ -29,6 +31,7 @@ export default async function AdminDashboard() {
       getAll("airports"),
       getDestinations(),
       getAll("reviews"),
+      getAdsEnabled(),
     ]);
 
   const approvedReviews = reviews.filter((r) => r.status === "approved");
@@ -170,6 +173,16 @@ export default async function AdminDashboard() {
           </div>
         </div>
       </Link>
+
+      <div className="mt-4 flex items-center justify-between gap-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div>
+          <h2 className="font-semibold">Publicités (Google AdSense)</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            {adsEnabled ? "Affichées sur le site." : "Désactivées - aucun bloc ne s'affiche."}
+          </p>
+        </div>
+        <AdsToggleBtn enabled={adsEnabled} />
+      </div>
 
       <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-center justify-between">
