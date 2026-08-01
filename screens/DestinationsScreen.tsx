@@ -1,13 +1,40 @@
 import { useMemo, useState } from "react";
 import { StyleSheet, Text, View, Pressable, FlatList, RefreshControl, TextInput, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useDestinations } from "../hooks/useDestinations";
+import { useDestinations, type DestinationSummary } from "../hooks/useDestinations";
+import { useMemberSession } from "../hooks/useMemberSession";
 import { REGIONS } from "../lib/regions";
 import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
 import DestinationCard from "../components/DestinationCard";
+import NativeAdCard from "../components/NativeAdCard";
 import BannerAdSlot from "../components/BannerAdSlot";
 import VersionFooter from "../components/VersionFooter";
+
+type Row =
+  | { kind: "destinations"; key: string; items: DestinationSummary[] }
+  | { kind: "ad"; key: string };
+
+// Grille en 2 colonnes : une pub pleine largeur toutes les 4 lignes (~8
+// tuiles), la 1ere plus tot (2 lignes) pour ne pas laisser l'ecran vide -
+// meme logique que la grille destinations du site, jamais pour les premium.
+const ROWS_PER_AD = 4;
+const FIRST_AD_ROW = 2;
+
+function buildRows(list: DestinationSummary[], showAds: boolean): Row[] {
+  const rows: Row[] = [];
+  let rowIndex = 0;
+  for (let i = 0; i < list.length; i += 2) {
+    rowIndex++;
+    rows.push({ kind: "destinations", key: `row-${i}`, items: list.slice(i, i + 2) });
+    const isFirst = rowIndex === FIRST_AD_ROW;
+    const isRepeat = rowIndex > FIRST_AD_ROW && (rowIndex - FIRST_AD_ROW) % ROWS_PER_AD === 0;
+    if (showAds && (isFirst || isRepeat)) {
+      rows.push({ kind: "ad", key: `ad-${i}` });
+    }
+  }
+  return rows;
+}
 
 // Liste des destinations - equivalent mobile de /vols-pas-chers sur le site
 // web (recherche par ville + filtre region, cote client comme sur le site).
@@ -15,6 +42,8 @@ import VersionFooter from "../components/VersionFooter";
 export default function DestinationsScreen() {
   const insets = useSafeAreaInsets();
   const { destinations, loading, error, refresh } = useDestinations();
+  const { result: session } = useMemberSession();
+  const isPremium = session?.tier === "premium";
   const [search, setSearch] = useState("");
   const [region, setRegion] = useState("");
 
@@ -27,6 +56,8 @@ export default function DestinationsScreen() {
     }
     return list;
   }, [destinations, search, region]);
+
+  const rows = useMemo(() => buildRows(filtered, !isPremium), [filtered, isPremium]);
 
   return (
     <View style={styles.container}>
@@ -44,10 +75,8 @@ export default function DestinationsScreen() {
       ) : (
         <FlatList
           style={styles.list}
-          data={filtered}
-          keyExtractor={(item) => item.slug}
-          numColumns={2}
-          columnWrapperStyle={styles.row}
+          data={rows}
+          keyExtractor={(item) => item.key}
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} tintColor="#0ea5e9" />}
           ListHeaderComponent={
@@ -72,7 +101,20 @@ export default function DestinationsScreen() {
               <Text style={styles.emptyText}>Aucune destination ne correspond.</Text>
             </View>
           }
-          renderItem={({ item }) => <DestinationCard destination={item} />}
+          renderItem={({ item }) =>
+            item.kind === "ad" ? (
+              <View style={styles.adRow}>
+                <NativeAdCard />
+              </View>
+            ) : (
+              <View style={styles.row}>
+                {item.items.map((d) => (
+                  <DestinationCard key={d.slug} destination={d} />
+                ))}
+                {item.items.length === 1 && <View style={styles.cardSpacer} />}
+              </View>
+            )
+          }
         />
       )}
 
@@ -104,8 +146,15 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   row: {
+    flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 12,
+  },
+  adRow: {
+    marginBottom: 12,
+  },
+  cardSpacer: {
+    width: "48%",
   },
   searchInput: {
     borderWidth: 1,
