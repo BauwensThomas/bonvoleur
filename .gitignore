@@ -57,6 +57,9 @@ next-env.d.ts
 # sauvegardes de la base (contiennent des données personnelles : ne pas committer)
 /backups/
 
+# credentials du compte de service Google (Search Console) : jamais committer
+gsc-service-account*.json
+
 # Claude / outils IA (ne pas committer ni servir)
 /.claude/
 .claude/

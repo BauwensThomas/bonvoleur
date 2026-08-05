@@ -123,6 +123,24 @@ export async function insertMany<T extends TableName>(
   }
 }
 
+// Upsert en masse : insère ou met à jour selon `id`. Contrairement à
+// insertMany (id aléatoire généré ici), l'appelant fournit un id déterministe
+// - indispensable pour les tables ré-ingérées périodiquement où l'on veut
+// mettre à jour la même ligne plutôt que la dupliquer (ex. données GSC : les
+// derniers jours sont révisés par Google à chaque run).
+export async function upsertMany<T extends TableName>(
+  table: T,
+  rows: Tables[T][]
+): Promise<void> {
+  if (rows.length === 0) return;
+  for (let i = 0; i < rows.length; i += 500) {
+    const { error } = await sb()
+      .from(table)
+      .upsert(rows.slice(i, i + 500) as never, { onConflict: "id" });
+    if (error) throw new Error(`Supabase upsertMany(${table}): ${error.message}`);
+  }
+}
+
 export async function update<T extends TableName>(
   table: T,
   id: string,

@@ -182,6 +182,25 @@ export interface AgentRun {
   created_at: string;
 }
 
+// Historique des données Google Search Console, une ligne par (site, date,
+// page, query) - id déterministe (hash des 4) pour permettre l'upsert : les
+// derniers jours sont révisés par Google à chaque run, on met à jour la même
+// ligne plutôt que d'en créer une nouvelle. `site` anticipe le partage de
+// cette table avec d'autres projets (un seul compte de service Google, voir
+// SEO-AUTOMATION.md).
+export interface SeoGscDaily {
+  id: string;
+  site: string;
+  date: string; // YYYY-MM-DD
+  page: string;
+  query: string;
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+  fetched_at: string;
+}
+
 // Map nom de table -> type de ligne
 export interface Tables {
   subscribers: Subscriber;
@@ -196,6 +215,7 @@ export interface Tables {
   partners: Partner;
   agent_runs: AgentRun;
   reviews: Review;
+  seo_gsc_daily: SeoGscDaily;
 }
 
 export type TableName = keyof Tables;
