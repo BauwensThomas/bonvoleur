@@ -40,6 +40,35 @@ async function getAuth(): Promise<JWT> {
   return cachedAuth;
 }
 
+export interface IndexInspection {
+  verdict: string; // PASS | NEUTRAL | FAIL | VERDICT_UNSPECIFIED
+  coverageState: string | null;
+}
+
+// Vérifie si UNE page précise est indexée par Google (API URL Inspection,
+// v1 - différente de webmasters/v3 utilisée pour searchAnalytics/sitemaps).
+// Quota : ~2000 inspections/jour/propriété, largement suffisant pour ce site
+// (voir SEO-AUTOMATION.md pour le décompte réel).
+export async function inspectUrl(siteUrl: string, pageUrl: string): Promise<IndexInspection | null> {
+  try {
+    const auth = await getAuth();
+    const { token } = await auth.getAccessToken();
+    if (!token) return null;
+    const res = await fetch("https://searchconsole.googleapis.com/v1/urlInspection/index:inspect", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ inspectionUrl: pageUrl, siteUrl }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const result = data.inspectionResult?.indexStatusResult;
+    if (!result) return null;
+    return { verdict: result.verdict ?? "VERDICT_UNSPECIFIED", coverageState: result.coverageState ?? null };
+  } catch {
+    return null;
+  }
+}
+
 // Re-signale un sitemap à Google (accélère la découverte d'une page modifiée)
 // - PAS l'API Indexing (réservée aux offres d'emploi/live events par les
 // règles Google, l'utiliser pour des pages normales est contre les CGU même

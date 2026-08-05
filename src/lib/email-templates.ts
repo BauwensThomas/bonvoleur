@@ -321,6 +321,43 @@ export function seoSuggestionsAlertEmail(pendingCount: number): EmailMessage {
   };
 }
 
+// Email ADMIN interne : des pages ne sont pas indexées par Google (API URL
+// Inspection, voir SEO-AUTOMATION.md) - signal différent des suggestions
+// (celles-ci n'ont pas de correction "à valider", juste à investiguer).
+export function seoIndexationAlertEmail(
+  notIndexed: { page: string; coverageState: string | null }[],
+): EmailMessage {
+  const count = notIndexed.length;
+  const hero = emailHero(
+    "#fef2f2",
+    `<p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.06em;">SEO - Indexation</p>
+     <p style="margin:0;font-size:22px;font-weight:800;color:#7f1d1d;line-height:1.2;">${count} page${count > 1 ? "s" : ""} non indexée${count > 1 ? "s" : ""}</p>`,
+  );
+
+  const list = notIndexed
+    .slice(0, 15)
+    .map(
+      (n) =>
+        `<li style="margin:4px 0;color:#334155;"><a href="${n.page}" style="color:#dc2626;">${escapeHtml(n.page)}</a>${n.coverageState ? ` - ${escapeHtml(n.coverageState)}` : ""}</li>`,
+    )
+    .join("");
+
+  const body = emailContent(
+    `<p style="margin:0 0 12px;color:#475569;">Google a ces pages en base mais ne les affiche pas (encore) dans ses résultats de recherche - elles sont invisibles tant que ça dure, peu importe leur contenu.</p>
+     <ul style="margin:0 0 12px;padding-left:18px;">${list}</ul>
+     ${count > 15 ? `<p style="margin:0 0 12px;color:#94a3b8;font-size:13px;">et ${count - 15} de plus.</p>` : ""}
+     <p style="margin:0;color:#475569;">Pas d'action automatique possible ici - à investiguer manuellement (contenu trop léger, page trop récente, ou juste à laisser du temps à Google).</p>`,
+  );
+
+  return {
+    to: site.email,
+    subject: `${count} page${count > 1 ? "s" : ""} non indexée${count > 1 ? "s" : ""} par Google`,
+    html: emailLayout(hero + body),
+    text: `${count} page(s) non indexée(s) par Google :\n${notIndexed.map((n) => `- ${n.page}${n.coverageState ? ` (${n.coverageState})` : ""}`).join("\n")}`,
+    replyTo: site.email,
+  };
+}
+
 // Alerte immédiate (pas le digest habituel) envoyée à un abonné dont
 // l'aéroport suivi vient d'être désactivé par l'admin - en plus du bandeau
 // jaune déjà présent dans le prochain digest (rappel passif), celle-ci

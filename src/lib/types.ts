@@ -201,6 +201,17 @@ export interface SeoGscDaily {
   fetched_at: string;
 }
 
+// Statut d'indexation Google d'une page (API URL Inspection). "PASS" = bien
+// indexée. Tout le reste (NEUTRAL/FAIL) mérite d'être regardé - voir
+// SEO-AUTOMATION.md. `id` déterministe (hash de `page`) pour l'upsert.
+export interface SeoIndexation {
+  id: string;
+  page: string;
+  verdict: string;
+  coverage_state: string | null;
+  checked_at: string;
+}
+
 export type SeoSuggestionType = "title" | "meta_description" | "internal_links" | "content";
 export type SeoSuggestionStatus = "pending" | "approved" | "rejected";
 
@@ -241,6 +252,7 @@ export interface Tables {
   reviews: Review;
   seo_gsc_daily: SeoGscDaily;
   seo_suggestions: SeoSuggestion;
+  seo_indexation: SeoIndexation;
 }
 
 export type TableName = keyof Tables;

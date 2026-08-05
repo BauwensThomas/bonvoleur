@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { detectSeoOpportunities, groupByPageType } from "@/lib/seo-opportunities";
+import { getAll } from "@/lib/db";
 
 // Aperçu des opportunités détectées (étape 3) - pas encore de propositions
 // concrètes (étape 4, table seo_suggestions). Sert à vérifier la détection et,
@@ -9,8 +10,12 @@ export async function GET(req: Request) {
   const unauth = await requireAdmin(req);
   if (unauth) return unauth;
 
-  const opportunities = await detectSeoOpportunities();
+  const [opportunities, indexation] = await Promise.all([
+    detectSeoOpportunities(),
+    getAll("seo_indexation"),
+  ]);
   const byPageType = groupByPageType(opportunities);
+  const notIndexed = indexation.filter((i) => i.verdict !== "PASS");
   return NextResponse.json({
     ok: true,
     total: opportunities.length,
@@ -23,5 +28,9 @@ export async function GET(req: Request) {
       Object.entries(byPageType).map(([k, v]) => [k, v.length])
     ),
     opportunities,
+    indexation: {
+      checked: indexation.length,
+      notIndexed: notIndexed.map((i) => ({ page: i.page, coverageState: i.coverage_state, checkedAt: i.checked_at })),
+    },
   });
 }
