@@ -201,6 +201,25 @@ export interface SeoGscDaily {
   fetched_at: string;
 }
 
+export type SeoSuggestionType = "title" | "meta_description" | "internal_links" | "content";
+export type SeoSuggestionStatus = "pending" | "approved" | "rejected";
+
+// Proposition de correction générée par l'agent seo-suggester à partir d'une
+// opportunité détectée (seo-opportunities.ts). Jamais appliquée directement -
+// seul le passage à `approved` (validation humaine sur /admin/seo-suggestions)
+// déclenche l'application réelle (étape encore à construire).
+export interface SeoSuggestion {
+  id: string;
+  page: string;
+  suggestion_type: SeoSuggestionType;
+  current_value: string | null;
+  proposed_value: string;
+  reason: string | null;
+  status: SeoSuggestionStatus;
+  detected_at: string;
+  created_at: string;
+}
+
 // Map nom de table -> type de ligne
 export interface Tables {
   subscribers: Subscriber;
@@ -216,6 +235,7 @@ export interface Tables {
   agent_runs: AgentRun;
   reviews: Review;
   seo_gsc_daily: SeoGscDaily;
+  seo_suggestions: SeoSuggestion;
 }
 
 export type TableName = keyof Tables;
