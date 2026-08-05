@@ -8,6 +8,7 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { getAll, insert, findOne } from "./db";
 import { detectSeoOpportunities, classifyPage, pageSlug, type Opportunity } from "./seo-opportunities";
+import { destinationSlug } from "./routes";
 import { sendEmail } from "./email";
 import { seoSuggestionsAlertEmail } from "./email-templates";
 import type { AgentRun, SeoSuggestionType } from "./types";
@@ -49,7 +50,17 @@ interface PageContext {
 async function buildPageContexts(topPages: { page: string; opportunities: Opportunity[] }[]): Promise<PageContext[]> {
   const [posts, routes] = await Promise.all([getAll("posts"), getAll("routes")]);
   const postsBySlug = new Map(posts.map((p) => [p.slug, p]));
-  const routesBySlug = new Map(routes.map((r) => [r.slug, r]));
+  // Piège : le slug d'une FICHE destination (destinationSlug, basé sur la
+  // ville) n'est PAS le slug d'une ligne `routes` (basé sur la paire
+  // origine-destination) - une destination regroupe plusieurs routes. On
+  // garde la 1ère route avec une intro non vide pour cette ville, comme le
+  // fait déjà getDestinations() côté affichage (même règle de priorité).
+  const routesByDestSlug = new Map<string, (typeof routes)[number]>();
+  for (const r of routes) {
+    const dSlug = destinationSlug(r.destination_city);
+    const existing = routesByDestSlug.get(dSlug);
+    if (!existing || (!existing.intro && r.intro)) routesByDestSlug.set(dSlug, r);
+  }
 
   return topPages.map(({ page, opportunities }) => {
     const pageType = classifyPage(page);
@@ -69,7 +80,7 @@ async function buildPageContexts(topPages: { page: string; opportunities: Opport
     }
 
     if (pageType === "destination") {
-      const route = routesBySlug.get(slug);
+      const route = routesByDestSlug.get(slug);
       return {
         page,
         pageType,

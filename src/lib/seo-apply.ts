@@ -5,8 +5,9 @@
 // dynamiquement, pas de colonne de surcharge).
 import "server-only";
 
-import { findOne, update } from "./db";
+import { getAll, findOne, update } from "./db";
 import { classifyPage, pageSlug } from "./seo-opportunities";
+import { destinationSlug } from "./routes";
 import { submitSitemap } from "./gsc";
 import { site } from "./site";
 import type { SeoSuggestion } from "./types";
@@ -32,11 +33,22 @@ export async function applySeoSuggestion(s: SeoSuggestion): Promise<ApplyResult>
   }
 
   if (pageType === "destination" && s.suggestion_type === "content") {
-    const route = await findOne("routes", (r) => r.slug === slug);
-    if (!route) return { applied: false, note: "Fiche destination introuvable (slug non trouvé)." };
-    await update("routes", route.id, { intro: s.proposed_value });
+    // Piège : le slug de la FICHE (destinationSlug, basé sur la ville) n'est
+    // PAS le slug d'une ligne `routes` (basé sur la paire origine-destination)
+    // - une destination peut regrouper plusieurs routes (une par aéroport de
+    // départ). On met à jour l'intro sur TOUTES les routes de cette ville
+    // pour rester cohérent, quelle que soit celle que la fiche affiche en 1er.
+    const allRoutes = await getAll("routes");
+    const matches = allRoutes.filter((r) => destinationSlug(r.destination_city) === slug);
+    if (matches.length === 0) return { applied: false, note: "Aucune route trouvée pour cette destination (slug non trouvé)." };
+    for (const r of matches) {
+      await update("routes", r.id, { intro: s.proposed_value });
+    }
     await submitSitemap(GSC_SITE_URL, `${site.canonicalBase}/sitemap.xml`);
-    return { applied: true, note: "Intro mise à jour sur la fiche destination, sitemap re-signalé à Google." };
+    return {
+      applied: true,
+      note: `Intro mise à jour sur ${matches.length} route${matches.length > 1 ? "s" : ""} vers cette destination, sitemap re-signalé à Google.`,
+    };
   }
 
   return {
