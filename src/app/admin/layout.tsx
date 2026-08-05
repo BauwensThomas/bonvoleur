@@ -37,9 +37,21 @@ export default async function AdminLayout({
     /* base indispo : pas de badge */
   }
 
+  // Nombre de suggestions SEO en attente de validation -> badge sidebar.
+  let pendingSeoSuggestions = 0;
+  try {
+    pendingSeoSuggestions = (await getAll("seo_suggestions")).filter((s) => s.status === "pending").length;
+  } catch {
+    /* base indispo : pas de badge */
+  }
+
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <Sidebar incompleteCount={incomplete} pendingReviewsCount={pendingReviews} />
+      <Sidebar
+        incompleteCount={incomplete}
+        pendingReviewsCount={pendingReviews}
+        pendingSeoSuggestionsCount={pendingSeoSuggestions}
+      />
       <div className="flex-1 min-w-0">
         <div className="mx-auto max-w-7xl px-6 py-8">{children}</div>
       </div>

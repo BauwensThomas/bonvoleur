@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { getAll, insert, findOne } from "@/lib/db";
+import { getAll, insert, findOne, update } from "@/lib/db";
 import type { SeoSuggestionType } from "@/lib/types";
 
 const VALID_TYPES: SeoSuggestionType[] = ["title", "meta_description", "internal_links", "content"];
@@ -61,4 +61,21 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({ ok: true, id: row.id });
+}
+
+// Validation humaine (page /admin/seo-suggestions) : passe une proposition à
+// 'approved' ou 'rejected'. Ne déclenche PAS encore l'application réelle du
+// changement (étape 8, pas construite) - seulement le changement de statut.
+export async function PUT(req: Request) {
+  const unauth = await requireAdmin(req);
+  if (unauth) return unauth;
+
+  const b = await req.json();
+  if (!b.id) return NextResponse.json({ error: "id requis." }, { status: 400 });
+  if (!["pending", "approved", "rejected"].includes(b.status)) {
+    return NextResponse.json({ error: "Statut invalide." }, { status: 400 });
+  }
+  const row = await update("seo_suggestions", b.id, { status: b.status });
+  if (!row) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+  return NextResponse.json(row);
 }

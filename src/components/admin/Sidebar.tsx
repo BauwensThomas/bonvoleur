@@ -14,14 +14,17 @@ const links = [
   { href: "/admin/subscribers", label: "Abonnés" },
   { href: "/admin/agents", label: "Agents" },
   { href: "/admin/airports", label: "Aéroports" },
+  { href: "/admin/seo-suggestions", label: "SEO" },
 ];
 
 export default function Sidebar({
   incompleteCount = 0,
   pendingReviewsCount = 0,
+  pendingSeoSuggestionsCount = 0,
 }: {
   incompleteCount?: number;
   pendingReviewsCount?: number;
+  pendingSeoSuggestionsCount?: number;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -72,6 +75,16 @@ export default function Sidebar({
                   title="Avis en attente de validation"
                 >
                   {pendingReviewsCount}
+                </span>
+              )}
+              {l.href === "/admin/seo-suggestions" && pendingSeoSuggestionsCount > 0 && (
+                <span
+                  className={`ml-2 rounded-full px-1.5 py-0.5 text-xs font-semibold ${
+                    active ? "bg-white text-brand" : "bg-red-100 text-red-700"
+                  }`}
+                  title="Suggestions SEO en attente de validation"
+                >
+                  {pendingSeoSuggestionsCount}
                 </span>
               )}
             </Link>

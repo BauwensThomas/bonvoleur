@@ -298,6 +298,29 @@ export function newReviewAlertEmail(
   };
 }
 
+// Email ADMIN interne : l'agent seo-suggester a déposé de nouvelles
+// propositions SEO en attente de validation (voir SEO-AUTOMATION.md).
+export function seoSuggestionsAlertEmail(pendingCount: number): EmailMessage {
+  const hero = emailHero(
+    "#fffbeb",
+    `<p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:.06em;">SEO</p>
+     <p style="margin:0;font-size:22px;font-weight:800;color:#78350f;line-height:1.2;">${pendingCount} proposition${pendingCount > 1 ? "s" : ""} en attente</p>`,
+  );
+
+  const body = emailContent(
+    `<p style="margin:0 0 12px;color:#475569;">L'agent SEO a analysé les données Search Console et a de nouvelles propositions de correction (titre, meta description, liens internes, contenu) à te soumettre.</p>
+     ${ctaButton("Voir les propositions", `${site.url}/admin/seo-suggestions`, "#d97706")}`,
+  );
+
+  return {
+    to: site.email,
+    subject: `${pendingCount} proposition${pendingCount > 1 ? "s" : ""} SEO en attente de validation`,
+    html: emailLayout(hero + body),
+    text: `${pendingCount} proposition(s) SEO en attente de validation.\n\nVoir : ${site.url}/admin/seo-suggestions`,
+    replyTo: site.email,
+  };
+}
+
 // Alerte immédiate (pas le digest habituel) envoyée à un abonné dont
 // l'aéroport suivi vient d'être désactivé par l'admin - en plus du bandeau
 // jaune déjà présent dans le prochain digest (rappel passif), celle-ci
