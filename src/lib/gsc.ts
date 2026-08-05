@@ -26,16 +26,38 @@ async function loadServiceAccount(): Promise<ServiceAccountKey> {
 }
 
 let cachedAuth: JWT | null = null;
+// Scope en écriture (nécessaire pour re-signaler un sitemap) en plus de la
+// lecture - un seul JWT couvre les deux, pas besoin de deux clients.
 async function getAuth(): Promise<JWT> {
   if (!cachedAuth) {
     const key = await loadServiceAccount();
     cachedAuth = new JWT({
       email: key.client_email,
       key: key.private_key,
-      scopes: ["https://www.googleapis.com/auth/webmasters.readonly"],
+      scopes: ["https://www.googleapis.com/auth/webmasters"],
     });
   }
   return cachedAuth;
+}
+
+// Re-signale un sitemap à Google (accélère la découverte d'une page modifiée)
+// - PAS l'API Indexing (réservée aux offres d'emploi/live events par les
+// règles Google, l'utiliser pour des pages normales est contre les CGU même
+// si ça "marche" en pratique). Best-effort : n'échoue jamais bruyamment,
+// une erreur ici ne doit pas empêcher l'application du changement lui-même.
+export async function submitSitemap(siteUrl: string, sitemapUrl: string): Promise<boolean> {
+  try {
+    const auth = await getAuth();
+    const { token } = await auth.getAccessToken();
+    if (!token) return false;
+    const res = await fetch(
+      `https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/sitemaps/${encodeURIComponent(sitemapUrl)}`,
+      { method: "PUT", headers: { Authorization: `Bearer ${token}` } }
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
 export interface GscRow {

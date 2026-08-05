@@ -7,7 +7,7 @@ import "server-only";
 
 import Anthropic from "@anthropic-ai/sdk";
 import { getAll, insert, findOne } from "./db";
-import { detectSeoOpportunities, classifyPage, type Opportunity } from "./seo-opportunities";
+import { detectSeoOpportunities, classifyPage, pageSlug, type Opportunity } from "./seo-opportunities";
 import { sendEmail } from "./email";
 import { seoSuggestionsAlertEmail } from "./email-templates";
 import type { AgentRun, SeoSuggestionType } from "./types";
@@ -46,14 +46,6 @@ interface PageContext {
   applyNote: string; // ce qui est réellement applicable en base pour ce type de page
 }
 
-function pageSlug(pageUrl: string): string {
-  try {
-    return new URL(pageUrl).pathname.split("/").filter(Boolean).pop() ?? "";
-  } catch {
-    return "";
-  }
-}
-
 async function buildPageContexts(topPages: { page: string; opportunities: Opportunity[] }[]): Promise<PageContext[]> {
   const [posts, routes] = await Promise.all([getAll("posts"), getAll("routes")]);
   const postsBySlug = new Map(posts.map((p) => [p.slug, p]));
@@ -85,7 +77,7 @@ async function buildPageContexts(topPages: { page: string; opportunities: Opport
         currentIntro: route?.intro ?? null,
         currentTips: route?.tips ?? null,
         applyNote:
-          "Fiche destination : le titre/meta sont GÉNÉRÉS automatiquement à partir du nom de ville (pas de colonne de surcharge en base) - une proposition title/meta_description reste une idée à noter, précise-le dans reason. Seuls intro/tips existent réellement : privilégie internal_links/content sur ces pages.",
+          "Fiche destination : le titre/meta sont GÉNÉRÉS automatiquement à partir du nom de ville (pas de colonne de surcharge en base) - NE PROPOSE PAS de suggestion title/meta_description sur ce type de page, ça ne peut être appliqué nulle part. Seul \"content\" est exploitable ICI, et UNIQUEMENT comme remplacement complet du paragraphe d'intro (jamais un mélange intro+tip, jamais une instruction du type \"ajouter...\" - le texte final complet, prêt à publier tel quel).",
       };
     }
 
@@ -93,7 +85,7 @@ async function buildPageContexts(topPages: { page: string; opportunities: Opport
       page,
       pageType,
       opportunities,
-      applyNote: "Pas de données structurées par page pour ce type - ne propose que si le signal est vraiment solide.",
+      applyNote: "Pas de donnees structurees par page pour ce type - aucune suggestion n'est automatiquement applicable ici, ne propose que si le signal est vraiment solide et precise-le dans reason.",
     };
   });
 }
@@ -193,16 +185,16 @@ async function generateSuggestions(contexts: PageContext[]): Promise<RawSuggesti
 
 ${pagesBlock}
 
-Pour chaque page, choisis le type de correction le plus pertinent (title, meta_description, internal_links, content) et rédige une proposition complète :
-- title : un titre complet prêt à l'emploi.
-- meta_description : une meta description complète (155 caractères max), qui donne envie de cliquer.
-- internal_links : liste précise de 2-3 pages du site vers lesquelles ajouter un lien, avec l'ancre suggérée.
-- content : une modification concrète (paragraphe/section à ajouter ou enrichir).
+Pour chaque page, choisis le type de correction le plus pertinent PARMI CEUX AUTORISÉS pour cette page (voir "Ce qui est réellement applicable" donné pour chaque page ci-dessus - ne propose JAMAIS un type explicitement écarté par cette note) et rédige une proposition complète :
+- title : un titre COMPLET prêt à l'emploi - il REMPLACE entièrement la valeur actuelle, jamais une instruction ("ajoute...", "améliore...").
+- meta_description : une meta description COMPLÈTE (155 caractères max) qui REMPLACE entièrement la valeur actuelle - jamais une instruction.
+- internal_links : liste précise de 2-3 pages du site vers lesquelles ajouter un lien, avec l'ancre suggérée (ceci reste une note pour un humain, pas un remplacement de champ).
+- content : le texte COMPLET et final qui REMPLACE le champ concerné (ex. le nouveau paragraphe d'intro en entier) - jamais un mélange de plusieurs modifications, jamais une instruction du type "ajoute" ou "complète".
 
 Règles impératives :
 - Français natif (BE/FR), pas de tiret long (em dash), pas d'émoji.
 - N'invente aucune métrique : reprends exactement les chiffres donnés ci-dessus dans "reason".
-- current_value : reprends la valeur actuelle donnée ci-dessus si elle existe pour ce type de correction, sinon laisse une chaîne vide.
+- current_value : reprends EXACTEMENT (mot pour mot) la valeur actuelle donnée ci-dessus pour ce champ précis, sinon laisse une chaîne vide.
 - Ne force pas une suggestion si tu n'as rien de solide à proposer pour une page - dans ce cas, ne l'inclus simplement pas dans le résultat.
 - Au maximum UNE suggestion par page (celle qui a le plus d'impact).
 
@@ -285,7 +277,24 @@ export async function runSeoSuggester(trigger: "cron" | "manuel"): Promise<Agent
 
   try {
     const contexts = await buildPageContexts(topPages);
+    const contextsByPage = new Map(contexts.map((c) => [c.page, c]));
     const raw = await generateSuggestions(contexts);
+
+    // current_value programmatique (pas celui transcrit par le modèle) : la
+    // page de validation affiche un avant/après, il doit être fiable à 100%,
+    // pas dépendre de la fidélité de transcription du modèle.
+    function realCurrentValue(s: RawSuggestion): string | null {
+      const ctx = contextsByPage.get(s.page);
+      if (!ctx) return null;
+      if (ctx.pageType === "blog-article") {
+        if (s.suggestion_type === "title") return ctx.currentTitle ?? null;
+        if (s.suggestion_type === "meta_description") return ctx.currentMetaDescription ?? null;
+      }
+      if (ctx.pageType === "destination" && s.suggestion_type === "content") {
+        return ctx.currentIntro ?? null;
+      }
+      return null;
+    }
 
     let created = 0;
     let duplicates = 0;
@@ -302,11 +311,13 @@ export async function runSeoSuggester(trigger: "cron" | "manuel"): Promise<Agent
       await insert("seo_suggestions", {
         page: s.page,
         suggestion_type: s.suggestion_type,
-        current_value: s.current_value || null,
+        current_value: realCurrentValue(s),
         proposed_value: s.proposed_value,
         reason: s.reason || null,
         status: "pending",
         detected_at: new Date().toISOString(),
+        applied_at: null,
+        apply_note: null,
       });
       created++;
     }

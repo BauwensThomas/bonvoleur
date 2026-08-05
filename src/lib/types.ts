@@ -218,6 +218,11 @@ export interface SeoSuggestion {
   status: SeoSuggestionStatus;
   detected_at: string;
   created_at: string;
+  // Renseigné uniquement si le changement a réellement été écrit sur le site
+  // (voir seo-apply.ts) - "approved" seul ne garantit pas que c'était possible
+  // automatiquement pour ce type de page/suggestion.
+  applied_at: string | null;
+  apply_note: string | null;
 }
 
 // Map nom de table -> type de ligne

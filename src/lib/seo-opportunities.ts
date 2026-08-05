@@ -19,6 +19,16 @@ export type PageType =
   | "blog-listing"
   | "other";
 
+// Dernier segment du chemin d'une URL de page - correspond au `slug` en base
+// (posts.slug, routes.slug) pour la plupart des pages de ce site.
+export function pageSlug(pageUrl: string): string {
+  try {
+    return new URL(pageUrl).pathname.split("/").filter(Boolean).pop() ?? "";
+  } catch {
+    return "";
+  }
+}
+
 export function classifyPage(pageUrl: string): PageType {
   let path: string;
   try {

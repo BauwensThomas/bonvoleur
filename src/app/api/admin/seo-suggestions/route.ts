@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { getAll, insert, findOne, update } from "@/lib/db";
+import { applySeoSuggestion } from "@/lib/seo-apply";
 import type { SeoSuggestionType } from "@/lib/types";
 
 const VALID_TYPES: SeoSuggestionType[] = ["title", "meta_description", "internal_links", "content"];
@@ -58,14 +59,20 @@ export async function POST(req: Request) {
     reason: b.reason ? String(b.reason) : null,
     status: "pending",
     detected_at: new Date().toISOString(),
+    applied_at: null,
+    apply_note: null,
   });
 
   return NextResponse.json({ ok: true, id: row.id });
 }
 
 // Validation humaine (page /admin/seo-suggestions) : passe une proposition à
-// 'approved' ou 'rejected'. Ne déclenche PAS encore l'application réelle du
-// changement (étape 8, pas construite) - seulement le changement de statut.
+// 'approved' ou 'rejected'. Si 'approved' ET que la combinaison (type de page,
+// type de suggestion) le permet, écrit RÉELLEMENT le changement sur le site
+// (voir seo-apply.ts) - sinon le statut change mais rien n'est modifié sur le
+// site (apply_note l'explique, affiché sur la page admin).
+export const maxDuration = 30;
+
 export async function PUT(req: Request) {
   const unauth = await requireAdmin(req);
   if (unauth) return unauth;
@@ -75,7 +82,21 @@ export async function PUT(req: Request) {
   if (!["pending", "approved", "rejected"].includes(b.status)) {
     return NextResponse.json({ error: "Statut invalide." }, { status: 400 });
   }
-  const row = await update("seo_suggestions", b.id, { status: b.status });
-  if (!row) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+
+  if (b.status !== "approved") {
+    const row = await update("seo_suggestions", b.id, { status: b.status });
+    if (!row) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+    return NextResponse.json(row);
+  }
+
+  const current = await findOne("seo_suggestions", (s) => s.id === b.id);
+  if (!current) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+
+  const result = await applySeoSuggestion(current);
+  const row = await update("seo_suggestions", b.id, {
+    status: "approved",
+    applied_at: result.applied ? new Date().toISOString() : null,
+    apply_note: result.note,
+  });
   return NextResponse.json(row);
 }

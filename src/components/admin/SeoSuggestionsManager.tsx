@@ -45,8 +45,9 @@ export default function SeoSuggestionsManager({ initial }: { initial: SeoSuggest
     <div>
       <h1 className="text-2xl font-bold">Suggestions SEO</h1>
       <p className="mt-1 text-slate-500 text-sm">
-        Propositions générées par l&apos;agent SEO à partir des données Search Console. Rien n&apos;est
-        jamais appliqué au site sans validation ici.
+        Propositions générées par l&apos;agent SEO à partir des données Search Console. &quot;Valider&quot;
+        écrit réellement le changement sur le site quand c&apos;est possible automatiquement (sinon c&apos;est
+        indiqué clairement, à faire à la main).
       </p>
 
       <div className="mt-4 flex gap-2">
@@ -93,13 +94,24 @@ export default function SeoSuggestionsManager({ initial }: { initial: SeoSuggest
                 </div>
 
                 {s.current_value && (
-                  <p className="mt-2 text-sm text-slate-400 line-through">{s.current_value}</p>
+                  <p className="mt-2 text-sm text-slate-400 line-through decoration-red-300">{s.current_value}</p>
                 )}
-                <p className="mt-1 text-sm font-medium text-slate-800">{s.proposed_value}</p>
+                <p className="mt-1 text-sm font-medium text-green-700">{s.proposed_value}</p>
                 {s.reason && <p className="mt-2 text-xs text-slate-500">{s.reason}</p>}
                 <p className="mt-2 text-xs text-slate-400">
                   Détecté le {new Date(s.detected_at).toLocaleDateString("fr-BE")}
                 </p>
+                {s.status === "approved" && (
+                  <p
+                    className={`mt-2 text-xs font-semibold ${
+                      s.applied_at ? "text-green-700" : "text-amber-700"
+                    }`}
+                  >
+                    {s.applied_at
+                      ? `Appliqué le ${new Date(s.applied_at).toLocaleDateString("fr-BE")} - ${s.apply_note}`
+                      : s.apply_note ?? "Approuvé, application manuelle nécessaire."}
+                  </p>
+                )}
               </div>
               <div className="flex shrink-0 gap-2">
                 {s.status !== "approved" && (
