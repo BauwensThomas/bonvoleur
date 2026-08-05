@@ -14,10 +14,10 @@ import type { SeoIndexation } from "./types";
 
 const GSC_SITE_URL = "sc-domain:bonvoleur.com";
 
-// Pause entre deux inspections - largement sous le quota (2000/jour) mais
-// reste un bon citoyen de l'API plutôt que de la marteler d'un coup.
-const DELAY_MS = 300;
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+// ~145 pages en séquentiel (même avec une petite pause) a dépassé la limite
+// de temps de la fonction Vercel en conditions réelles (2026-08-05) - traite
+// par lots en parallèle à la place. Largement sous le quota Google (2000/j).
+const CONCURRENCY = 12;
 
 export interface IndexationResult {
   checked: number;
@@ -32,15 +32,18 @@ export async function checkAllPagesIndexation(): Promise<IndexationResult> {
   const notIndexed: { page: string; coverageState: string | null }[] = [];
   const now = new Date().toISOString();
 
-  for (const page of urls) {
-    const result = await inspectUrl(GSC_SITE_URL, page);
-    if (!result) continue; // échec de l'appel - on ne perd pas le run entier pour une page
-    const id = createHash("sha256").update(page).digest("hex");
-    rows.push({ id, page, verdict: result.verdict, coverage_state: result.coverageState, checked_at: now });
-    if (result.verdict !== "PASS") {
-      notIndexed.push({ page, coverageState: result.coverageState });
-    }
-    await sleep(DELAY_MS);
+  for (let i = 0; i < urls.length; i += CONCURRENCY) {
+    const batch = urls.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(batch.map((page) => inspectUrl(GSC_SITE_URL, page)));
+    batch.forEach((page, j) => {
+      const result = results[j];
+      if (!result) return; // échec de l'appel - on ne perd pas le run entier pour une page
+      const id = createHash("sha256").update(page).digest("hex");
+      rows.push({ id, page, verdict: result.verdict, coverage_state: result.coverageState, checked_at: now });
+      if (result.verdict !== "PASS") {
+        notIndexed.push({ page, coverageState: result.coverageState });
+      }
+    });
   }
 
   await upsertMany("seo_indexation", rows);
