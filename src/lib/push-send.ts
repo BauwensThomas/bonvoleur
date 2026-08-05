@@ -3,7 +3,10 @@
 // (gratuit) via sendScheduledDigest(). Le push notifie à CHAQUE scan (jusqu'à
 // 3x/jour) dès qu'un nouveau deal "chaud" (is_hot) apparaît pour un aéroport
 // suivi - c'est tout l'intérêt du push par rapport à l'email. Anti-doublon
-// dédié (table push_sends), séparé de `sends` (email).
+// dédié (table push_sends), séparé de `sends` (email). Les deux tiers sont
+// notifiés, mais pas au même moment : premium en temps réel, gratuit dès que
+// le deal franchit le délai de 96h (voir justAppeared ci-dessous) - reflète
+// fidèlement ce que chaque tier voit déjà sur /compte.
 //
 // FIABILITÉ : plutôt que de redéduire les règles de visibilité (délai
 // gratuit, dédoublonnage par route, plafond des 6 deals gratuits) et risquer
@@ -14,8 +17,10 @@
 // instant, zéro divergence possible avec la liste réelle.
 import { getAll, insertMany } from "./db";
 import { sendPushBatch, type PushMessage } from "./push";
-import { getMemberDeals } from "./member-deals";
+import { getMemberDeals, FREE_DELAY_HOURS } from "./member-deals";
 import type { Deal, Subscriber, Tier } from "./types";
+
+const FREE_DELAY_MS = FREE_DELAY_HOURS * 3600 * 1000;
 
 export interface PushResult {
   notifications: number; // nombre de push envoyés (1 par abonné notifié)
@@ -27,12 +32,21 @@ export interface PushResult {
 // (push_sends) empêchant tout envoi en double d'un run à l'autre.
 const SCAN_WINDOW_MS = 10 * 60 * 60 * 1000;
 
-// "Vu" pour la 1ère fois par CE scan (donc digne d'un push) - même notion que
-// seenAt() de member-deals.ts pour un premium (published_at ?? created_at),
-// et created_at pour un gratuit (date de découverte, pas de republication).
+// "Vu" pour la 1ère fois par CE scan (donc digne d'un push).
+//  - premium : même notion que seenAt() de member-deals.ts (published_at ??
+//    created_at) - notifié dès qu'un deal apparaît ou est republié.
+//  - gratuit : un deal n'est JAMAIS "récent" pour lui - getMemberDeals() ne le
+//    rend visible qu'à partir de FREE_DELAY_HOURS (96h) après sa création. On
+//    notifie donc au moment où il FRANCHIT ce seuil (pas à sa création, qui
+//    est déjà > 96h dans le passé dès qu'il devient visible) - même logique
+//    de fenêtre glissante que le premium, juste décalée de 96h.
 function justAppeared(deal: Deal, tier: Tier, now: number): boolean {
-  const at = tier === "premium" ? deal.published_at ?? deal.created_at : deal.created_at;
-  return now - new Date(at).getTime() <= SCAN_WINDOW_MS;
+  if (tier === "premium") {
+    const at = deal.published_at ?? deal.created_at;
+    return now - new Date(at).getTime() <= SCAN_WINDOW_MS;
+  }
+  const age = now - new Date(deal.created_at).getTime();
+  return age >= FREE_DELAY_MS && age <= FREE_DELAY_MS + SCAN_WINDOW_MS;
 }
 
 // Au plus 1 notification par abonné par exécution (anti-fatigue) : si
