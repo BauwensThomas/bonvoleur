@@ -42,6 +42,23 @@ export async function getAdsEnabled(): Promise<boolean> {
   return (await getSetting("ads_enabled")) === "true";
 }
 
+// Surcharge de titre/meta description par page (chemin exact, ex. "/",
+// "/blog", "/vols-pas-chers/chisinau") - pour les pages qui n'ont pas de
+// colonne dédiée en base (accueil, listings, fiches destination : titre/meta
+// normalement calculés/templates). Utilisé par seo-apply.ts (étape 8 de
+// l'automatisation SEO, voir SEO-AUTOMATION.md) : générique, marche pour
+// N'IMPORTE QUELLE page sans migration supplémentaire.
+export type SeoOverrideField = "title" | "meta_description";
+function seoOverrideKey(path: string, field: SeoOverrideField): string {
+  return `seo_override:${path}:${field}`;
+}
+export async function getSeoOverride(path: string, field: SeoOverrideField): Promise<string | null> {
+  return getSetting(seoOverrideKey(path, field));
+}
+export async function setSeoOverride(path: string, field: SeoOverrideField, value: string): Promise<void> {
+  await setSetting(seoOverrideKey(path, field), value);
+}
+
 // Liste tous les fichiers du dossier destinations/ -> map path -> taille en octets.
 export async function getStorageDestFiles(): Promise<Record<string, number>> {
   try {

@@ -18,7 +18,9 @@ import { getAll } from "@/lib/db";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { getReviewStats, formatRating } from "@/lib/reviews";
 import { formatArticleDate } from "@/lib/dates";
-import { getAdsEnabled } from "@/lib/settings";
+import { getAdsEnabled, getSeoOverride } from "@/lib/settings";
+import { SEO_PAGE_DEFAULTS } from "@/lib/seo-page-defaults";
+import type { Metadata } from "next";
 import { AD_SLOTS } from "@/lib/ads";
 import AdSlot from "@/components/AdSlot";
 
@@ -28,10 +30,17 @@ function destSlugOf(label: string): string {
 }
 
 
-export const metadata = {
-  title: "BonVoleur - Vols pas chers depuis la Belgique et la France",
-  alternates: { canonical: "https://www.bonvoleur.com" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const [title, description] = await Promise.all([
+    getSeoOverride("/", "title"),
+    getSeoOverride("/", "meta_description"),
+  ]);
+  return {
+    title: title || SEO_PAGE_DEFAULTS["/"].title,
+    description: description || SEO_PAGE_DEFAULTS["/"].description || undefined,
+    alternates: { canonical: "https://www.bonvoleur.com" },
+  };
+}
 
 // ISR : page mise en cache 60s sur le CDN Vercel → TTFB ~50ms au lieu de ~1s.
 export const revalidate = 60;

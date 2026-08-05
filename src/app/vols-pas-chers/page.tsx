@@ -5,16 +5,22 @@ import Footer from "@/components/Footer";
 import DestinationsExplorer from "@/components/DestinationsExplorer";
 import { site } from "@/lib/site";
 import { getDestinations } from "@/lib/routes";
-import { getAdsEnabled } from "@/lib/settings";
+import { getAdsEnabled, getSeoOverride } from "@/lib/settings";
+import { SEO_PAGE_DEFAULTS } from "@/lib/seo-page-defaults";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Vols pas chers depuis la Belgique et la France",
-  description:
-    "Toutes nos destinations : vols pas chers depuis la Belgique et la France. Choisis ta destination, on te prévient par email.",
-  alternates: { canonical: `${site.canonicalBase}/vols-pas-chers` },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const [title, description] = await Promise.all([
+    getSeoOverride("/vols-pas-chers", "title"),
+    getSeoOverride("/vols-pas-chers", "meta_description"),
+  ]);
+  return {
+    title: title || SEO_PAGE_DEFAULTS["/vols-pas-chers"].title,
+    description: description || SEO_PAGE_DEFAULTS["/vols-pas-chers"].description,
+    alternates: { canonical: `${site.canonicalBase}/vols-pas-chers` },
+  };
+}
 
 export default async function VolsPasChersIndex() {
   const [destinationsRaw, adsEnabled] = await Promise.all([

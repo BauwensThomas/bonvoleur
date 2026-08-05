@@ -20,7 +20,8 @@ import {
   destinationSlug,
 } from "@/lib/routes";
 import { getActiveAirportCodes } from "@/lib/airports";
-import { getAdsEnabled } from "@/lib/settings";
+import { getAdsEnabled, getSeoOverride } from "@/lib/settings";
+import { destinationDefaultTitle, destinationDefaultDescription } from "@/lib/seo-page-defaults";
 import { AD_SLOTS } from "@/lib/ads";
 import AdSlot from "@/components/AdSlot";
 
@@ -63,13 +64,18 @@ export async function generateMetadata({
   const d = await getDestination(route);
   const city = d?.destCity ?? (await getRoute(route))?.destCity;
   if (!city) return { title: "Destination introuvable" };
-  const title = `Vols pas chers vers ${city}`;
-  const description = `Les meilleurs bons plans de vols vers ${city}. Choisis ton aéroport de départ, on surveille les prix et on te prévient par email.`;
+  const slug = d?.slug ?? destinationSlug(city);
+  const [titleOverride, descriptionOverride] = await Promise.all([
+    getSeoOverride(`/vols-pas-chers/${slug}`, "title"),
+    getSeoOverride(`/vols-pas-chers/${slug}`, "meta_description"),
+  ]);
+  const title = titleOverride || destinationDefaultTitle(city);
+  const description = descriptionOverride || destinationDefaultDescription(city);
   return {
     title,
     description,
     alternates: {
-      canonical: `${site.canonicalBase}/vols-pas-chers/${d?.slug ?? destinationSlug(city)}`,
+      canonical: `${site.canonicalBase}/vols-pas-chers/${slug}`,
     },
     openGraph: {
       type: "website",

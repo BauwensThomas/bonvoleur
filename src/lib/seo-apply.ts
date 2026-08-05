@@ -1,14 +1,24 @@
-// Application réelle d'une suggestion SEO approuvée (étape 8). N'applique que
-// les combinaisons (type de page, type de suggestion) où le champ cible
-// existe VRAIMENT en base - voir SEO-AUTOMATION.md pour le détail des cas non
-// applicables (title/meta_description sur une fiche destination : générés
-// dynamiquement, pas de colonne de surcharge).
+// Application réelle d'une suggestion SEO approuvée (étape 8).
+// - Article de blog (title/meta_description) : colonnes réelles sur `posts`.
+// - Fiche destination (content = intro) : colonne réelle sur `routes`.
+// - TOUTE AUTRE page, pour title/meta_description (accueil, listings,
+//   fiches destination) : pas de colonne dédiée en base, donc écrit dans une
+//   surcharge générique `site_settings` (seo_override:{chemin}:{champ}, voir
+//   settings.ts) - lue par le generateMetadata() de chaque page concernée.
+//   Marche pour n'importe quel chemin, y compris des pages non encore
+//   couvertes explicitement ici tant que leur generateMetadata() lit aussi
+//   cette surcharge.
+// - `content`/`internal_links` restent volontairement manuels partout ailleurs
+//   qu'une fiche destination : réécrire du contenu ou insérer des liens dans
+//   du JSX/markdown est un risque différent (mise en page, ton éditorial) -
+//   voir SEO-AUTOMATION.md.
 import "server-only";
 
 import { getAll, findOne, update } from "./db";
 import { classifyPage, pageSlug } from "./seo-opportunities";
 import { destinationSlug } from "./routes";
 import { submitSitemap } from "./gsc";
+import { setSeoOverride, type SeoOverrideField } from "./settings";
 import { site } from "./site";
 import type { SeoSuggestion } from "./types";
 
@@ -48,6 +58,29 @@ export async function applySeoSuggestion(s: SeoSuggestion): Promise<ApplyResult>
     return {
       applied: true,
       note: `Intro mise à jour sur ${matches.length} route${matches.length > 1 ? "s" : ""} vers cette destination, sitemap re-signalé à Google.`,
+    };
+  }
+
+  // Title/meta_description sur n'importe quelle AUTRE page (accueil, listing
+  // blog, listing destinations, fiche destination) : pas de colonne dédiée en
+  // base pour ces pages, donc surcharge générique par chemin.
+  const OVERRIDABLE_PAGE_TYPES = ["home", "destination-listing", "blog-listing", "destination"];
+  if (
+    OVERRIDABLE_PAGE_TYPES.includes(pageType) &&
+    (s.suggestion_type === "title" || s.suggestion_type === "meta_description")
+  ) {
+    let path: string;
+    try {
+      path = new URL(s.page).pathname;
+    } catch {
+      return { applied: false, note: "URL de page invalide." };
+    }
+    const field: SeoOverrideField = s.suggestion_type === "title" ? "title" : "meta_description";
+    await setSeoOverride(path, field, s.proposed_value);
+    await submitSitemap(GSC_SITE_URL, `${site.canonicalBase}/sitemap.xml`);
+    return {
+      applied: true,
+      note: `Surcharge "${field}" enregistrée pour ${path}, sitemap re-signalé à Google.`,
     };
   }
 

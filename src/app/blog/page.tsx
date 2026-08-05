@@ -5,7 +5,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getAll } from "@/lib/db";
 import { formatArticleDate } from "@/lib/dates";
-import { getAdsEnabled } from "@/lib/settings";
+import { getAdsEnabled, getSeoOverride } from "@/lib/settings";
+import { SEO_PAGE_DEFAULTS } from "@/lib/seo-page-defaults";
 import { AD_SLOTS } from "@/lib/ads";
 import AdUnit from "@/components/AdUnit";
 
@@ -16,12 +17,17 @@ const AD_FIRST = 3;
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Blog voyage et bons plans",
-  description:
-    "Guides destinations, conseils voyage et astuces pour voler moins cher depuis la Belgique et la France.",
-  alternates: { canonical: "https://www.bonvoleur.com/blog" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const [title, description] = await Promise.all([
+    getSeoOverride("/blog", "title"),
+    getSeoOverride("/blog", "meta_description"),
+  ]);
+  return {
+    title: title || SEO_PAGE_DEFAULTS["/blog"].title,
+    description: description || SEO_PAGE_DEFAULTS["/blog"].description,
+    alternates: { canonical: "https://www.bonvoleur.com/blog" },
+  };
+}
 
 export default async function BlogIndex() {
   const [all, adsEnabled] = await Promise.all([getAll("posts"), getAdsEnabled()]);

@@ -9,6 +9,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getAll, insert, findOne } from "./db";
 import { detectSeoOpportunities, classifyPage, pageSlug, type Opportunity } from "./seo-opportunities";
 import { destinationSlug } from "./routes";
+import { getSeoOverride } from "./settings";
+import { SEO_PAGE_DEFAULTS, destinationDefaultTitle, destinationDefaultDescription } from "./seo-page-defaults";
 import { sendEmail } from "./email";
 import { seoSuggestionsAlertEmail } from "./email-templates";
 import type { AgentRun, SeoSuggestionType } from "./types";
@@ -62,43 +64,76 @@ async function buildPageContexts(topPages: { page: string; opportunities: Opport
     if (!existing || (!existing.intro && r.intro)) routesByDestSlug.set(dSlug, r);
   }
 
-  return topPages.map(({ page, opportunities }) => {
-    const pageType = classifyPage(page);
-    const slug = pageSlug(page);
+  return Promise.all(
+    topPages.map(async ({ page, opportunities }) => {
+      const pageType = classifyPage(page);
+      const slug = pageSlug(page);
 
-    if (pageType === "blog-article") {
-      const post = postsBySlug.get(slug);
+      if (pageType === "blog-article") {
+        const post = postsBySlug.get(slug);
+        return {
+          page,
+          pageType,
+          opportunities,
+          currentTitle: post?.title ?? null,
+          currentMetaTitle: post?.meta_title ?? null,
+          currentMetaDescription: post?.meta_description ?? null,
+          applyNote: "Article de blog : title/meta_title/meta_description sont des colonnes réelles, directement applicables.",
+        };
+      }
+
+      if (pageType === "destination") {
+        const route = routesByDestSlug.get(slug);
+        const path = `/vols-pas-chers/${slug}`;
+        const [titleOverride, descOverride] = await Promise.all([
+          getSeoOverride(path, "title"),
+          getSeoOverride(path, "meta_description"),
+        ]);
+        const city = route?.destination_city ?? slug;
+        return {
+          page,
+          pageType,
+          opportunities,
+          currentTitle: titleOverride || destinationDefaultTitle(city),
+          currentMetaDescription: descOverride || destinationDefaultDescription(city),
+          currentIntro: route?.intro ?? null,
+          currentTips: route?.tips ?? null,
+          applyNote:
+            "Fiche destination : title/meta_description sont applicables (surcharge par page - la valeur \"actuelle\" donnée ici est soit une surcharge déjà en place, soit la valeur générée par défaut). \"content\" reste exploitable UNIQUEMENT comme remplacement complet du paragraphe d'intro (jamais un mélange intro+tip, jamais une instruction du type \"ajouter...\" - le texte final complet, prêt à publier tel quel).",
+        };
+      }
+
+      if (pageType === "home" || pageType === "destination-listing" || pageType === "blog-listing") {
+        let path: string;
+        try {
+          path = new URL(page).pathname;
+        } catch {
+          path = "/";
+        }
+        const defaults = SEO_PAGE_DEFAULTS[path] ?? { title: "", description: "" };
+        const [titleOverride, descOverride] = await Promise.all([
+          getSeoOverride(path, "title"),
+          getSeoOverride(path, "meta_description"),
+        ]);
+        return {
+          page,
+          pageType,
+          opportunities,
+          currentTitle: titleOverride || defaults.title || null,
+          currentMetaDescription: descOverride || defaults.description || null,
+          applyNote:
+            "Page sans contenu éditorial propre : title/meta_description sont applicables (surcharge par page - la valeur \"actuelle\" donnée ici est soit une surcharge déjà en place, soit la valeur par défaut du site). Pas de \"content\"/\"internal_links\" ici (rien à quoi les accrocher automatiquement).",
+        };
+      }
+
       return {
         page,
         pageType,
         opportunities,
-        currentTitle: post?.title ?? null,
-        currentMetaTitle: post?.meta_title ?? null,
-        currentMetaDescription: post?.meta_description ?? null,
-        applyNote: "Article de blog : title/meta_title/meta_description sont des colonnes réelles, directement applicables.",
+        applyNote: "Pas de donnees structurees par page pour ce type - aucune suggestion n'est automatiquement applicable ici, ne propose que si le signal est vraiment solide et precise-le dans reason.",
       };
-    }
-
-    if (pageType === "destination") {
-      const route = routesByDestSlug.get(slug);
-      return {
-        page,
-        pageType,
-        opportunities,
-        currentIntro: route?.intro ?? null,
-        currentTips: route?.tips ?? null,
-        applyNote:
-          "Fiche destination : le titre/meta sont GÉNÉRÉS automatiquement à partir du nom de ville (pas de colonne de surcharge en base) - NE PROPOSE PAS de suggestion title/meta_description sur ce type de page, ça ne peut être appliqué nulle part. Seul \"content\" est exploitable ICI, et UNIQUEMENT comme remplacement complet du paragraphe d'intro (jamais un mélange intro+tip, jamais une instruction du type \"ajouter...\" - le texte final complet, prêt à publier tel quel).",
-      };
-    }
-
-    return {
-      page,
-      pageType,
-      opportunities,
-      applyNote: "Pas de donnees structurees par page pour ce type - aucune suggestion n'est automatiquement applicable ici, ne propose que si le signal est vraiment solide et precise-le dans reason.",
-    };
-  });
+    })
+  );
 }
 
 const schema = {
@@ -297,7 +332,13 @@ export async function runSeoSuggester(trigger: "cron" | "manuel"): Promise<Agent
     function realCurrentValue(s: RawSuggestion): string | null {
       const ctx = contextsByPage.get(s.page);
       if (!ctx) return null;
-      if (ctx.pageType === "blog-article") {
+      if (
+        ctx.pageType === "blog-article" ||
+        ctx.pageType === "home" ||
+        ctx.pageType === "destination-listing" ||
+        ctx.pageType === "blog-listing" ||
+        ctx.pageType === "destination"
+      ) {
         if (s.suggestion_type === "title") return ctx.currentTitle ?? null;
         if (s.suggestion_type === "meta_description") return ctx.currentMetaDescription ?? null;
       }
