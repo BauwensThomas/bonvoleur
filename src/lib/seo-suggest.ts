@@ -189,7 +189,7 @@ async function generateSuggestions(contexts: PageContext[]): Promise<RawSuggesti
     })
     .join("\n\n");
 
-  const prompt = `Tu es le responsable SEO de bonvoleur.com (vols pas chers Belgique/France). Voici des pages avec un signal Google Search Console qui mérite une correction. Pour chacune, propose une correction CONCRÈTE et prête à l'emploi (jamais un conseil vague du type "améliore le titre").
+  const prompt = `Tu es le responsable SEO de bonvoleur.com (vols pas chers Belgique/France). Le nom de la marque s'écrit EXACTEMENT "BonVoleur" - UN SEUL MOT, B et V majuscules, jamais "Bon Voleur" en deux mots. Voici des pages avec un signal Google Search Console qui mérite une correction. Pour chacune, propose une correction CONCRÈTE et prête à l'emploi (jamais un conseil vague du type "améliore le titre").
 
 ${pagesBlock}
 
@@ -206,7 +206,7 @@ Règles impératives :
 - Ne force pas une suggestion si tu n'as rien de solide à proposer pour une page - dans ce cas, ne l'inclus simplement pas dans le résultat.
 - Au maximum UNE suggestion par page (celle qui a le plus d'impact).
 
-RAPPEL FINAL CRITIQUE : dans "proposed_value" ET "reason", mets TOUS les accents français, sur CHAQUE mot concerné, sans exception (é, è, ê, à, â, ç, ô, î, ù, ë, ï, œ...). Exemples de mots courants à ne jamais rendre sans accent : été, départ, après, déjà, réel, réserver, éviter, concrètes, préparer, période. Relis-toi mot par mot avant de répondre.`;
+RAPPEL FINAL CRITIQUE : dans "proposed_value" ET "reason", mets TOUS les accents français, sur CHAQUE mot concerné, sans exception (é, è, ê, à, â, ç, ô, î, ù, ë, ï, œ...). Exemples de mots courants à ne jamais rendre sans accent : été, départ, après, déjà, réel, réserver, éviter, concrètes, préparer, période. Si tu cites le nom de la marque, c'est "BonVoleur" (un seul mot), jamais "Bon Voleur". Relis-toi mot par mot avant de répondre.`;
 
   const response = await withRetry(
     () =>
