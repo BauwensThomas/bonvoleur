@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View, Pressable, ScrollView, Linking } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View, Pressable, ScrollView } from "react-native";
+import * as WebBrowser from "expo-web-browser";
 import { Ionicons } from "@expo/vector-icons";
 import { AdsConsent } from "react-native-google-mobile-ads";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,11 +13,15 @@ import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
 import VersionFooter from "../components/VersionFooter";
 
-// Memes 4 pages que le footer du site (Footer.tsx) - ouvertes dans le
-// navigateur du telephone (pages legales statiques, pas besoin d'une vue
-// native dediee, ni de duplication du contenu qui devrait alors etre tenu a
-// jour a deux endroits + attendre une revue Play Store pour la moindre
-// correction de texte).
+// Memes 4 pages que le footer du site (Footer.tsx) - ouvertes dans un
+// navigateur IN-APP (WebBrowser.openBrowserAsync, pas Linking.openURL) :
+// pages legales statiques, pas besoin d'une vue native dediee, ni de
+// duplication du contenu qui devrait alors etre tenu a jour a deux endroits +
+// attendre une revue Play Store pour la moindre correction de texte.
+// Linking.openURL bascule sur le navigateur EXTERNE du telephone, qui n'a
+// aucun bouton retour vers l'app - bug reel remonte par un testeur (2026-08-06,
+// "difficult to get back to the flights pages"). WebBrowser garde un bouton
+// "Termine"/fermer visible en permanence, retour a l'app en un tap.
 const LINKS = [
   { label: "Mentions légales", path: "/mentions-legales" },
   { label: "Politique de confidentialité", path: "/confidentialite" },
@@ -39,7 +44,7 @@ export default function SettingsScreen() {
           <Pressable
             key={link.path}
             style={styles.row}
-            onPress={() => Linking.openURL(`${API_BASE}${link.path}`)}
+            onPress={() => WebBrowser.openBrowserAsync(`${API_BASE}${link.path}`)}
           >
             <Text style={styles.rowText}>{link.label}</Text>
             <Ionicons name="open-outline" size={18} color="#0369a1" />

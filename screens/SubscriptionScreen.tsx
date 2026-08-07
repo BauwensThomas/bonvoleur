@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import * as WebBrowser from "expo-web-browser";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMemberSession } from "../hooks/useMemberSession";
@@ -15,7 +16,11 @@ import VersionFooter from "../components/VersionFooter";
 // sur le site). Le paiement/la gestion Stripe restent hors app (décision du
 // plan : pas de Google Play Billing) - on récupère juste l'URL Stripe via
 // /api/mobile/billing/{checkout,portal} et on l'ouvre dans le navigateur du
-// téléphone (Linking.openURL), comme le fait déjà "Comment ça marche".
+// téléphone (Linking.openURL) : normal d'en sortir complètement pour un
+// paiement. Le lien CGV, lui, ouvre un navigateur IN-APP (WebBrowser) - pas de
+// vrai départ du site à gérer, juste une page à consulter puis fermer (bug
+// remonté par un testeur le 2026-08-06 : Linking.openURL n'a pas de bouton
+// retour vers l'app, voir SettingsScreen.tsx pour le même fix).
 export default function SubscriptionScreen() {
   const insets = useSafeAreaInsets();
   const { result, loading, error, refresh } = useMemberSession();
@@ -197,7 +202,7 @@ function UpgradeBox({ alreadyPremium, onUpgraded }: { alreadyPremium: boolean; o
         <Text style={styles.checkboxText}>
           Je demande l&apos;accès immédiat au service premium et je reconnais perdre mon droit de
           rétractation de 14 jours dès que le service commence (
-          <Text style={styles.link} onPress={() => Linking.openURL(`${API_BASE}/conditions-generales`)}>
+          <Text style={styles.link} onPress={() => WebBrowser.openBrowserAsync(`${API_BASE}/conditions-generales`)}>
             article 6 des CGV
           </Text>
           ).
