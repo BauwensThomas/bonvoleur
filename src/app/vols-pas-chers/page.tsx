@@ -8,7 +8,11 @@ import { getDestinations } from "@/lib/routes";
 import { getAdsEnabled, getSeoOverride } from "@/lib/settings";
 import { SEO_PAGE_DEFAULTS } from "@/lib/seo-page-defaults";
 
-export const dynamic = "force-dynamic";
+// ISR (comme l'accueil) : pas de donnee par visiteur sur cette page, un
+// re-chargement complet de la base a chaque visite (force-dynamic) etait
+// inutile et pesait lourd sur l'egress Supabase (routes = 1,16 Mo/appel,
+// voir memoire project_conventions_techniques - trouve le 2026-08-13).
+export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   const [title, description] = await Promise.all([

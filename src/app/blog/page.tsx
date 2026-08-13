@@ -15,7 +15,9 @@ const AD_INTERVAL = 6;
 // parait vide avant de voir une seule pub), puis on retombe sur AD_INTERVAL.
 const AD_FIRST = 3;
 
-export const dynamic = "force-dynamic";
+// ISR (comme l'accueil) : pas de donnee par visiteur sur cette page, voir
+// vols-pas-chers/page.tsx pour le contexte complet (egress Supabase).
+export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   const [title, description] = await Promise.all([
