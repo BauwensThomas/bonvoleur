@@ -10,6 +10,7 @@ import { withCors, corsPreflight } from "@/lib/mobile-cors";
 export const OPTIONS = corsPreflight;
 
 // Cache 60s (egress Supabase, voir memoire project_conventions_techniques).
+export const dynamic = "force-static";
 export const revalidate = 60;
 
 // Stats publiques (écran d'accueil app, avant connexion) - mêmes chiffres que

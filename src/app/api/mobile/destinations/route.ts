@@ -10,6 +10,7 @@ export const OPTIONS = corsPreflight;
 // Public, pas d'auth : cache 60s cote Vercel plutot qu'un rechargement complet
 // de deals+routes a chaque appel (l'app rappelle cette route tres souvent -
 // egress Supabase, voir memoire project_conventions_techniques, 2026-08-13).
+export const dynamic = "force-static";
 export const revalidate = 60;
 
 // Liste des destinations (app mobile) - equivalent de /vols-pas-chers sur le
