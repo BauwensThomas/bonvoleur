@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import { getDestination } from "@/lib/routes";
 import { getActiveAirportCodes } from "@/lib/airports";
-import { getAll } from "@/lib/db";
+import { getAllDealsPublic } from "@/lib/deals-public";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { site } from "@/lib/site";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 
 export const OPTIONS = corsPreflight;
 
-// Cache 60s (egress Supabase, voir memoire project_conventions_techniques).
+// La mise en cache reelle vient du niveau donnee (voir memoire
+// project_conventions_techniques 2026-08-13).
 export const dynamic = "force-static";
 export const revalidate = 60;
 
@@ -19,11 +20,16 @@ export const revalidate = 60;
 // utiliser un code generique ("ROM") selon le scrape - matcher par IATA
 // laissait passer a cote de vrais deals recents (bug reel trouve le
 // 2026-07-30 sur Rome, cf. project_blog_image_rehost.md / memoire mobile).
+//
+// getAllDealsPublic() est appele une fois PAR aeroport de depart (jusqu'a 15
+// pour une grosse destination) - avant le cache, ca faisait autant de
+// rechargements complets de la table `deals` pour UNE SEULE vue de fiche.
+// Avec le cache (60s), les appels apres le 1er reutilisent le meme resultat.
 async function weekCountFor(originIata: string, destCity: string): Promise<0 | 1> {
   try {
     const todayStr = new Date().toISOString().slice(0, 10);
     const cityLower = destCity.toLowerCase();
-    const all = (await getAll("deals")).filter((d) => {
+    const all = (await getAllDealsPublic()).filter((d) => {
       if (d.is_hot === false) return false;
       if (!d.origin.toUpperCase().includes(`(${originIata})`)) return false;
       if (!d.destination.toLowerCase().startsWith(cityLower)) return false;

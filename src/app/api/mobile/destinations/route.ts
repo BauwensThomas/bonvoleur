@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import { getDestinations } from "@/lib/routes";
 import { getActiveAirportCodes } from "@/lib/airports";
-import { getAll } from "@/lib/db";
+import { getAllDealsPublic } from "@/lib/deals-public";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 
 export const OPTIONS = corsPreflight;
 
-// Public, pas d'auth : cache 60s cote Vercel plutot qu'un rechargement complet
-// de deals+routes a chaque appel (l'app rappelle cette route tres souvent -
-// egress Supabase, voir memoire project_conventions_techniques, 2026-08-13).
+// Public, pas d'auth. La mise en cache reelle vient du niveau donnee
+// (getDestinations()/getAllDealsPublic(), voir memoire
+// project_conventions_techniques 2026-08-13) - export const revalidate seul
+// ne suffit pas a cacher un route.ts qui appelle Supabase.
 export const dynamic = "force-static";
 export const revalidate = 60;
 
@@ -31,7 +32,7 @@ export const revalidate = 60;
 // par IATA loupait de vrais deals recents (bug reel trouve le 2026-07-30).
 export async function GET() {
   const activeIatas = await getActiveAirportCodes();
-  const allDeals = await getAll("deals");
+  const allDeals = await getAllDealsPublic();
 
   const now = Date.now();
   const todayStr = new Date(now).toISOString().slice(0, 10);

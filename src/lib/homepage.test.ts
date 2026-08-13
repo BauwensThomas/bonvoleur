@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+// unstable_cache exige le runtime serveur Next.js ("incrementalCache") - non
+// disponible sous Vitest. Neutralisé en pass-through (comme "server-only"),
+// voir memoire project_conventions_techniques (2026-08-13).
+vi.mock("next/cache", () => ({ unstable_cache: (fn: unknown) => fn }));
 vi.mock("./db", () => ({ getAll: vi.fn() }));
 
 import { getAll } from "./db";

@@ -3,6 +3,7 @@
 // route et le prix seulement. Aucune info actionnable (dates, compagnie, lien
 // de réservation) n'est dévoilée -> impossible de retrouver l'offre soi-même,
 // donc on peut montrer des deals récents sans casser l'incitation à s'inscrire.
+import { unstable_cache } from "next/cache";
 import { getAll } from "./db";
 import { FRESH_MAX_MS } from "./deal-freshness";
 import { getActiveAirportCodes } from "./airports";
@@ -13,7 +14,17 @@ export interface TeaserDeal {
   price: number;
 }
 
-export async function getHomepageDeals(): Promise<{
+// Mise en cache DONNÉE (pas de personnalisation ici, aucun paramètre) - le
+// scanner tourne ~3x/jour donc un filet de sécurité court (60s) suffit à
+// rester perçu comme "en direct" sans retaper Supabase à chaque appel
+// (utilisé par l'accueil ET plusieurs routes API mobile). Voir memoire
+// project_conventions_techniques (2026-08-13, egress Supabase).
+export const getHomepageDeals = unstable_cache(computeHomepageDeals, ["homepage-deals"], {
+  tags: ["deals-public"],
+  revalidate: 60,
+});
+
+async function computeHomepageDeals(): Promise<{
   teaserDeals: TeaserDeal[] | null;
   liveCount: number; // bons plans frais en ce moment (preuve sociale)
   destinationCount: number; // destinations distinctes parmi ces deals

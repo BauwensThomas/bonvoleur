@@ -6,12 +6,17 @@
 // project_conventions_techniques (2026-08-13, egress Supabase).
 import "server-only";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 // `slug` optionnel : si connu (une seule destination touchée), on cible sa
 // fiche précisément en plus du listing - sinon (ex. génération en masse) on
 // revalide tout le sous-arbre `/vols-pas-chers/*` d'un coup.
 export function revalidateDestinations(slug?: string): void {
+  // Invalide le cache DONNÉE (getRoutes(), voir routes.ts) - couvre tous les
+  // appelants (pages ET routes API mobile) d'un seul coup. Le 2e argument
+  // (profil) est requis par la signature de cette version de Next.js - "max"
+  // n'affecte pas l'invalidation elle-même, qui reste immédiate.
+  revalidateTag("destinations", "max");
   revalidatePath("/vols-pas-chers");
   if (slug) {
     revalidatePath(`/vols-pas-chers/${slug}`);

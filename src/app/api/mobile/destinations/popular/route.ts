@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { getDestinations } from "@/lib/routes";
 import { getActiveAirports } from "@/lib/airports";
-import { getAll } from "@/lib/db";
+import { getAllDealsPublic } from "@/lib/deals-public";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 
 export const OPTIONS = corsPreflight;
 
-// Cache 60s (egress Supabase, voir memoire project_conventions_techniques).
+// La mise en cache reelle vient du niveau donnee (voir memoire
+// project_conventions_techniques 2026-08-13).
 export const dynamic = "force-static";
 export const revalidate = 60;
 
@@ -22,7 +23,7 @@ export async function GET() {
   const [destGroups, airports, allDeals] = await Promise.all([
     getDestinations(),
     getActiveAirports(),
-    getAll("deals"),
+    getAllDealsPublic(),
   ]);
   const activeIatas = new Set(airports.map((a) => a.iata));
 

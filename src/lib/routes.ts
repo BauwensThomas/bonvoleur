@@ -2,6 +2,7 @@
 // avec la table `routes` de la base. La base AUGMENTE/écrase par slug (contenu +
 // photo générés). Tolérant : si la table est absente, on garde le codé en dur.
 
+import { unstable_cache } from "next/cache";
 import { getAll } from "./db";
 import { seoRoutes, slugify, type SeoRoute } from "./seo-routes";
 import { ROUTE_CONTENT, type RouteContent } from "./route-content";
@@ -59,7 +60,7 @@ function fromDbRow(r: Route): FullRoute {
   };
 }
 
-export async function getRoutes(): Promise<FullRoute[]> {
+async function fetchRoutes(): Promise<FullRoute[]> {
   const map = hardcodedBase();
   try {
     const rows = await getAll("routes");
@@ -80,6 +81,23 @@ export async function getRoutes(): Promise<FullRoute[]> {
     // table `routes` absente ou Supabase indispo : on garde le codé en dur
   }
   return [...map.values()];
+}
+
+// Mise en cache au niveau DONNÉE (pas juste au niveau page/route) : marche
+// pour TOUT appelant (pages ISR, routes API mobile, page fiche destination
+// même si force-dynamic à cause de la session) - contrairement à
+// `export const revalidate` sur une route.ts, qui s'est avéré ne pas cacher
+// les appels Supabase malgré plusieurs tentatives (voir memoire
+// project_conventions_techniques, 2026-08-13). Long filet de sécurité (1h),
+// le vrai rafraîchissement vient de revalidateTag("destinations") appelé à
+// chaque écriture réelle dans `routes` (revalidate-destinations.ts).
+const getCachedRoutes = unstable_cache(fetchRoutes, ["routes-full"], {
+  tags: ["destinations"],
+  revalidate: 3600,
+});
+
+export async function getRoutes(): Promise<FullRoute[]> {
+  return getCachedRoutes();
 }
 
 export async function getRoute(slug: string): Promise<FullRoute | undefined> {
