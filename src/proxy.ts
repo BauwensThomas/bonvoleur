@@ -26,8 +26,7 @@ export async function proxy(req: NextRequest) {
       pathname === "/acces" ||
       pathname === "/api/acces" ||
       pathname.startsWith("/auth/") ||
-      pathname === "/api/billing/webhook" || // appelé par Stripe (hors session)
-      pathname.startsWith("/api/cron/"); // crons Vercel (protégés par CRON_SECRET)
+      pathname === "/api/billing/webhook"; // appelé par Stripe (hors session)
     const hasGate = req.cookies.get(GATE_COOKIE)?.value === gatePass;
     if (!isGatePath && !hasGate) {
       if (pathname.startsWith("/api/")) {
@@ -109,8 +108,13 @@ async function refreshMemberSession(req: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  // Tout le site, sauf les assets internes et les fichiers SEO publics.
+  // Tout le site, sauf les assets internes, les fichiers SEO publics, et les
+  // routes /api/mobile|push|cron/** : jeton bearer ou secret partage propre a
+  // chaque route, jamais de session cookie - le rafraichissement de session
+  // ci-dessus ne leur sert a rien, ne fait que gaspiller un appel Supabase
+  // Auth par requete ET empeche ces routes d'etre mises en cache (voir
+  // memoire project_conventions_techniques, 2026-08-13).
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|llms.txt).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|llms.txt|api/mobile|api/push|api/cron).*)",
   ],
 };
