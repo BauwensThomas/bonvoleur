@@ -4,6 +4,9 @@ import { withCors, corsPreflight } from "@/lib/mobile-cors";
 
 export const OPTIONS = corsPreflight;
 
+// Cache 60s (egress Supabase, voir memoire project_conventions_techniques).
+export const revalidate = 60;
+
 // Partenaires actifs (app mobile) - equivalent de la section "Nos partenaires
 // voyage" de la homepage (src/components/Partners.tsx). Public, pas d'auth.
 export async function GET() {

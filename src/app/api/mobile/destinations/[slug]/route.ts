@@ -8,6 +8,9 @@ import { withCors, corsPreflight } from "@/lib/mobile-cors";
 
 export const OPTIONS = corsPreflight;
 
+// Cache 60s (egress Supabase, voir memoire project_conventions_techniques).
+export const revalidate = 60;
+
 // Preuve sociale par aeroport (deal frais cette semaine) - meme regle que
 // proofFor() dans src/app/vols-pas-chers/[route]/page.tsx.
 // Matche par VILLE de destination (pas par code IATA) : une ville comme Rome

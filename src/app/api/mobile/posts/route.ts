@@ -4,6 +4,9 @@ import { withCors, corsPreflight } from "@/lib/mobile-cors";
 
 export const OPTIONS = corsPreflight;
 
+// Cache 60s (egress Supabase, voir memoire project_conventions_techniques).
+export const revalidate = 60;
+
 // Liste des articles publies (app mobile) - equivalent de /blog sur le site
 // web. Public : contenu deja indexable, pas d'auth necessaire.
 export async function GET() {

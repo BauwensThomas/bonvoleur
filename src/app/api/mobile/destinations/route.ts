@@ -7,6 +7,11 @@ import { withCors, corsPreflight } from "@/lib/mobile-cors";
 
 export const OPTIONS = corsPreflight;
 
+// Public, pas d'auth : cache 60s cote Vercel plutot qu'un rechargement complet
+// de deals+routes a chaque appel (l'app rappelle cette route tres souvent -
+// egress Supabase, voir memoire project_conventions_techniques, 2026-08-13).
+export const revalidate = 60;
+
 // Liste des destinations (app mobile) - equivalent de /vols-pas-chers sur le
 // site web. Groupe par ville d'arrivee (pas par couple origine-destination),
 // meme logique que la page hub (getDestinations()). Public, pas d'auth.

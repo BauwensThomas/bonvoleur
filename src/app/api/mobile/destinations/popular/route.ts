@@ -7,6 +7,9 @@ import { withCors, corsPreflight } from "@/lib/mobile-cors";
 
 export const OPTIONS = corsPreflight;
 
+// Cache 60s (egress Supabase, voir memoire project_conventions_techniques).
+export const revalidate = 60;
+
 const FEATURED = 8;
 
 // "Destinations populaires" (app mobile) - equivalent de la section homepage
