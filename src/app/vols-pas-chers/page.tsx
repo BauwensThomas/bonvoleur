@@ -8,11 +8,14 @@ import { getDestinations } from "@/lib/routes";
 import { getAdsEnabled, getSeoOverride } from "@/lib/settings";
 import { SEO_PAGE_DEFAULTS } from "@/lib/seo-page-defaults";
 
-// ISR (comme l'accueil) : pas de donnee par visiteur sur cette page, un
-// re-chargement complet de la base a chaque visite (force-dynamic) etait
-// inutile et pesait lourd sur l'egress Supabase (routes = 1,16 Mo/appel,
-// voir memoire project_conventions_techniques - trouve le 2026-08-13).
-export const revalidate = 60;
+// ISR longue duree : cette page ne depend QUE des destinations (images,
+// villes) - pas des deals en direct (contrairement aux routes API mobile
+// equivalentes) - donc rien ne change entre deux modifications reelles d'une
+// fiche. Le vrai rafraichissement vient de revalidateDestinations() (appele
+// a chaque ecriture reelle dans `routes` - image/photos/intro), cette valeur
+// n'est qu'un filet de securite si un appel d'invalidation est un jour
+// manque. Voir memoire project_conventions_techniques (2026-08-13).
+export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
   const [title, description] = await Promise.all([

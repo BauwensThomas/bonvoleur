@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAll, update } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { destinationSlug } from "@/lib/routes";
+import { revalidateDestinations } from "@/lib/revalidate-destinations";
 
 // Met à jour la photo d'une destination : applique image_url à toutes les
 // routes (origine-destination) de cette ville.
@@ -32,5 +34,6 @@ export async function PUT(req: Request) {
   for (const r of rows) {
     await update("routes", r.id, { image_url: imageUrl, image_credit: imageCredit, updated_at: now });
   }
+  revalidateDestinations(destinationSlug(rows[0].destination_city));
   return NextResponse.json({ ok: true, updated: rows.length });
 }

@@ -344,6 +344,22 @@ console.log(
     `${deferred} reportée(s) au prochain run (plafond ${MAX_NEW}/run).`
 );
 
+// Invalide le cache des pages destinations (sinon le cache long ne verrait
+// ces nouvelles/mises à jour fiches qu'à la prochaine expiration, voir
+// src/lib/revalidate-destinations.ts) - seulement si quelque chose a changé.
+if (generated > 0 && env.ADMIN_TOKEN) {
+  try {
+    const res = await fetch("https://www.bonvoleur.com/api/admin/revalidate-destinations", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${env.ADMIN_TOKEN}`, "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    console.log(res.ok ? "Cache des destinations invalidé." : `Invalidation du cache échouée (HTTP ${res.status}).`);
+  } catch (e) {
+    console.log(`(invalidation du cache échouée: ${e?.message ?? e})`);
+  }
+}
+
 // Journalise le run dans agent_runs -> visible dans l'historique des agents (admin).
 try {
   await fetch(`${SB}/rest/v1/agent_runs`, {

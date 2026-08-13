@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAll, update } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { destinationSlug } from "@/lib/routes";
+import { revalidateDestinations } from "@/lib/revalidate-destinations";
 
 // Met à jour la galerie (photos JSONB) d'une destination : applique à toutes les
 // routes (origine-destination) de cette ville.
@@ -26,5 +28,6 @@ export async function PUT(req: Request) {
   for (const r of rows) {
     await update("routes", r.id, { photos, updated_at: now });
   }
+  revalidateDestinations(destinationSlug(rows[0].destination_city));
   return NextResponse.json({ ok: true, updated: rows.length });
 }

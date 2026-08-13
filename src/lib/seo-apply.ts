@@ -14,9 +14,11 @@
 //   voir SEO-AUTOMATION.md.
 import "server-only";
 
+import { revalidatePath } from "next/cache";
 import { getAll, findOne, update } from "./db";
 import { classifyPage, pageSlug } from "./seo-opportunities";
 import { destinationSlug } from "./routes";
+import { revalidateDestinations } from "./revalidate-destinations";
 import { submitSitemap } from "./gsc";
 import { setSeoOverride, type SeoOverrideField } from "./settings";
 import { site } from "./site";
@@ -38,6 +40,8 @@ export async function applySeoSuggestion(s: SeoSuggestion): Promise<ApplyResult>
     if (!post) return { applied: false, note: "Article de blog introuvable (slug non trouvé)." };
     const field = s.suggestion_type === "title" ? "title" : "meta_description";
     await update("posts", post.id, { [field]: s.proposed_value });
+    revalidatePath(`/blog/${slug}`);
+    revalidatePath("/blog");
     await submitSitemap(GSC_SITE_URL, `${site.canonicalBase}/sitemap.xml`);
     return { applied: true, note: `Champ "${field}" mis à jour sur l'article, sitemap re-signalé à Google.` };
   }
@@ -54,6 +58,7 @@ export async function applySeoSuggestion(s: SeoSuggestion): Promise<ApplyResult>
     for (const r of matches) {
       await update("routes", r.id, { intro: s.proposed_value });
     }
+    revalidateDestinations(slug);
     await submitSitemap(GSC_SITE_URL, `${site.canonicalBase}/sitemap.xml`);
     return {
       applied: true,
@@ -77,6 +82,7 @@ export async function applySeoSuggestion(s: SeoSuggestion): Promise<ApplyResult>
     }
     const field: SeoOverrideField = s.suggestion_type === "title" ? "title" : "meta_description";
     await setSeoOverride(path, field, s.proposed_value);
+    revalidatePath(path);
     await submitSitemap(GSC_SITE_URL, `${site.canonicalBase}/sitemap.xml`);
     return {
       applied: true,
