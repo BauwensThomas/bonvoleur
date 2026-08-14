@@ -10,7 +10,7 @@ export default async function Partners() {
   if (partners.length === 0) return null;
 
   return (
-    <section className="border-t border-slate-200 bg-slate-50">
+    <section className="border-t border-slate-200 bg-white">
       <div className="mx-auto max-w-7xl px-4 py-16">
         <h2 className="text-center text-3xl font-bold tracking-tight">
           Nos partenaires voyage

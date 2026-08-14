@@ -8,8 +8,10 @@ import DealCard from "@/components/DealCard";
 import Partners from "@/components/Partners";
 import HeroCinematic from "@/components/HeroCinematic";
 import SummerPromoPopup from "@/components/SummerPromoPopup";
+import AppAnnouncePopup from "@/components/AppAnnouncePopup";
 import DestinationsGrid from "@/components/DestinationsGrid";
 import NeedsSignupBanner from "@/components/NeedsSignupBanner";
+import AppPromoSection from "@/components/AppPromoSection";
 import { site } from "@/lib/site";
 import { getHomepageDeals } from "@/lib/homepage";
 import { getActiveAirports } from "@/lib/airports";
@@ -194,6 +196,7 @@ export default async function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }} />
       <Header />
       <SummerPromoPopup />
+      <AppAnnouncePopup />
 
       <main>
         {/* ── Hero cinématique 3D ── */}
@@ -476,7 +479,7 @@ export default async function Home() {
         {/* ── Avis clients ── */}
         {reviewStats.total > 0 && (
           <section className="border-t border-slate-200 bg-white">
-            <div className="mx-auto max-w-4xl px-4 py-20 text-center">
+            <div className="mx-auto max-w-7xl px-4 py-20 text-center">
               <h2 className="text-3xl font-bold tracking-tight">Ce qu&apos;ils en pensent</h2>
               <div className="mt-4 flex items-center justify-center gap-2">
                 <span className="text-2xl font-bold text-slate-900 tabular-nums">
@@ -494,13 +497,13 @@ export default async function Home() {
                 </span>
               </div>
               {reviewStats.latest.length > 0 && (
-                <div className="mx-auto mt-10 flex max-w-xl flex-wrap justify-center gap-6 text-left">
+                <div className="mt-10 flex flex-wrap justify-center gap-6 text-left">
                   {reviewStats.latest.map((r) => {
                     const tier = subscriberTierById.get(r.subscriber_id);
                     return (
                       <div
                         key={r.id}
-                        className="flex w-[calc(50%-0.75rem)] flex-col rounded-2xl border border-slate-200 bg-slate-50 p-5"
+                        className="flex w-full flex-col rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)]"
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-amber-500" aria-hidden>
@@ -536,6 +539,8 @@ export default async function Home() {
             </div>
           </section>
         )}
+
+        <AppPromoSection />
 
         <Suspense fallback={null}>
           <Partners />

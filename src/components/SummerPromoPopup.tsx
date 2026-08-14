@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { claimPopupSlot } from "@/lib/popupSlot";
 
 const TS_KEY = "promo_ete2026_ts";
 const PROMO_CODE = "ETE2026";
 const EXPIRY = new Date("2026-09-01");
-const INTERVAL_MS = 24 * 60 * 60 * 1000; // 24h
+const INTERVAL_MS = 3 * 24 * 60 * 60 * 1000; // 3 jours
 
 export default function SummerPromoPopup() {
   const [visible, setVisible] = useState(false);
@@ -14,20 +15,25 @@ export default function SummerPromoPopup() {
   useEffect(() => {
     if (new Date() >= EXPIRY) return;
 
-    // Verifie si on a deja affiche dans les dernieres 24h.
+    // Verifie si on a deja affiche dans les 3 derniers jours.
     const last = parseInt(localStorage.getItem(TS_KEY) ?? "0", 10);
     if (Date.now() - last < INTERVAL_MS) return;
 
-    // Verifie cote serveur si l'utilisateur est deja premium.
+    const reveal = () => {
+      if (!claimPopupSlot()) return;
+      setVisible(true);
+    };
+
+    // Verifie cote serveur si l'utilisateur est deja premium (seul cas exclu).
     fetch("/api/me")
       .then((r) => r.json())
       .then(({ tier }: { tier: string }) => {
         if (tier === "premium") return;
-        setTimeout(() => setVisible(true), 2500);
+        setTimeout(reveal, 2500);
       })
       .catch(() => {
         // En cas d'erreur reseau, on affiche quand meme.
-        setTimeout(() => setVisible(true), 2500);
+        setTimeout(reveal, 2500);
       });
   }, []);
 

@@ -20,11 +20,10 @@ export const site = {
   // vraiment qu'une fois la fiche Play Store publiée, mais aucun changement
   // de code ne sera nécessaire à ce moment-là.
   playStoreUrl: "https://play.google.com/store/apps/details?id=com.bonvoleur.app",
-  // Passer a true une fois la fiche Play Store realement en ligne (revue
-  // Google terminee) - controle a la fois le popup hebdo et la mention app
-  // dans le footer email, pour ne rien montrer d'actif tant que le lien
-  // Play Store repond encore en 404.
-  appPublished: false,
+  // Controle le popup hebdo et la mention app dans le footer email. Passe a
+  // true le 14/08 (fiche Play Store deja en ligne en test ferme meme si la
+  // publication complete n'est pas terminee - lien deja fonctionnel).
+  appPublished: true,
   // Infos légales (mentions + CGV). A COMPLETER : `bce` dès l'obtention du
   // numéro d'entreprise (guichet d'entreprises). TVA : régime de la franchise
   // (< 25 000 € de CA/an) => pas de numéro de TVA, mention "TVA non applicable".
