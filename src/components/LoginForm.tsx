@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { createSupabaseBrowser } from "@/lib/supabase/client";
+import PasswordInput from "@/components/PasswordInput";
 
-// Connexion abonné : « Continuer avec Google » + magic link par email.
+// Connexion abonné : « Continuer avec Google » + email/mot de passe.
 // Session longue gérée par Supabase ; l'utilisateur ne se reconnecte pas à
 // chaque visite.
 export default function LoginForm({ next }: { next?: string } = {}) {
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,6 +18,7 @@ export default function LoginForm({ next }: { next?: string } = {}) {
     typeof window !== "undefined"
       ? `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`
       : undefined;
+  const forgotPasswordHref = `/mot-de-passe-oublie${next ? `?next=${encodeURIComponent(next)}` : ""}`;
 
   async function google() {
     setError(null);
@@ -27,25 +29,28 @@ export default function LoginForm({ next }: { next?: string } = {}) {
     if (error) setError(error.message);
   }
 
-  async function magicLink(e: React.FormEvent) {
+  async function login(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setBusy(true);
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
-      options: { emailRedirectTo: redirectTo },
+      password,
     });
     setBusy(false);
-    if (error) setError(error.message);
-    else setSent(true);
+    if (error) {
+      setError(error.message === "Invalid login credentials" ? "invalid" : error.message);
+      return;
+    }
+    window.location.href = next || "/compte";
   }
 
   return (
     <div className="mx-auto mt-10 max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
       <h1 className="text-2xl font-bold">Connexion</h1>
       <p className="mt-1 text-sm text-slate-600">
-        Connecte-toi pour accéder à tes bons plans : avec Google, ou reçois un
-        lien de connexion par email.
+        Connecte-toi pour accéder à tes bons plans : avec Google, ou avec ton
+        email et ton mot de passe.
       </p>
 
       <button
@@ -79,32 +84,54 @@ export default function LoginForm({ next }: { next?: string } = {}) {
         <span className="h-px flex-1 bg-slate-200" />
       </div>
 
-      {sent ? (
-        <p className="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          Lien de connexion envoyé à <strong>{email}</strong>. Ouvre ton email et
-          clique le lien. (Pense à vérifier les spams.)
+      <form onSubmit={login} className="space-y-3">
+        <input
+          type="email"
+          name="email"
+          id="member-email"
+          required
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="ton@email.com"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+        />
+        <PasswordInput
+          name="password"
+          id="member-password"
+          required
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Ton mot de passe"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+        />
+        <div className="text-right">
+          <a href={forgotPasswordHref} className="text-xs text-brand hover:underline">
+            Mot de passe oublié ?
+          </a>
+        </div>
+        <button
+          type="submit"
+          disabled={busy}
+          className="w-full rounded-lg bg-brand px-4 py-2.5 font-semibold text-white hover:bg-brand-dark disabled:opacity-60"
+        >
+          {busy ? "Connexion..." : "Me connecter"}
+        </button>
+      </form>
+
+      {error === "invalid" ? (
+        <p className="mt-3 text-sm text-red-600">
+          Email ou mot de passe incorrect. Si tu t&apos;es inscrit avec
+          Google, utilise le bouton Google ci-dessus - sinon clique sur{" "}
+          <a href={forgotPasswordHref} className="underline">
+            Mot de passe oublié
+          </a>{" "}
+          pour en définir un.
         </p>
       ) : (
-        <form onSubmit={magicLink} className="space-y-3">
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="ton@email.com"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
-          />
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full rounded-lg bg-brand px-4 py-2.5 font-semibold text-white hover:bg-brand-dark disabled:opacity-60"
-          >
-            {busy ? "Envoi..." : "Recevoir mon lien de connexion"}
-          </button>
-        </form>
+        error && <p className="mt-3 text-sm text-red-600">{error}</p>
       )}
-
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
     </div>
   );
 }

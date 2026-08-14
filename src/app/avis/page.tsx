@@ -50,18 +50,6 @@ export default async function Avis({
     ) : (
       <ReviewForm initialRating={validRating} />
     );
-  } else if (member.status === "unconfirmed") {
-    content = (
-      <>
-        <h1 className="text-2xl font-bold">Confirme ton inscription</h1>
-        <p className="mt-3 text-slate-600">
-          Ton inscription n&apos;est pas encore confirmée. Ouvre l&apos;email
-          de confirmation qu&apos;on t&apos;a envoyé à{" "}
-          <strong>{member.email}</strong> et clique sur le lien avant de
-          pouvoir laisser un avis.
-        </p>
-      </>
-    );
   } else {
     content = (
       <>

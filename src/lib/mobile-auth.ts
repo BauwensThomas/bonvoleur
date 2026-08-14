@@ -1,6 +1,6 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
-import { resolveMemberState, type MemberState } from "@/lib/member-auth";
+import { resolveMemberState, type MemberState, type AuthUserMetadata } from "@/lib/member-auth";
 
 // Authentification pour l'app mobile : un jeton d'accès Supabase envoyé dans
 // l'en-tête "Authorization: Bearer <token>" (pas de cookie côté mobile).
@@ -30,7 +30,7 @@ export async function getMobileMemberState(req: Request): Promise<MemberState> {
 
   try {
     const { data: { user } } = await anonClient().auth.getUser(token);
-    return resolveMemberState(user?.email);
+    return resolveMemberState(user?.email, user?.user_metadata as AuthUserMetadata | undefined);
   } catch {
     return { status: "anonymous" };
   }

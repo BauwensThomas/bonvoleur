@@ -3,7 +3,6 @@ import { requireAdmin } from "@/lib/auth";
 import { sendEmail } from "@/lib/email";
 import {
   welcomeEmail,
-  confirmEmail,
   unsubscribeLinkEmail,
   unsubscribeEmail,
   accountDeletedEmail,
@@ -17,7 +16,6 @@ import { site } from "@/lib/site";
 const TO = site.email; // contact@bonvoleur.com
 
 const FAKE_UNSUB = `${site.url}/desinscription?email=test%40test.com&token=fake-token`;
-const FAKE_CONFIRM = `${site.url}/confirmer?email=test%40test.com&token=fake-token`;
 const FAKE_ACCOUNT = `${site.url}/compte`;
 
 const FAKE_DEAL = {
@@ -75,7 +73,6 @@ export async function POST(req: Request) {
   }
 
   await send("1. Bienvenue", welcomeEmail(TO, FAKE_UNSUB));
-  await send("2. Confirmation inscription", confirmEmail(TO, FAKE_CONFIRM));
   await send("3. Demande desinscription", unsubscribeLinkEmail(TO, FAKE_UNSUB));
   await send("4. Desinscription confirmee", unsubscribeEmail(TO));
   await send("5. Suppression de compte", accountDeletedEmail(TO));

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PreferencesForm from "@/components/PreferencesForm";
+import PasswordChangeForm from "@/components/PasswordChangeForm";
 import DeleteAccountButton from "@/components/DeleteAccountButton";
 import { getMemberState } from "@/lib/member-auth";
 import { getActiveAirports, getAirportName } from "@/lib/airports";
@@ -71,6 +72,14 @@ export default async function Preferences() {
             initialFrequency={initialFrequency}
             initialNewsletter={!unsubscribed && member.subscriber.newsletter !== false}
           />
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="font-semibold text-slate-900">Mot de passe</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Choisis un nouveau mot de passe pour te connecter.
+          </p>
+          <PasswordChangeForm />
         </div>
 
         {/* Zone de danger : suppression définitive du compte. */}

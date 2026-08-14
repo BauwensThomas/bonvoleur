@@ -1,32 +1,89 @@
 import "server-only";
+import { randomUUID } from "crypto";
 import { createSupabaseServer } from "@/lib/supabase/server";
-import { findOne, update } from "@/lib/db";
+import { findOne, insert, update } from "@/lib/db";
+import { sendEmail } from "@/lib/email";
+import { welcomeEmail } from "@/lib/email-templates";
+import { unsubscribeUrl } from "@/lib/unsubscribe";
 import type { Subscriber, Tier } from "@/lib/types";
 
 export type MemberState =
   | { status: "anonymous" }
   | { status: "no-account"; email: string }
-  | { status: "unconfirmed"; email: string }
   | { status: "member"; email: string; tier: Tier; subscriber: Subscriber };
+
+// Métadonnées Supabase Auth qu'on peut connaître pour un email (voir
+// SignupForm.tsx, étape 1 : l'aéroport est stocké dans user_metadata au
+// moment du signUp(), avant même que l'email soit confirmé).
+export interface AuthUserMetadata {
+  home_airport?: string;
+}
 
 // Résout le MemberState à partir d'un email déjà authentifié par Supabase Auth
 // (peu importe la source : cookie web ou jeton bearer mobile). Seule logique
 // de dérivation du tier - partagée par getMemberState() (web) et
 // src/lib/mobile-auth.ts (app mobile) pour ne jamais avoir deux versions qui
 // divergent.
+//
+// Crée et/ou confirme automatiquement l'abonné dès qu'on arrive ici : les 2
+// seuls appelants de cette fonction ne passent JAMAIS un email qui n'a pas
+// déjà été vérifié par Supabase Auth (Google ou mot de passe + clic de
+// confirmation) - donc atteindre ce point est en soi une preuve d'identité
+// plus forte que l'ancien double opt-in maison (jeton dans un email).
 export async function resolveMemberState(
-  email: string | null | undefined
+  email: string | null | undefined,
+  metadata?: AuthUserMetadata
 ): Promise<MemberState> {
   const e = email?.toLowerCase();
   if (!e) return { status: "anonymous" };
 
-  const sub = await findOne("subscribers", (s) => s.email.toLowerCase() === e);
-  // Pas d'abonné -> doit s'inscrire.
-  if (!sub) return { status: "no-account", email: e };
-  // Inscrit mais double opt-in non validé -> doit confirmer par email d'abord.
-  if (!sub.consent_at) return { status: "unconfirmed", email: e };
-  // NB : `unsubscribed_at` (emails coupés) ne bloque PAS l'accès au compte :
-  // l'abonné garde son espace et son premium, il a juste arrêté les emails.
+  let sub = await findOne("subscribers", (s) => s.email.toLowerCase() === e);
+
+  if (!sub) {
+    const airport = metadata?.home_airport?.trim().toUpperCase();
+    // Pas d'aéroport connu (parcours Google, qui n'en fournit jamais) -> doit
+    // passer par /compte/finaliser pour le choisir.
+    if (!airport) return { status: "no-account", email: e };
+
+    // Parcours mot de passe : l'aéroport a été donné dès l'étape 1 du
+    // formulaire d'inscription (user_metadata), et l'email vient d'être
+    // vérifié par le clic de confirmation -> création + confirmation
+    // immédiates, aucun écran intermédiaire.
+    await insert("subscribers", {
+      email: e,
+      tier: "free",
+      home_airports: [airport],
+      unsubscribe_token: randomUUID(),
+      consent_at: new Date().toISOString(),
+      unsubscribed_at: null,
+      referrer_id: null,
+    });
+    sub = await findOne("subscribers", (s) => s.email.toLowerCase() === e);
+    if (!sub) return { status: "no-account", email: e }; // ne devrait jamais arriver
+    try {
+      await sendEmail(welcomeEmail(e, unsubscribeUrl(e, sub.unsubscribe_token)));
+    } catch (err) {
+      console.error("[resolveMemberState] envoi bienvenue échoué:", err);
+    }
+  } else if (!sub.consent_at) {
+    // Compte créé via l'ancien formulaire newsletter (avant le passage au
+    // mot de passe), jamais confirmé. Arriver ici authentifié suffit à le
+    // confirmer maintenant plutôt que de bloquer sur un ancien lien de
+    // confirmation par email peut-être perdu/supprimé.
+    const now = new Date().toISOString();
+    await update("subscribers", sub.id, { consent_at: now });
+    sub = { ...sub, consent_at: now };
+    try {
+      await sendEmail(welcomeEmail(e, unsubscribeUrl(e, sub.unsubscribe_token)));
+    } catch (err) {
+      console.error("[resolveMemberState] envoi bienvenue échoué:", err);
+    }
+  }
+  // NB : write non-atomique (pas de garde "WHERE consent_at IS NULL" côté
+  // appli) - dans le pire cas (deux onglets/web+app simultanés), l'email de
+  // bienvenue pourrait partir deux fois. Sans gravité, même famille de race
+  // condition déjà tolérée par le garde-fou "course" de l'ancien
+  // /api/member/finalize.
 
   let tier: Tier = sub.tier === "premium" ? "premium" : "free";
 
@@ -50,8 +107,6 @@ export async function resolveMemberState(
 //   de cookie), donc impossible de forger une session.
 // - le tier (gratuit/premium) vient TOUJOURS de la base (table subscribers),
 //   jamais de l'URL : un gratuit ne peut pas voir le premium en bricolant le lien.
-// - on NE crée PAS de compte ici : si l'email connecté n'est pas déjà abonné,
-//   on renvoie « no-account » pour rediriger vers l'inscription.
 export async function getMemberState(): Promise<MemberState> {
   const supabase = await createSupabaseServer();
 
@@ -69,5 +124,8 @@ export async function getMemberState(): Promise<MemberState> {
     user = null;
   }
 
-  return resolveMemberState(user?.email);
+  return resolveMemberState(
+    user?.email,
+    user?.user_metadata as AuthUserMetadata | undefined
+  );
 }

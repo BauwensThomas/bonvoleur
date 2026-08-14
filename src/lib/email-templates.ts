@@ -18,6 +18,7 @@ const ICON_BASE =
   "https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand";
 export const IG_LOGO = `<img src="${ICON_BASE}/instagram.png" width="16" height="16" alt="" style="vertical-align:middle;margin-right:5px;" />`;
 export const FB_LOGO = `<img src="${ICON_BASE}/facebook.png" width="16" height="16" alt="" style="vertical-align:middle;margin-right:5px;" />`;
+export const PLAYSTORE_LOGO = `<img src="${ICON_BASE}/playstore.png" width="16" height="16" alt="" style="vertical-align:middle;margin-right:5px;" />`;
 
 const LOGO_URL =
   "https://hdzzfhjnjcblcejcpnkw.supabase.co/storage/v1/object/public/photos/brand/logo.png";
@@ -75,6 +76,7 @@ export function emailLayout(
             <a href="${site.social.instagram}" style="${LINK}margin-right:20px;">${IG_LOGO}Instagram</a>
             <a href="${site.social.facebook}" style="${LINK}">${FB_LOGO}Facebook</a>
           </p>
+          ${site.appPublished ? `<p style="margin:14px 0 0;"><a href="${site.playStoreUrl}" style="${LINK}font-size:13px;">${PLAYSTORE_LOGO}Télécharge l'app BonVoleur sur Google Play</a></p>` : ""}
         </td></tr>
 
         <!-- FOOTER 2 : legal + desabonnement -->
@@ -142,33 +144,6 @@ Se désinscrire : ${unsubscribeUrl}`;
     text,
     replyTo: site.email,
     listUnsubscribe: unsubscribeUrl,
-  };
-}
-
-export function confirmEmail(to: string, confirmUrl: string): EmailMessage {
-  const hero = emailHero(
-    "#f0fdf4",
-    `<p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.06em;">Presque fini</p>
-     <p style="margin:0;font-size:24px;font-weight:800;color:#14532d;line-height:1.2;">Confirme ton inscription.</p>`,
-  );
-
-  const body = emailContent(
-    `<p style="margin:0 0 8px;color:#475569;">Encore une étape : clique sur le bouton ci-dessous pour confirmer ton inscription à ${site.name} et commencer à recevoir les bons plans de vols.</p>
-     ${ctaButton("Confirmer mon inscription", confirmUrl, "#16a34a")}
-     <p style="margin:20px 0 0;font-size:13px;color:#94a3b8;text-align:center;">Si tu n'es pas à l'origine de cette demande, ignore simplement cet email.</p>`,
-  );
-
-  const text = `Confirme ton inscription à ${site.name}.
-Clique sur ce lien pour confirmer : ${confirmUrl}
-
-Si tu n'es pas à l'origine de cette demande, ignore cet email.`;
-
-  return {
-    to,
-    subject: `Confirme ton inscription à ${site.name}`,
-    html: emailLayout(hero + body),
-    text,
-    replyTo: site.email,
   };
 }
 

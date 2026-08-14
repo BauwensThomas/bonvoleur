@@ -12,7 +12,6 @@ import { destinationSlug } from "@/lib/routes";
 import { destinationRegion, REGION_ORDER } from "@/lib/destinations";
 import CompteControls from "@/components/CompteControls";
 import PromoCodeInput from "@/components/PromoCodeInput";
-import ResendConfirmationForm from "@/components/ResendConfirmationForm";
 import { formatDealDates } from "@/lib/dates";
 import { getAdsEnabled } from "@/lib/settings";
 import { AD_SLOTS } from "@/lib/ads";
@@ -65,7 +64,7 @@ export default async function Compte({
     from?: string;
     to?: string;
     auth_error?: string;
-    resend?: string;
+    existing?: string;
     upgraded?: string;
     billing_error?: string;
   }>;
@@ -85,6 +84,14 @@ export default async function Compte({
               La connexion a échoué ou le lien a expiré. Réessaie.
             </p>
           )}
+          {sp.existing === "1" && (
+            <p className="mx-auto max-w-md rounded-lg bg-blue-50 px-4 py-3 text-center text-sm text-blue-800">
+              Un compte existe déjà avec cet email. Connecte-toi avec Google
+              si tu l&apos;as utilisé à l&apos;inscription, ou clique sur
+              « Mot de passe oublié » ci-dessous si tu n&apos;as pas encore de
+              mot de passe.
+            </p>
+          )}
           <LoginForm />
         </main>
         <Footer />
@@ -96,41 +103,6 @@ export default async function Compte({
   if (member.status === "no-account") {
     redirect("/compte/finaliser");
   }
-  // Inscrit mais inscription non confirmée (double opt-in) : pas d'accès tant
-  // que le lien de confirmation n'a pas été cliqué.
-  if (member.status === "unconfirmed") {
-    return (
-      <>
-        <Header />
-        <main className="mx-auto w-full max-w-7xl px-4 py-12">
-          <div className="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <h1 className="text-2xl font-bold">Confirme ton inscription</h1>
-            <p className="mt-3 text-slate-600">
-              Ton inscription n&apos;est pas encore confirmée. Ouvre l&apos;email
-              de confirmation qu&apos;on t&apos;a envoyé à{" "}
-              <strong>{member.email}</strong> et clique sur le lien. (Pense à
-              vérifier les spams.)
-            </p>
-
-            <div className="mt-6">
-              <ResendConfirmationForm email={member.email} />
-            </div>
-
-            <form action="/auth/logout" method="post" className="mt-6">
-              <button
-                type="submit"
-                className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-brand hover:text-brand"
-              >
-                Se déconnecter
-              </button>
-            </form>
-          </div>
-        </main>
-        <Footer />
-      </>
-    );
-  }
-
   const tier = member.tier;
   const origin = sp.origin ?? "";
   const destination = sp.destination ?? "";

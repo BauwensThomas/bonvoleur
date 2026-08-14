@@ -8,10 +8,3 @@ export function unsubscribeUrl(email: string, token: string): string {
   const t = encodeURIComponent(token);
   return `${site.url}/desinscription?email=${e}&token=${t}`;
 }
-
-// Lien de confirmation d'inscription (double opt-in), signé par le même jeton.
-export function confirmUrl(email: string, token: string): string {
-  const e = encodeURIComponent(email);
-  const t = encodeURIComponent(token);
-  return `${site.url}/confirmer?email=${e}&token=${t}`;
-}

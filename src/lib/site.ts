@@ -16,6 +16,15 @@ export const site = {
     instagram: "https://www.instagram.com/bonvoleur",
     facebook: "https://www.facebook.com/profile.php?id=61590940048347",
   },
+  // Lien déterministe (basé sur le package Android, fixe) : ne fonctionnera
+  // vraiment qu'une fois la fiche Play Store publiée, mais aucun changement
+  // de code ne sera nécessaire à ce moment-là.
+  playStoreUrl: "https://play.google.com/store/apps/details?id=com.bonvoleur.app",
+  // Passer a true une fois la fiche Play Store realement en ligne (revue
+  // Google terminee) - controle a la fois le popup hebdo et la mention app
+  // dans le footer email, pour ne rien montrer d'actif tant que le lien
+  // Play Store repond encore en 404.
+  appPublished: false,
   // Infos légales (mentions + CGV). A COMPLETER : `bce` dès l'obtention du
   // numéro d'entreprise (guichet d'entreprises). TVA : régime de la franchise
   // (< 25 000 € de CA/an) => pas de numéro de TVA, mention "TVA non applicable".

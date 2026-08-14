@@ -11,6 +11,46 @@ function admin() {
   );
 }
 
+export interface OrphanAuthUser {
+  id: string;
+  email: string;
+  created_at: string;
+  last_sign_in_at: string | null;
+}
+
+// Liste les comptes auth.users qui n'ont AUCUNE ligne correspondante dans
+// `subscribers` - typiquement quelqu'un qui s'est connecté (Google/lien
+// magique, ce qui crée le compte auth immédiatement) mais a abandonné avant
+// de finir /compte/finaliser (choix d'aéroport + consentement), qui est le
+// seul endroit où la ligne `subscribers` est créée. Invisible autrement,
+// aucune page n'existe pour lister les comptes auth bruts.
+export async function listOrphanAuthUsers(
+  subscriberEmails: Set<string>
+): Promise<OrphanAuthUser[]> {
+  const sb = admin();
+  const orphans: OrphanAuthUser[] = [];
+  for (let page = 1; page <= 50; page++) {
+    const { data, error } = await sb.auth.admin.listUsers({
+      page,
+      perPage: 200,
+    });
+    if (error || !data?.users?.length) break;
+    for (const u of data.users) {
+      const email = u.email?.toLowerCase();
+      if (email && !subscriberEmails.has(email)) {
+        orphans.push({
+          id: u.id,
+          email: u.email!,
+          created_at: u.created_at,
+          last_sign_in_at: u.last_sign_in_at ?? null,
+        });
+      }
+    }
+    if (data.users.length < 200) break;
+  }
+  return orphans;
+}
+
 // Supprime le compte d'authentification (auth.users) correspondant à un email.
 // Utilisé à la suppression d'un abonné en admin -> erasure complète (RGPD).
 export async function deleteAuthUserByEmail(email: string): Promise<boolean> {
