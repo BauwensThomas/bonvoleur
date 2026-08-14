@@ -73,8 +73,15 @@ export default function LoginScreen() {
             <Text style={styles.subtitle}>
               On vient d&apos;envoyer un lien de connexion à {email.trim()}. Ouvre-le depuis ce téléphone.
             </Text>
-            <Pressable onPress={() => setSent(false)}>
-              <Text style={styles.link}>Renvoyer ou changer d&apos;email</Text>
+            <Pressable
+              style={styles.changeEmailButton}
+              onPress={() => {
+                setSent(false);
+                setEmail("");
+                setError(null);
+              }}
+            >
+              <Text style={styles.link}>← Changer d&apos;email</Text>
             </Pressable>
           </View>
         ) : (
@@ -241,11 +248,15 @@ const styles = StyleSheet.create({
   sentBox: {
     marginTop: 12,
   },
+  changeEmailButton: {
+    marginTop: 20,
+    paddingVertical: 10,
+    alignSelf: "flex-start",
+  },
   link: {
     color: "#0369a1",
     fontWeight: "700",
     fontSize: 14,
-    marginTop: 20,
   },
   footer: {
     marginTop: "auto",
