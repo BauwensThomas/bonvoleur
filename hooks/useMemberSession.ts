@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../lib/api";
 
 export interface MemberSession {
-  status: "member" | "anonymous" | "no-account" | "unconfirmed";
+  status: "member" | "anonymous" | "no-account";
   email: string | null;
   tier?: "free" | "premium";
   home_airports?: string[];
