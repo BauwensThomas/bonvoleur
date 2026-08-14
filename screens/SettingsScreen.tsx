@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View, Pressable, ScrollView } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View, Pressable, ScrollView, TextInput } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { Ionicons } from "@expo/vector-icons";
 import { AdsConsent } from "react-native-google-mobile-ads";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { API_BASE } from "../lib/api";
+import { supabase } from "../lib/supabase";
 import { useSession } from "../hooks/useSession";
 import { useMemberSession } from "../hooks/useMemberSession";
 import { useAirports } from "../hooks/useAirports";
@@ -39,6 +40,7 @@ export default function SettingsScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {session && <PreferencesSection />}
+        {session && <PasswordSection />}
 
         {LINKS.map((link) => (
           <Pressable
@@ -190,6 +192,64 @@ function PreferencesSection() {
   );
 }
 
+function PasswordSection() {
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  async function onSave() {
+    if (password !== passwordConfirm) {
+      setStatus("error");
+      setMessage("Les mots de passe ne correspondent pas.");
+      return;
+    }
+    setStatus("saving");
+    setMessage("");
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) {
+      setStatus("error");
+      setMessage(error.message);
+      return;
+    }
+    setStatus("saved");
+    setMessage("Mot de passe mis à jour.");
+    setPassword("");
+    setPasswordConfirm("");
+  }
+
+  return (
+    <View style={styles.prefsBox}>
+      <Text style={styles.sectionTitle}>Mot de passe</Text>
+      <Text style={styles.sectionHint}>Choisis un nouveau mot de passe pour te connecter.</Text>
+      <TextInput
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Nouveau mot de passe (8 caractères min.)"
+        placeholderTextColor="#94a3b8"
+        secureTextEntry
+        autoComplete="new-password"
+        style={styles.passwordInput}
+      />
+      <TextInput
+        value={passwordConfirm}
+        onChangeText={setPasswordConfirm}
+        placeholder="Confirme le mot de passe"
+        placeholderTextColor="#94a3b8"
+        secureTextEntry
+        autoComplete="new-password"
+        style={styles.passwordInput}
+      />
+      {password.length > 0 && passwordConfirm.length > 0 && (
+        <SaveButton busy={status === "saving"} onPress={onSave} />
+      )}
+      {message ? (
+        <Text style={status === "error" ? styles.errorText : styles.successText}>{message}</Text>
+      ) : null}
+    </View>
+  );
+}
+
 // Chaque cadre a son propre bouton, mais ils appellent tous le meme onSave()
 // (l'API /api/mobile/preferences remplace l'objet entier, pas de sauvegarde
 // partielle possible) - peu importe lequel est presse, tout est enregistre.
@@ -330,6 +390,17 @@ const styles = StyleSheet.create({
     color: "#15803d",
     fontSize: 12,
     marginTop: 12,
+  },
+  passwordInput: {
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: "#0f172a",
+    marginTop: 10,
   },
   saveButton: {
     backgroundColor: "#0ea5e9",
