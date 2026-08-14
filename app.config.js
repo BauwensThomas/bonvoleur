@@ -51,6 +51,18 @@ module.exports = {
       "expo-router",
       "expo-status-bar",
       [
+        "expo-build-properties",
+        {
+          // Le SDK AdMob (play-services-ads 25.4.0, via
+          // react-native-google-mobile-ads) est compile avec Kotlin 2.3.0 -
+          // le compilateur Kotlin par defaut d'Expo SDK 57 (2.1.0) ne peut
+          // pas lire ce format de metadonnees ("incompatible version of
+          // Kotlin"), ce qui fait echouer compileReleaseKotlin. Force la
+          // meme version que celle utilisee pour compiler le SDK AdMob.
+          android: { kotlinVersion: "2.3.0" },
+        },
+      ],
+      [
         "expo-splash-screen",
         {
           image: "./assets/splash-icon.png",
