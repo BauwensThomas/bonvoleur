@@ -51,6 +51,26 @@ export async function listOrphanAuthUsers(
   return orphans;
 }
 
+// Indique si un email a déjà un compte auth.users (peu importe le
+// fournisseur). Utilisé pour prévenir plus tôt dans le formulaire
+// d'inscription ("cet email existe déjà") plutôt que de laisser choisir un
+// mot de passe pour rien - Supabase ne propose pas cette vérification côté
+// client (anti-énumération), donc on la fait nous-mêmes côté serveur.
+export async function authUserExists(email: string): Promise<boolean> {
+  const sb = admin();
+  const target = email.toLowerCase();
+  for (let page = 1; page <= 50; page++) {
+    const { data, error } = await sb.auth.admin.listUsers({
+      page,
+      perPage: 200,
+    });
+    if (error || !data?.users?.length) break;
+    if (data.users.some((u) => u.email?.toLowerCase() === target)) return true;
+    if (data.users.length < 200) break;
+  }
+  return false;
+}
+
 // Supprime le compte d'authentification (auth.users) correspondant à un email.
 // Utilisé à la suppression d'un abonné en admin -> erasure complète (RGPD).
 export async function deleteAuthUserByEmail(email: string): Promise<boolean> {

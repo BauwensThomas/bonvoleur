@@ -28,6 +28,7 @@ export default function SignupForm({ airports }: { airports: AirportOption[] }) 
   const [homeAirport, setHomeAirport] = useState("");
   const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState(""); // honeypot anti-spam
+  const [checkingEmail, setCheckingEmail] = useState(false);
 
   useEffect(() => {
     // Chunk Supabase chargé uniquement quand le formulaire entre dans le viewport.
@@ -50,9 +51,31 @@ export default function SignupForm({ airports }: { airports: AirportOption[] }) 
     return () => obs.disconnect();
   }, []);
 
-  function goToPassword(e: FormEvent<HTMLFormElement>) {
+  async function goToPassword(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (website.trim() !== "") return; // honeypot rempli -> silencieux
+
+    // Verifie AVANT de demander un mot de passe si ce compte existe deja -
+    // evite de faire choisir un mot de passe pour rien. Si la verification
+    // echoue (reseau, etc.), on n'en fait pas un blocage : on avance quand
+    // meme, signUp() rattrapera le cas plus tard si besoin.
+    setCheckingEmail(true);
+    try {
+      const res = await fetch("/api/auth/check-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.exists) {
+        router.push("/compte?existing=1");
+        return;
+      }
+    } catch {
+      // silencieux, voir commentaire ci-dessus
+    } finally {
+      setCheckingEmail(false);
+    }
     setStep("password");
   }
 
@@ -213,9 +236,10 @@ export default function SignupForm({ airports }: { airports: AirportOption[] }) 
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-brand px-4 py-3 font-semibold text-white hover:bg-brand-dark transition-colors"
+            disabled={checkingEmail}
+            className="w-full rounded-lg bg-brand px-4 py-3 font-semibold text-white hover:bg-brand-dark transition-colors disabled:opacity-60"
           >
-            Continuer
+            {checkingEmail ? "Vérification..." : "Continuer"}
           </button>
 
           <p className="text-xs text-slate-500 text-center">
