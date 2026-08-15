@@ -5,10 +5,11 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDestination } from "../hooks/useDestination";
 import { useSession } from "../hooks/useSession";
+import { useMemberSession } from "../hooks/useMemberSession";
 import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
 import VersionFooter from "../components/VersionFooter";
-import BannerAdSlot from "../components/BannerAdSlot";
+import NativeAdCard from "../components/NativeAdCard";
 import PhotoLightbox from "../components/PhotoLightbox";
 
 // "Vole vers [Rome](https://...)" -> "Vole vers Rome" (retire juste le lien
@@ -26,6 +27,8 @@ export default function DestinationDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { session } = useSession();
+  const { result: memberSession } = useMemberSession();
+  const isPremium = memberSession?.tier === "premium";
   const { destination, loading, notFound, error, refresh } = useDestination(slug ?? "");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -112,6 +115,12 @@ export default function DestinationDetailScreen() {
             </View>
           )}
 
+          {!isPremium && (
+            <View style={styles.adSection}>
+              <NativeAdCard />
+            </View>
+          )}
+
           {destination.origins.filter((o) => o.weekCount === 1).length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Aéroports de départ</Text>
@@ -150,7 +159,6 @@ export default function DestinationDetailScreen() {
             </View>
           )}
 
-          <BannerAdSlot />
           <View style={{ paddingBottom: Math.max(insets.bottom, 12) }}>
             <VersionFooter safeArea={false} />
           </View>
@@ -195,6 +203,9 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   section: {
+    marginTop: 24,
+  },
+  adSection: {
     marginTop: 24,
   },
   gallery: {

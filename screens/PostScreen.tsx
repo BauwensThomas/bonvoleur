@@ -4,12 +4,23 @@ import Markdown from "react-native-markdown-display";
 import { useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePost } from "../hooks/usePost";
+import { useMemberSession } from "../hooks/useMemberSession";
 import { formatArticleDateLong } from "../lib/format";
 import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
 import PostCard from "../components/PostCard";
-import BannerAdSlot from "../components/BannerAdSlot";
+import NativeAdCard from "../components/NativeAdCard";
 import VersionFooter from "../components/VersionFooter";
+
+// Coupe le markdown au paragraphe le plus proche du milieu (pas au milieu
+// d'un mot/d'une ligne) pour inserer la pub entre deux sections, comme
+// l'emplacement "in-article" deja en place cote site web.
+function splitContentInHalf(content: string): [string, string] {
+  const paragraphs = content.split(/\n\n+/);
+  if (paragraphs.length < 2) return [content, ""];
+  const mid = Math.ceil(paragraphs.length / 2);
+  return [paragraphs.slice(0, mid).join("\n\n"), paragraphs.slice(mid).join("\n\n")];
+}
 
 // Article complet - equivalent mobile de /blog/[slug] sur le site web.
 // Contenu markdown (react-native-markdown-display, meme source que
@@ -18,6 +29,9 @@ export default function PostScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const insets = useSafeAreaInsets();
   const { post, loading, notFound, error, refresh } = usePost(slug ?? "");
+  const { result: memberSession } = useMemberSession();
+  const isPremium = memberSession?.tier === "premium";
+  const [firstHalf, secondHalf] = post ? splitContentInHalf(post.content) : ["", ""];
 
   return (
     <View style={styles.container}>
@@ -54,8 +68,20 @@ export default function PostScreen() {
           </Text>
 
           <View style={styles.markdown}>
-            <Markdown style={markdownStyles}>{post.content}</Markdown>
+            <Markdown style={markdownStyles}>{firstHalf}</Markdown>
           </View>
+
+          {!isPremium && secondHalf && (
+            <View style={styles.adSection}>
+              <NativeAdCard />
+            </View>
+          )}
+
+          {secondHalf && (
+            <View style={styles.markdown}>
+              <Markdown style={markdownStyles}>{secondHalf}</Markdown>
+            </View>
+          )}
 
           {post.faq.length > 0 && (
             <View style={styles.faqSection}>
@@ -80,7 +106,6 @@ export default function PostScreen() {
             </View>
           )}
 
-          <BannerAdSlot />
           <View style={{ paddingBottom: Math.max(insets.bottom, 12) }}>
             <VersionFooter safeArea={false} />
           </View>
@@ -128,6 +153,9 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   markdown: {
+    marginTop: 20,
+  },
+  adSection: {
     marginTop: 20,
   },
   sectionTitle: {
