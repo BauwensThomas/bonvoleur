@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { findOne, getAll } from "@/lib/db";
+import { getAllPostsCached, findPostCached } from "@/lib/posts-cache";
 import { site } from "@/lib/site";
 import { formatArticleDate } from "@/lib/dates";
 import { getAdsEnabled } from "@/lib/settings";
@@ -26,7 +26,7 @@ export async function generateStaticParams() {
   // Au build : si la DB n'est pas joignable (tables Supabase pas encore créées),
   // on ne génère aucune page statique plutôt que de planter le build.
   try {
-    const posts = await getAll("posts");
+    const posts = await getAllPostsCached();
     return posts
       .filter((p) => p.status === "published")
       .map((p) => ({ slug: p.slug }));
@@ -41,7 +41,7 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = await findOne("posts", (p) => p.slug === slug);
+  const post = await findPostCached((p) => p.slug === slug);
   if (!post) return { title: "Article introuvable" };
   return {
     title: post.meta_title ?? post.title,
@@ -63,12 +63,12 @@ export default async function BlogPost({
 }) {
   const { slug } = await params;
   const [post, adsEnabled] = await Promise.all([
-    findOne("posts", (p) => p.slug === slug),
+    findPostCached((p) => p.slug === slug),
     getAdsEnabled(),
   ]);
   if (!post || post.status !== "published") notFound();
 
-  const allPosts = (await getAll("posts"))
+  const allPosts = (await getAllPostsCached())
     .filter((p) => p.status === "published" && p.slug !== slug)
     .sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at));
   const titleWords = (post.title ?? "").toLowerCase().split(/\s+/).filter((w) => w.length > 4);

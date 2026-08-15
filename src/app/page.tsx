@@ -17,6 +17,7 @@ import { getHomepageDeals } from "@/lib/homepage";
 import { getActiveAirports } from "@/lib/airports";
 import { getDestinations, destinationSlug } from "@/lib/routes";
 import { getAll } from "@/lib/db";
+import { getAllPostsCached } from "@/lib/posts-cache";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { getReviewStats, formatRating } from "@/lib/reviews";
 import { formatArticleDate } from "@/lib/dates";
@@ -164,7 +165,7 @@ export default async function Home() {
   };
 
   // 3 derniers articles de blog publiés (+ total pour le bouton « voir tous »).
-  const publishedPosts = (await getAll("posts"))
+  const publishedPosts = (await getAllPostsCached())
     .filter((p) => p.status === "published")
     .sort((a, b) =>
       (b.published_at ?? b.created_at).localeCompare(

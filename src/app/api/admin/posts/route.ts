@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAll, insert, update, remove, findOne } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { rehostImage } from "@/lib/rehost";
+import { revalidatePosts } from "@/lib/revalidate-posts";
 
 // rehostImage fait un fetch + sharp + upload Supabase -> peut dépasser 10s
 export const maxDuration = 60;
@@ -64,6 +65,7 @@ export async function POST(req: Request) {
     published_at: status === "published" ? now : null,
     updated_at: now,
   });
+  revalidatePosts(slug);
   return NextResponse.json(row, { status: 201 });
 }
 
@@ -91,6 +93,7 @@ export async function PUT(req: Request) {
     }
     const row = await update("posts", id, patch);
     if (!row) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+    revalidatePosts(row.slug);
     return NextResponse.json(row);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -106,5 +109,6 @@ export async function DELETE(req: Request) {
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id requis." }, { status: 400 });
   const ok = await remove("posts", id);
+  revalidatePosts();
   return NextResponse.json({ ok });
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { findOne, getAll } from "@/lib/db";
+import { getAllPostsCached, findPostCached } from "@/lib/posts-cache";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 
 export const OPTIONS = corsPreflight;
@@ -25,12 +25,12 @@ function readingMinutes(content: string): number {
 // ici car le mobile n'a pas la liste complete des articles sous la main.
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = await findOne("posts", (p) => p.slug === slug);
+  const post = await findPostCached((p) => p.slug === slug);
   if (!post || post.status !== "published") {
     return withCors(NextResponse.json({ error: "Article introuvable" }, { status: 404 }));
   }
 
-  const allPosts = (await getAll("posts"))
+  const allPosts = (await getAllPostsCached())
     .filter((p) => p.status === "published" && p.slug !== slug)
     .sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at));
   const titleWords = (post.title ?? "").toLowerCase().split(/\s+/).filter((w) => w.length > 4);

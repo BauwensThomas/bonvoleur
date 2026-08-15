@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getAll } from "@/lib/db";
+import { getAllPostsCached } from "@/lib/posts-cache";
 import { site } from "@/lib/site";
 import { getDestinations, destinationSlug } from "@/lib/routes";
 
@@ -40,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let postPages: MetadataRoute.Sitemap = [];
   try {
-    const posts = await getAll("posts");
+    const posts = await getAllPostsCached();
     postPages = posts
       .filter((p) => p.status === "published")
       .map((p) => ({

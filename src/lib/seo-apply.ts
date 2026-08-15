@@ -19,6 +19,7 @@ import { getAll, findOne, update } from "./db";
 import { classifyPage, pageSlug } from "./seo-opportunities";
 import { destinationSlug } from "./routes";
 import { revalidateDestinations } from "./revalidate-destinations";
+import { revalidatePosts } from "./revalidate-posts";
 import { submitSitemap } from "./gsc";
 import { setSeoOverride, type SeoOverrideField } from "./settings";
 import { site } from "./site";
@@ -40,8 +41,7 @@ export async function applySeoSuggestion(s: SeoSuggestion): Promise<ApplyResult>
     if (!post) return { applied: false, note: "Article de blog introuvable (slug non trouvé)." };
     const field = s.suggestion_type === "title" ? "title" : "meta_description";
     await update("posts", post.id, { [field]: s.proposed_value });
-    revalidatePath(`/blog/${slug}`);
-    revalidatePath("/blog");
+    revalidatePosts(slug);
     await submitSitemap(GSC_SITE_URL, `${site.canonicalBase}/sitemap.xml`);
     return { applied: true, note: `Champ "${field}" mis à jour sur l'article, sitemap re-signalé à Google.` };
   }

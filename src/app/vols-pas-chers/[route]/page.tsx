@@ -8,6 +8,7 @@ import SummerPromoPopup from "@/components/SummerPromoPopup";
 import AirportDeals, { type AirportProof } from "@/components/AirportDeals";
 import GalleryLightbox from "@/components/GalleryLightbox";
 import { getAll } from "@/lib/db";
+import { getAllPostsCached } from "@/lib/posts-cache";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { DEFAULT_DEST_IMAGE } from "@/lib/destinations";
 import { formatArticleDate } from "@/lib/dates";
@@ -259,7 +260,7 @@ export default async function DestinationPage({
   // Maillage interne : toutes les autres destinations.
   const others = (await getDestinations()).filter((x) => x.slug !== dest.slug);
 
-  const allPosts = (await getAll("posts"))
+  const allPosts = (await getAllPostsCached())
     .filter((p) => p.status === "published")
     .sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at));
   const cityLower = dest.destCity.toLowerCase();

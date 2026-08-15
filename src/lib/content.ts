@@ -9,6 +9,7 @@ import { DESTINATIONS } from "./destinations";
 import { getDestinations } from "./routes";
 import { rehostImage } from "./rehost";
 import { notifySocial } from "./social";
+import { revalidatePosts } from "./revalidate-posts";
 import type { AgentRun, FaqItem } from "./types";
 
 async function getActiveAirportNames(): Promise<string[]> {
@@ -584,6 +585,7 @@ export async function runContentPublisher(
       published_at: now,
       updated_at: now,
     });
+    revalidatePosts(post.slug);
 
     // Réseaux sociaux : prévient Make (webhook) pour publier sur IG/FB.
     // Ne lève jamais -> ne bloque pas la publication de l'article.

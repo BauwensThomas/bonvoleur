@@ -3,7 +3,7 @@ import { Fragment } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { getAll } from "@/lib/db";
+import { getAllPostsCached } from "@/lib/posts-cache";
 import { formatArticleDate } from "@/lib/dates";
 import { getAdsEnabled, getSeoOverride } from "@/lib/settings";
 import { SEO_PAGE_DEFAULTS } from "@/lib/seo-page-defaults";
@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function BlogIndex() {
-  const [all, adsEnabled] = await Promise.all([getAll("posts"), getAdsEnabled()]);
+  const [all, adsEnabled] = await Promise.all([getAllPostsCached(), getAdsEnabled()]);
   const posts = all
     .filter((p) => p.status === "published")
     .sort((a, b) =>
