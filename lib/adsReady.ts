@@ -18,7 +18,14 @@ export function initAds(): Promise<void> {
       } catch {
         // Le consentement echoue rarement mais ne doit jamais bloquer l'app.
       }
-      await mobileAds().initialize();
+      try {
+        await mobileAds().initialize();
+      } catch {
+        // Idem : un echec ponctuel d'initialize() ne doit jamais rendre
+        // cette promesse partagee rejetee pour de bon (elle est memorisee en
+        // singleton - un seul echec bloquerait alors TOUTES les pubs de
+        // l'app pour toute la session, meme sur les ecrans qui marchaient).
+      }
     })();
   }
   return readyPromise;

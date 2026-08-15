@@ -20,9 +20,13 @@ export default function BannerAdSlot() {
 
   useEffect(() => {
     let cancelled = false;
-    initAds().then(() => {
-      if (!cancelled) setSdkReady(true);
-    });
+    initAds()
+      .then(() => {
+        if (!cancelled) setSdkReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) setSdkReady(true);
+      });
     return () => {
       cancelled = true;
     };
