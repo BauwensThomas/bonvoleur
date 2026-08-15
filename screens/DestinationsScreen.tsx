@@ -8,7 +8,6 @@ import ScreenHeader from "../components/ScreenHeader";
 import ScreenLoader from "../components/ScreenLoader";
 import DestinationCard from "../components/DestinationCard";
 import NativeAdCard from "../components/NativeAdCard";
-import BannerAdSlot from "../components/BannerAdSlot";
 import VersionFooter from "../components/VersionFooter";
 
 type Row =
@@ -119,7 +118,6 @@ export default function DestinationsScreen() {
       )}
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-        <BannerAdSlot />
         <VersionFooter safeArea={false} />
       </View>
     </View>
