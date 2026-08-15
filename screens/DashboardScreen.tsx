@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     marginHorizontal: 16,
     marginTop: 8,
-    marginBottom: 44,
+    marginBottom: 20,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "#fef08a",
