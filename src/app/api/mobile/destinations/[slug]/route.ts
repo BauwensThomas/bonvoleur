@@ -8,10 +8,16 @@ import { withCors, corsPreflight } from "@/lib/mobile-cors";
 
 export const OPTIONS = corsPreflight;
 
-// La mise en cache reelle vient du niveau donnee (voir memoire
-// project_conventions_techniques 2026-08-13).
-export const dynamic = "force-static";
-export const revalidate = 60;
+// PAS de dynamic="force-static" ici : contrairement aux routes soeurs
+// (destinations/route.ts, destinations/popular/route.ts, sans segment
+// dynamique), cette route lit params.slug - un segment dynamique par
+// requete. force-static + segment dynamique sans generateStaticParams fait
+// planter la route en production ("Dynamic server usage"), casse pour les
+// 119 destinations en meme temps (regression trouvee le 2026-08-15, laissee
+// par erreur lors du passage de la mise en cache au niveau donnee - voir
+// memoire project_conventions_techniques 2026-08-13). La mise en cache
+// reelle vient deja de unstable_cache dans getRoutes()/getAllDealsPublic(),
+// donc aucune config de cache n'est necessaire ici.
 
 // Preuve sociale par aeroport (deal frais cette semaine) - meme regle que
 // proofFor() dans src/app/vols-pas-chers/[route]/page.tsx.

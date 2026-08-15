@@ -4,9 +4,12 @@ import { withCors, corsPreflight } from "@/lib/mobile-cors";
 
 export const OPTIONS = corsPreflight;
 
-// Cache 60s (egress Supabase, voir memoire project_conventions_techniques).
-export const dynamic = "force-static";
-export const revalidate = 60;
+// PAS de dynamic="force-static" ici : cette route lit params.slug (segment
+// dynamique par requete) - force-static sans generateStaticParams fait
+// planter la route en production ("Dynamic server usage"), meme bug trouve
+// et corrige le 2026-08-15 sur destinations/[slug]/route.ts, casse ici
+// depuis l'ajout initial de ce cache (b50e5de) sans jamais avoir ete
+// remarque avant (regression jamais testee de bout en bout cote app).
 
 // Temps de lecture estime (~200 mots/minute) - meme regle que
 // src/app/blog/[slug]/page.tsx.
