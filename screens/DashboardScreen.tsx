@@ -74,14 +74,14 @@ export default function DashboardScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-          <Image source={require("../assets/plane-mark.png")} style={styles.brandMark} contentFit="contain" />
-          <Text style={styles.headerTitle}>
-            BonVoleur<Text style={styles.headerTitleAccent}>.com</Text>
-          </Text>
-        </View>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <Image source={require("../assets/plane-mark.png")} style={styles.brandMark} contentFit="contain" />
+        <Text style={styles.headerTitle}>
+          BonVoleur<Text style={styles.headerTitleAccent}>.com</Text>
+        </Text>
+      </View>
 
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.statsCard}>
           <View style={[styles.statCell, styles.statCellRight, styles.statCellBottom]}>
             <TileDecor icon="pricetag" color={STAT_DECOR_COLOR} variant="single" />
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     marginHorizontal: 16,
-    marginTop: 44,
+    marginTop: 16,
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
