@@ -22,6 +22,7 @@ import {
   signInWithGoogle,
 } from "../lib/auth";
 import { useAirports } from "../hooks/useAirports";
+import PasswordField from "../components/PasswordField";
 import VersionFooter from "../components/VersionFooter";
 
 type Step = "email" | "login-password" | "signup-airport" | "signup-password" | "sent";
@@ -199,12 +200,11 @@ export default function LoginScreen() {
                   <Text style={styles.link}>← Changer d&apos;email</Text>
                 </Pressable>
 
-                <TextInput
+                <PasswordField
                   value={password}
                   onChangeText={setPassword}
                   placeholder="Ton mot de passe"
                   placeholderTextColor="#94a3b8"
-                  secureTextEntry
                   autoComplete="current-password"
                   style={styles.input}
                 />
@@ -279,20 +279,18 @@ export default function LoginScreen() {
                 </Pressable>
 
                 <Text style={styles.fieldLabel}>Choisis un mot de passe</Text>
-                <TextInput
+                <PasswordField
                   value={password}
                   onChangeText={setPassword}
                   placeholder="8 caractères minimum"
                   placeholderTextColor="#94a3b8"
-                  secureTextEntry
                   autoComplete="new-password"
                   style={styles.input}
                 />
                 <Text style={styles.fieldLabel}>Confirme ton mot de passe</Text>
-                <TextInput
+                <PasswordField
                   value={passwordConfirm}
                   onChangeText={setPasswordConfirm}
-                  secureTextEntry
                   autoComplete="new-password"
                   style={styles.input}
                 />

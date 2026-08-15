@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View, Pressable, ScrollView, TextInput } from "react-native";
+import { ActivityIndicator, Alert, StyleSheet, Text, View, Pressable, ScrollView, TextInput } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { Ionicons } from "@expo/vector-icons";
-import { AdsConsent } from "react-native-google-mobile-ads";
+import { AdsConsent, AdsConsentPrivacyOptionsRequirementStatus } from "react-native-google-mobile-ads";
+import { initAds } from "../lib/adsReady";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { API_BASE } from "../lib/api";
 import { supabase } from "../lib/supabase";
 import { useSession } from "../hooks/useSession";
+import PasswordField from "../components/PasswordField";
 import { useMemberSession } from "../hooks/useMemberSession";
 import { useAirports } from "../hooks/useAirports";
 import { usePreferences, type EmailFrequency } from "../hooks/usePreferences";
@@ -29,6 +31,31 @@ const LINKS = [
   { label: "Conditions générales", path: "/conditions-generales" },
   { label: "Désinscription", path: "/desinscription" },
 ];
+
+// Le formulaire (UMP) ne peut s'afficher qu'apres que le consentement ait ete
+// recueilli au moins une fois (AdsConsent.requestInfoUpdate, fait dans
+// lib/adsReady.ts) - avant, showPrivacyOptionsForm() echoue silencieusement.
+// On distingue aussi le cas legitime "pas requis pour ce compte/region"
+// (hors UE/UK/Suisse) plutot que de laisser le bouton ne rien faire.
+async function openAdPreferences() {
+  try {
+    await initAds();
+    const info = await AdsConsent.getConsentInfo();
+    if (info.privacyOptionsRequirementStatus === AdsConsentPrivacyOptionsRequirementStatus.NOT_REQUIRED) {
+      Alert.alert(
+        "Préférences publicitaires",
+        "Aucun réglage supplémentaire n'est nécessaire : la réglementation applicable à ta région ne requiert pas de formulaire de consentement publicitaire.",
+      );
+      return;
+    }
+    await AdsConsent.showPrivacyOptionsForm();
+  } catch {
+    Alert.alert(
+      "Préférences publicitaires",
+      "Le formulaire n'a pas pu s'ouvrir. Vérifie ta connexion internet et réessaie.",
+    );
+  }
+}
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -55,10 +82,7 @@ export default function SettingsScreen() {
 
         {/* Exige par les regles Google (RGPD/UE) : l'utilisateur doit pouvoir
             revenir sur son choix de consentement pub a tout moment. */}
-        <Pressable
-          style={styles.row}
-          onPress={() => AdsConsent.showPrivacyOptionsForm().catch(() => {})}
-        >
+        <Pressable style={styles.row} onPress={openAdPreferences}>
           <Text style={styles.rowText}>Préférences publicitaires</Text>
           <Ionicons name="chevron-forward" size={18} color="#0369a1" />
         </Pressable>
@@ -222,21 +246,19 @@ function PasswordSection() {
     <View style={styles.prefsBox}>
       <Text style={styles.sectionTitle}>Mot de passe</Text>
       <Text style={styles.sectionHint}>Choisis un nouveau mot de passe pour te connecter.</Text>
-      <TextInput
+      <PasswordField
         value={password}
         onChangeText={setPassword}
         placeholder="Nouveau mot de passe (8 caractères min.)"
         placeholderTextColor="#94a3b8"
-        secureTextEntry
         autoComplete="new-password"
         style={styles.passwordInput}
       />
-      <TextInput
+      <PasswordField
         value={passwordConfirm}
         onChangeText={setPasswordConfirm}
         placeholder="Confirme le mot de passe"
         placeholderTextColor="#94a3b8"
-        secureTextEntry
         autoComplete="new-password"
         style={styles.passwordInput}
       />

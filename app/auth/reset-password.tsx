@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   Pressable,
   ActivityIndicator,
   StyleSheet,
@@ -11,6 +10,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
+import PasswordField from "../../components/PasswordField";
 
 // Point d'atterrissage du lien de reinitialisation envoye par email (deep
 // link bonvoleur://auth/reset-password?code=...) - distinct de
@@ -87,21 +87,19 @@ export default function ResetPassword() {
     >
       <Text style={styles.title}>Choisis un nouveau mot de passe</Text>
 
-      <TextInput
+      <PasswordField
         value={password}
         onChangeText={setPassword}
         placeholder="8 caractères minimum"
         placeholderTextColor="#94a3b8"
-        secureTextEntry
         autoComplete="new-password"
         style={styles.input}
       />
-      <TextInput
+      <PasswordField
         value={passwordConfirm}
         onChangeText={setPasswordConfirm}
         placeholder="Confirme le mot de passe"
         placeholderTextColor="#94a3b8"
-        secureTextEntry
         autoComplete="new-password"
         style={styles.input}
       />
