@@ -19,22 +19,25 @@ import * as Sentry from "@sentry/nextjs";
 // (fonctionnait en local, jamais en prod - le process local ne se gele
 // jamais). Attendre le flush explicitement dans le handler lui-meme
 // garantit l'envoi avant que la reponse ne parte.
-// Diagnostic temporaire (a retirer une fois la vraie cause confirmee) :
-// log le resultat REEL de captureException/flush dans les logs Vercel
-// (vercel logs, gratuit, pas besoin de redeployer pour les consulter) -
-// captureException renvoie un ID d'evenement (undefined = jamais accepte
-// par le SDK, ex. filtre/echantillonnage), flush() renvoie un booleen
-// (false = timeout atteint AVANT confirmation d'envoi reel).
+// Diagnostic confirme (logs Vercel, vercel logs -x) : Sentry.flush()
+// renvoyait false EN 0ms - pas un timeout reseau, `currentScopes.getClient()`
+// (@sentry/core) ne trouvait tout simplement AUCUN client dans ce contexte
+// precis (source exacte : node_modules/@sentry/core/.../exports.js, flush()
+// renvoie Promise.resolve(false) immediatement si client est undefined).
+// Fix : recuperer le client explicitement (Sentry.getClient()) et appeler
+// .flush() dessus directement, plutot que de compter sur la resolution
+// ambiante de scope (fragile dans le contexte imbrique cree par
+// wrapRouteHandlerWithSentry).
 export const GET = Sentry.wrapRouteHandlerWithSentry(
   async () => {
     const err = new Error("Erreur de test Sentry (côté serveur)");
-    const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
-    console.log("[sentry-diag] DSN present:", Boolean(dsn), "length:", dsn?.length ?? 0);
+    const client = Sentry.getClient();
+    console.log("[sentry-diag] client found:", Boolean(client));
     const eventId = Sentry.captureException(err);
     console.log("[sentry-diag] captureException eventId:", eventId);
     const start = Date.now();
-    const flushed = await Sentry.flush(8000);
-    console.log("[sentry-diag] flush() result:", flushed, "elapsed ms:", Date.now() - start);
+    const flushed = client ? await client.flush(8000) : false;
+    console.log("[sentry-diag] client.flush() result:", flushed, "elapsed ms:", Date.now() - start);
     throw err;
   },
   { method: "GET", parameterizedRoute: "/api/sentry-example-api" }
