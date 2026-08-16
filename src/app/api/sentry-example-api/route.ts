@@ -19,11 +19,21 @@ import * as Sentry from "@sentry/nextjs";
 // (fonctionnait en local, jamais en prod - le process local ne se gele
 // jamais). Attendre le flush explicitement dans le handler lui-meme
 // garantit l'envoi avant que la reponse ne parte.
+// Diagnostic temporaire (a retirer une fois la vraie cause confirmee) :
+// log le resultat REEL de captureException/flush dans les logs Vercel
+// (vercel logs, gratuit, pas besoin de redeployer pour les consulter) -
+// captureException renvoie un ID d'evenement (undefined = jamais accepte
+// par le SDK, ex. filtre/echantillonnage), flush() renvoie un booleen
+// (false = timeout atteint AVANT confirmation d'envoi reel).
 export const GET = Sentry.wrapRouteHandlerWithSentry(
   async () => {
     const err = new Error("Erreur de test Sentry (côté serveur)");
-    Sentry.captureException(err);
-    await Sentry.flush(2000);
+    const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
+    console.log("[sentry-diag] DSN present:", Boolean(dsn), "length:", dsn?.length ?? 0);
+    const eventId = Sentry.captureException(err);
+    console.log("[sentry-diag] captureException eventId:", eventId);
+    const flushed = await Sentry.flush(2000);
+    console.log("[sentry-diag] flush() result:", flushed);
     throw err;
   },
   { method: "GET", parameterizedRoute: "/api/sentry-example-api" }
