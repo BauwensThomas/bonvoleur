@@ -5,7 +5,9 @@
 // vu au premier essai de build : "not checked in to your repository").
 // En local (npm run web / dev client), le fichier existe physiquement dans
 // le dossier donc le chemin relatif marche directement.
-module.exports = {
+const { withSentry } = require("@sentry/react-native/expo");
+
+const config = {
   expo: {
     name: "BonVoleur",
     slug: "bonvoleur-app",
@@ -91,3 +93,14 @@ module.exports = {
     owner: "thozma",
   },
 };
+
+// Pas de authToken pour l'instant (pas d'upload de source maps/symboles de
+// debug automatique au build - meme choix que cote site web pour l'instant,
+// stack traces minifiees mais capture d'erreur deja fonctionnelle). A
+// ajouter plus tard (SENTRY_AUTH_TOKEN en secret EAS) si besoin de stack
+// traces lisibles.
+module.exports = withSentry(config, {
+  url: "https://sentry.io/",
+  project: "react-native",
+  organization: "bonvoleur",
+});

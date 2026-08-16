@@ -1,6 +1,9 @@
-const { getDefaultConfig } = require("expo/metro-config");
+const { getSentryExpoConfig } = require("@sentry/react-native/metro");
 
-const config = getDefaultConfig(__dirname);
+// getSentryExpoConfig enveloppe getDefaultConfig (expo/metro-config) - meme
+// config de base, avec en plus l'instrumentation Sentry necessaire au bon
+// fonctionnement du SDK (upload de source maps notamment).
+const config = getSentryExpoConfig(__dirname);
 
 // react-native-markdown-display -> markdown-it importe le module Node
 // "punycode" (deprecie, retire des versions recentes de markdown-it, mais

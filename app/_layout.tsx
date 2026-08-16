@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Stack, useRouter } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as Notifications from "expo-notifications";
+import * as Sentry from "@sentry/react-native";
 import { usePushRegistration } from "../hooks/usePushRegistration";
 import { initAds } from "../lib/adsReady";
 
@@ -16,7 +17,15 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export default function RootLayout() {
+// Meme service Sentry.io que le site web (projet separe "react-native"),
+// migre de GlitchTip le 2026-08-16. Init au niveau module (pas dans un
+// useEffect) pour capturer les erreurs le plus tot possible au demarrage.
+Sentry.init({
+  dsn: "https://c6f1e61d18e419397b8b8355d4d3e093@o4511919540469760.ingest.de.sentry.io/4511919941222480",
+  tracesSampleRate: 0.1,
+});
+
+function RootLayout() {
   const router = useRouter();
   usePushRegistration();
 
@@ -43,3 +52,7 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+// Sentry.wrap capture les erreurs de rendu (equivalent d'un error boundary)
+// + instrumente les transitions de navigation.
+export default Sentry.wrap(RootLayout);
