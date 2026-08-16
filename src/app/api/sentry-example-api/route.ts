@@ -10,9 +10,21 @@ import * as Sentry from "@sentry/nextjs";
 // manuel, une erreur non interceptee dans une route API n'arrive jamais
 // dans Sentry, meme avec onRequestError (qui ne couvre que Server
 // Components/middleware/proxies, pas les Route Handlers).
+//
+// Flush explicite AVANT de throw : vercelWaitUntil() (@sentry/core) ne
+// fait quoi que ce soit que pour le runtime Edge - pour une fonction
+// Node.js classique (notre cas), Sentry compte sur le fait que Node
+// attend la fin de toutes les promesses avant de geler la fonction, ce
+// qui n'est pas fiable en pratique sur l'infra serverless Vercel reelle
+// (fonctionnait en local, jamais en prod - le process local ne se gele
+// jamais). Attendre le flush explicitement dans le handler lui-meme
+// garantit l'envoi avant que la reponse ne parte.
 export const GET = Sentry.wrapRouteHandlerWithSentry(
   async () => {
-    throw new Error("Erreur de test Sentry (côté serveur)");
+    const err = new Error("Erreur de test Sentry (côté serveur)");
+    Sentry.captureException(err);
+    await Sentry.flush(2000);
+    throw err;
   },
   { method: "GET", parameterizedRoute: "/api/sentry-example-api" }
 );
