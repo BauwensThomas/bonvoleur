@@ -74,9 +74,21 @@ export async function rehostImage(
 
     await ensureBucket(client);
     const path = `${prefix}/${slugify(name)}.jpg`;
+    // Buffer Node passe en Blob explicite avant l'upload : bug connu de
+    // corruption binaire du client Supabase Storage en environnement
+    // serverless (Vercel) quand un Buffer brut est passe directement -
+    // https://github.com/supabase/supabase/issues/7252 et rapports
+    // similaires. Correspond exactement au symptome observe en prod ici
+    // (relecture plus grosse que l'original, cf. garde-fou plus bas,
+    // deja present depuis un episode anterieur du meme bug jamais corrige
+    // a la racine).
     const { error } = await client.storage
       .from("photos")
-      .upload(path, jpeg, { contentType: "image/jpeg", upsert: true, cacheControl: "31536000" });
+      .upload(path, new Blob([new Uint8Array(jpeg)], { type: "image/jpeg" }), {
+        contentType: "image/jpeg",
+        upsert: true,
+        cacheControl: "31536000",
+      });
     if (error) {
       console.warn("[rehost-diag] upload Supabase echoue:", error.message);
       return sourceUrl;
