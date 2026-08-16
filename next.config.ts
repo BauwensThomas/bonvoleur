@@ -14,7 +14,7 @@ const securityHeaders = [
       "img-src 'self' data: blob: *.supabase.co *.brandfetch.io *.bing.com *.bing.net th.bing.com *.avs.io *.travelpayouts.com *.unsplash.com play.google.com",
       // blob: requis pour Three.js (textures GLB chargées via createObjectURL)
       // Les evenements Sentry passent par notre propre tunnel same-origin
-      // (/api/sentry-tunnel, voir sentry.client.config.ts) - *.sentry.io
+      // (/api/sentry-tunnel, voir instrumentation-client.ts) - *.sentry.io
       // reste autorise en secours (session replay, cas non tunnellises).
       "connect-src 'self' blob: *.supabase.co va.vercel-scripts.com emrldtp.com *.emrldtp.com *.travelpayouts.com tp.media *.sentry.io *.ingest.de.sentry.io",
       // worker-src blob: pour le décodeur Draco de GLTFLoader (Three.js)
