@@ -4,6 +4,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as Notifications from "expo-notifications";
 import * as Sentry from "@sentry/react-native";
 import { usePushRegistration } from "../hooks/usePushRegistration";
+import { useInAppUpdate } from "../hooks/useInAppUpdate";
 import { initAds } from "../lib/adsReady";
 
 // Affiche l'alerte meme si l'app est au premier plan (comportement par
@@ -28,6 +29,7 @@ Sentry.init({
 function RootLayout() {
   const router = useRouter();
   usePushRegistration();
+  useInAppUpdate();
 
   useEffect(() => {
     // Lien profond minimal : taper sur une notification ouvre "Mes bons

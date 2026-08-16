@@ -31,10 +31,12 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
     "react-native-url-polyfill": "^4.0.0",
-    "react-native-web": "^0.21.2"
+    "react-native-web": "^0.21.2",
+    "sp-react-native-in-app-updates": "^2.0.0"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "babel-plugin-module-resolver": "^5.0.3",
     "typescript": "~6.0.3"
   },
   "scripts": {
