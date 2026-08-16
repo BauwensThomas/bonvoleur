@@ -125,8 +125,6 @@ export default function DashboardScreen() {
           ))}
         </View>
 
-        <BannerAdSlot />
-
         <Pressable style={styles.shareButton} onPress={shareApp}>
           <Ionicons name="share-social-outline" size={18} color="#15803d" />
           <Text style={styles.shareButtonText}>Partager</Text>
@@ -136,6 +134,8 @@ export default function DashboardScreen() {
           <Ionicons name="log-out-outline" size={18} color="#be123c" />
           <Text style={styles.logoutButtonText}>Déconnexion</Text>
         </Pressable>
+
+        <BannerAdSlot />
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
