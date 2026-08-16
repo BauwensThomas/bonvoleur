@@ -12,7 +12,7 @@ const config = {
     name: "BonVoleur",
     slug: "bonvoleur-app",
     scheme: "bonvoleur",
-    version: "1.2.3",
+    version: "1.2.4",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
