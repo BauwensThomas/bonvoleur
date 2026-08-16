@@ -13,11 +13,13 @@ const securityHeaders = [
       "font-src 'self' fonts.gstatic.com",
       "img-src 'self' data: blob: *.supabase.co *.brandfetch.io *.bing.com *.bing.net th.bing.com *.avs.io *.travelpayouts.com *.unsplash.com play.google.com",
       // blob: requis pour Three.js (textures GLB chargées via createObjectURL)
-      "connect-src 'self' blob: *.supabase.co va.vercel-scripts.com emrldtp.com *.emrldtp.com *.travelpayouts.com tp.media sentry.avs.io app.glitchtip.com",
+      // Les evenements Sentry passent par notre propre tunnel same-origin
+      // (/api/sentry-tunnel, voir sentry.client.config.ts) - *.sentry.io
+      // reste autorise en secours (session replay, cas non tunnellises).
+      "connect-src 'self' blob: *.supabase.co va.vercel-scripts.com emrldtp.com *.emrldtp.com *.travelpayouts.com tp.media *.sentry.io *.ingest.de.sentry.io",
       // worker-src blob: pour le décodeur Draco de GLTFLoader (Three.js)
       "worker-src 'self' blob:",
       "frame-ancestors 'self'",
-      "report-uri https://app.glitchtip.com/api/25318/security/?glitchtip_key=8752fa9253c74ca4952ccc58128734d7",
     ].join("; "),
   },
 ];
