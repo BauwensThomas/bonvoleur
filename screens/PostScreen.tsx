@@ -95,6 +95,12 @@ export default function PostScreen() {
             </View>
           )}
 
+          {!isPremium && (
+            <View style={styles.adSection}>
+              <NativeAdCard />
+            </View>
+          )}
+
           {post.related.length > 0 && (
             <View style={styles.relatedSection}>
               <Text style={styles.sectionTitle}>À lire aussi</Text>

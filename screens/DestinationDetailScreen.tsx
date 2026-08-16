@@ -147,6 +147,12 @@ export default function DestinationDetailScreen() {
             </View>
           )}
 
+          {!isPremium && (
+            <View style={styles.adSection}>
+              <NativeAdCard />
+            </View>
+          )}
+
           {destination.faq.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Questions fréquentes</Text>
