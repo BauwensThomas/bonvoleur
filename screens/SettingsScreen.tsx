@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, Text, View, Pressable, ScrollView, TextInput } from "react-native";
+import { ActivityIndicator, Alert, StyleSheet, Text, View, Pressable, ScrollView, TextInput, Linking } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { Ionicons } from "@expo/vector-icons";
 import { AdsConsent, AdsConsentPrivacyOptionsRequirementStatus } from "react-native-google-mobile-ads";
@@ -31,6 +31,10 @@ const LINKS = [
   { label: "Conditions générales", path: "/conditions-generales" },
   { label: "Désinscription", path: "/desinscription" },
 ];
+
+// Lien deterministe (base sur le package name), correct meme avant
+// publication - meme URL que le bouton "Partager" du Dashboard.
+const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.bonvoleur.app";
 
 // Le formulaire (UMP) ne peut s'afficher qu'apres que le consentement ait ete
 // recueilli au moins une fois (AdsConsent.requestInfoUpdate, fait dans
@@ -79,6 +83,11 @@ export default function SettingsScreen() {
             <Ionicons name="open-outline" size={18} color="#0369a1" />
           </Pressable>
         ))}
+
+        <Pressable style={styles.row} onPress={() => Linking.openURL(PLAY_STORE_URL)}>
+          <Text style={styles.rowText}>Noter l&apos;app sur le Play Store</Text>
+          <Ionicons name="logo-google-playstore" size={18} color="#0369a1" />
+        </Pressable>
 
         {/* Exige par les regles Google (RGPD/UE) : l'utilisateur doit pouvoir
             revenir sur son choix de consentement pub a tout moment. */}
