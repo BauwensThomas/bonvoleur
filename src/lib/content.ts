@@ -10,6 +10,7 @@ import { getDestinations } from "./routes";
 import { rehostImage } from "./rehost";
 import { notifySocial } from "./social";
 import { revalidatePosts } from "./revalidate-posts";
+import { getSetting, setSetting } from "./settings";
 import type { AgentRun, FaqItem } from "./types";
 
 async function getActiveAirportNames(): Promise<string[]> {
@@ -357,6 +358,30 @@ async function gatherFacts(topic: string): Promise<string> {
   }
 }
 
+// Garde-fou anti-doublon d'image de couverture d'article (retour
+// utilisateur 2026-08-16 : deux articles publiés avec exactement la même
+// photo). Mémorise les derniers IDs Unsplash utilisés dans site_settings
+// (même mécanisme clé/valeur que default_dest_image) - capé à 100 pour
+// rester utile sans grossir indéfiniment ni finir par bloquer toute photo
+// pour un sujet de niche qui revient après beaucoup d'articles.
+const USED_UNSPLASH_IDS_SETTING = "blog_used_unsplash_ids";
+const USED_UNSPLASH_IDS_MAX = 100;
+
+async function getUsedUnsplashIds(): Promise<string[]> {
+  try {
+    const raw = await getSetting(USED_UNSPLASH_IDS_SETTING);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function markUnsplashIdUsed(id: string): Promise<void> {
+  const used = await getUsedUnsplashIds();
+  const next = [...used, id].slice(-USED_UNSPLASH_IDS_MAX);
+  await setSetting(USED_UNSPLASH_IDS_SETTING, JSON.stringify(next));
+}
+
 // Photo d'illustration de l'article via Unsplash (URL + crédit photographe,
 // obligatoire par les conditions d'utilisation Unsplash). Renvoie null sans
 // clé ou en cas d'échec (l'article reste publiable sans image).
@@ -375,11 +400,18 @@ async function unsplashImage(query: string): Promise<{ url: string; credit: stri
       console.warn(`[unsplash] API ${res.status} pour "${query}"`);
       return null;
     }
-    const results = (await res.json())?.results ?? [];
-    if (!results.length) {
+    const allResults = (await res.json())?.results ?? [];
+    if (!allResults.length) {
       console.warn(`[unsplash] aucun résultat pour "${query}"`);
       return null;
     }
+    // Exclut les photos déjà utilisées récemment. Si TOUS les résultats de
+    // cette requête sont déjà passés (requête très pointue, peu de résultats
+    // Unsplash), on retombe sur le pool complet plutôt que d'échouer - mieux
+    // vaut un doublon rare qu'un article publié sans image.
+    const usedIds = new Set(await getUsedUnsplashIds());
+    const freshResults = allResults.filter((r: { id: string }) => !usedIds.has(r.id));
+    const results = freshResults.length > 0 ? freshResults : allResults;
     // Choisit aléatoirement parmi les résultats pour éviter les photos répétées
     const p = results[Math.floor(Math.random() * results.length)];
     if (p.links?.download_location) {
@@ -390,6 +422,7 @@ async function unsplashImage(query: string): Promise<{ url: string; credit: stri
     const url = p.urls?.regular ?? p.urls?.full ?? null;
     if (!url) return null;
     const credit = p.user?.name ? `${p.user.name} / Unsplash` : "Unsplash";
+    if (p.id) await markUnsplashIdUsed(p.id).catch(() => {});
     return { url, credit };
   } catch {
     return null;
