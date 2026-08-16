@@ -32,8 +32,9 @@ export const GET = Sentry.wrapRouteHandlerWithSentry(
     console.log("[sentry-diag] DSN present:", Boolean(dsn), "length:", dsn?.length ?? 0);
     const eventId = Sentry.captureException(err);
     console.log("[sentry-diag] captureException eventId:", eventId);
-    const flushed = await Sentry.flush(2000);
-    console.log("[sentry-diag] flush() result:", flushed);
+    const start = Date.now();
+    const flushed = await Sentry.flush(8000);
+    console.log("[sentry-diag] flush() result:", flushed, "elapsed ms:", Date.now() - start);
     throw err;
   },
   { method: "GET", parameterizedRoute: "/api/sentry-example-api" }
