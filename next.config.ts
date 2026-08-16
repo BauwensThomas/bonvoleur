@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
@@ -35,4 +36,16 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// withSentryConfig instrumente automatiquement les Route Handlers (route.ts)
+// pour capturer leurs erreurs non interceptees - onRequestError seul
+// (instrumentation.ts) ne couvre que Server Components/middleware/proxies,
+// pas les routes API (verifie via /api/sentry-example-api : l'erreur
+// n'arrivait jamais dans Sentry sans ce wrapper). Pas de authToken/upload
+// de source maps pour l'instant (pas indispensable, juste des stack traces
+// moins lisibles) - tunnelRoute pas utilise, on garde le tunnel manuel deja
+// en place et fonctionnel (/api/sentry-tunnel, voir instrumentation-client.ts).
+export default withSentryConfig(nextConfig, {
+  org: "bonvoleur",
+  project: "javascript-nextjs",
+  silent: true,
+});
