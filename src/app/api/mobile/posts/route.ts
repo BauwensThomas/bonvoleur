@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAllPostsCached } from "@/lib/posts-cache";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
@@ -11,6 +12,7 @@ export const revalidate = 60;
 // Liste des articles publies (app mobile) - equivalent de /blog sur le site
 // web. Public : contenu deja indexable, pas d'auth necessaire.
 export async function GET() {
+  trackMobileRequest("/api/mobile/posts");
   const posts = (await getAllPostsCached())
     .filter((p) => p.status === "published")
     .sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at))

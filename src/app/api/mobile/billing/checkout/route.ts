@@ -4,6 +4,7 @@ import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { stripe, priceIdFor, type Plan } from "@/lib/stripe";
 import { update } from "@/lib/db";
 import { site } from "@/lib/site";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
@@ -12,6 +13,7 @@ export const OPTIONS = corsPreflight;
 // authentifié par jeton bearer et renvoie l'URL Stripe en JSON (plutôt qu'une
 // redirection 303) : l'app l'ouvre elle-même dans le navigateur du téléphone.
 export async function POST(req: Request) {
+  trackMobileRequest("/api/mobile/billing/checkout");
   const state = await getMobileMemberState(req);
   if (state.status !== "member") {
     return withCors(NextResponse.json({ error: "Non autorisé" }, { status: 401 }));

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getMobileMemberState } from "@/lib/mobile-auth";
 import { getMemberDeals, type MemberFilters } from "@/lib/member-deals";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
@@ -9,6 +10,7 @@ export const OPTIONS = corsPreflight;
 // /compte (web). Réutilise getMemberDeals() : gating premium/freemium,
 // dédup par route, tout est déjà géré là-bas.
 export async function GET(req: Request) {
+  trackMobileRequest("/api/mobile/deals");
   const state = await getMobileMemberState(req);
   if (state.status !== "member") {
     return withCors(NextResponse.json({ error: "Non autorisé" }, { status: 401 }));

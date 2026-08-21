@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { getMobileMemberState } from "@/lib/mobile-auth";
 import { update } from "@/lib/db";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
 // Enregistre le jeton Expo Push du telephone (app mobile) sur l'abonne
 // connecte. Idempotent : rejouer avec le meme jeton ne duplique rien.
 export async function POST(req: Request) {
+  trackMobileRequest("/api/push/register");
   const state = await getMobileMemberState(req);
   if (state.status !== "member") {
     return withCors(NextResponse.json({ error: "Non autorisé" }, { status: 401 }));

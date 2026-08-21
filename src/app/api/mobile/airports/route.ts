@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getActiveAirports } from "@/lib/airports";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
@@ -12,6 +13,7 @@ export const revalidate = 60;
 // deals) - mêmes données déjà publiques (comptées dans /api/mobile/stats,
 // listées dans le sélecteur d'inscription du site). Pas d'auth nécessaire.
 export async function GET() {
+  trackMobileRequest("/api/mobile/airports");
   const airports = await getActiveAirports();
   return withCors(NextResponse.json({ airports }));
 }

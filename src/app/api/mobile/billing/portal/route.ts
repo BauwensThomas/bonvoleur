@@ -3,6 +3,7 @@ import { getMobileMemberState } from "@/lib/mobile-auth";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { stripe } from "@/lib/stripe";
 import { site } from "@/lib/site";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
@@ -10,6 +11,7 @@ export const OPTIONS = corsPreflight;
 // facturation Stripe (gestion/annulation/factures). Authentifié par jeton
 // bearer, renvoie l'URL en JSON pour que l'app l'ouvre dans le navigateur.
 export async function POST(req: Request) {
+  trackMobileRequest("/api/mobile/billing/portal");
   const state = await getMobileMemberState(req);
   if (state.status !== "member" || !state.subscriber.stripe_customer_id) {
     return withCors(NextResponse.json({ error: "Non autorisé" }, { status: 401 }));

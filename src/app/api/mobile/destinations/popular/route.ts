@@ -4,6 +4,7 @@ import { getActiveAirports } from "@/lib/airports";
 import { getAllDealsPublic } from "@/lib/deals-public";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
@@ -20,6 +21,7 @@ const FEATURED = 8;
 // surveilles. Meme algorithme reimplemente ici (page-local cote web, pas
 // exporte d'une lib partagee). Public, pas d'auth - meme contenu que la home.
 export async function GET() {
+  trackMobileRequest("/api/mobile/destinations/popular");
   const [destGroups, airports, allDeals] = await Promise.all([
     getDestinations(),
     getActiveAirports(),

@@ -4,6 +4,7 @@ import { sendEmail } from "@/lib/email";
 import { newReviewAlertEmail } from "@/lib/email-templates";
 import { getMobileMemberState } from "@/lib/mobile-auth";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
@@ -14,6 +15,7 @@ export const OPTIONS = corsPreflight;
 // propre avis, quel que soit son statut) pour que l'app sache si le
 // membre a deja laisse un avis et doive proposer le formulaire ou non.
 export async function GET(req: Request) {
+  trackMobileRequest("/api/mobile/reviews");
   const all = await getAll("reviews");
   const approved = all
     .filter((r) => r.status === "approved")
@@ -47,6 +49,7 @@ export async function GET(req: Request) {
 // remplacer son avis existant), l'app REFUSE si un avis existe deja pour cet
 // abonne (demande explicite : un seul avis par membre depuis l'app).
 export async function POST(req: Request) {
+  trackMobileRequest("/api/mobile/reviews");
   const state = await getMobileMemberState(req);
   if (state.status !== "member") {
     return withCors(NextResponse.json({ error: "Non autorisé" }, { status: 401 }));

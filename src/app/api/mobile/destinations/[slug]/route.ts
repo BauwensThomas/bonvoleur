@@ -5,6 +5,7 @@ import { getAllDealsPublic } from "@/lib/deals-public";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { site } from "@/lib/site";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
@@ -78,6 +79,7 @@ function faqFor(city: string, originCities: string[]) {
 // /vols-pas-chers/[route]. Public, pas d'auth. Une seule ville dessert
 // plusieurs aeroports de depart (origins), pas une route par couple.
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  trackMobileRequest("/api/mobile/destinations/[slug]");
   const { slug } = await params;
   const dest = await getDestination(slug);
   if (!dest) {

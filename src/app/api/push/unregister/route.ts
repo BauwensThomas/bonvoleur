@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getMobileMemberState } from "@/lib/mobile-auth";
 import { update } from "@/lib/db";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
@@ -9,6 +10,7 @@ export const OPTIONS = corsPreflight;
 // dans les Reglages) - evite de continuer a notifier un appareil qui ne veut
 // plus recevoir de push, ou un jeton devenu invalide apres deconnexion.
 export async function POST(req: Request) {
+  trackMobileRequest("/api/push/unregister");
   const state = await getMobileMemberState(req);
   if (state.status !== "member") {
     return withCors(NextResponse.json({ error: "Non autorisé" }, { status: 401 }));

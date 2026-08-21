@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAll } from "@/lib/db";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
@@ -11,6 +12,7 @@ export const revalidate = 60;
 // Partenaires actifs (app mobile) - equivalent de la section "Nos partenaires
 // voyage" de la homepage (src/components/Partners.tsx). Public, pas d'auth.
 export async function GET() {
+  trackMobileRequest("/api/mobile/partners");
   const partners = (await getAll("partners"))
     .filter((p) => p.is_active)
     .sort((a, b) => a.position - b.position)

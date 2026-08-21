@@ -4,6 +4,7 @@ import { getActiveAirportCodes } from "@/lib/airports";
 import { getAllDealsPublic } from "@/lib/deals-public";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
@@ -31,6 +32,7 @@ export const revalidate = 60;
 // codes differents (voire un code generique "ROM") selon le scrape - grouper
 // par IATA loupait de vrais deals recents (bug reel trouve le 2026-07-30).
 export async function GET() {
+  trackMobileRequest("/api/mobile/destinations");
   const activeIatas = await getActiveAirportCodes();
   const allDeals = await getAllDealsPublic();
 

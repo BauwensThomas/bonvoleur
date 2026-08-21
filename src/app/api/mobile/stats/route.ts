@@ -6,6 +6,7 @@ import { getDestinations } from "@/lib/routes";
 import { getReviewStats } from "@/lib/reviews";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
@@ -17,6 +18,7 @@ export const revalidate = 60;
 // la barre de stats de la homepage web (src/app/page.tsx). Pas d'auth : ce
 // sont les mêmes données déjà visibles publiquement sur bonvoleur.com.
 export async function GET() {
+  trackMobileRequest("/api/mobile/stats");
   const [{ liveCount }, airports, destGroups, reviewStats] = await Promise.all([
     getHomepageDeals(),
     getActiveAirports(),

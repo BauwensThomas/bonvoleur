@@ -7,6 +7,7 @@ import { sendEmail } from "@/lib/email";
 import { welcomeEmail } from "@/lib/email-templates";
 import { unsubscribeUrl } from "@/lib/unsubscribe";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
@@ -21,6 +22,7 @@ const schema = z.object({
 // encore abonne - demande aeroport + consentement, cree l'abonne. Email deja
 // verifie par le fournisseur -> pas de double opt-in, consent_at date direct.
 export async function POST(req: Request) {
+  trackMobileRequest("/api/mobile/finalize");
   const state = await getMobileMemberState(req);
 
   if (state.status !== "no-account") {

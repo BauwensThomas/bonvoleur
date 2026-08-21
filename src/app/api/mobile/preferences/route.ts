@@ -3,12 +3,14 @@ import { z } from "zod";
 import { getMobileMemberState } from "@/lib/mobile-auth";
 import { update } from "@/lib/db";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
+import { trackMobileRequest } from "@/lib/request-track";
 
 export const OPTIONS = corsPreflight;
 
 // Préférences de l'abonné connecté (app mobile) - équivalent bearer-token de
 // /api/member/preferences (web, cookie). Même règles de gating par tier.
 export async function GET(req: Request) {
+  trackMobileRequest("/api/mobile/preferences");
   const state = await getMobileMemberState(req);
   if (state.status !== "member") {
     return withCors(NextResponse.json({ error: "Non autorisé" }, { status: 401 }));
@@ -35,6 +37,7 @@ const schema = z.object({
 // touche pas à la table `sends`. Le changement s'applique au PROCHAIN envoi
 // programmé.
 export async function PATCH(req: Request) {
+  trackMobileRequest("/api/mobile/preferences");
   const state = await getMobileMemberState(req);
   if (state.status !== "member") {
     return withCors(NextResponse.json({ error: "Non autorisé" }, { status: 401 }));
