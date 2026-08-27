@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAllPostsCached, findPostCached } from "@/lib/posts-cache";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { trackMobileRequest } from "@/lib/request-track";
+import { mobileImageUrl } from "@/lib/mobile-image";
 
 export const OPTIONS = corsPreflight;
 
@@ -47,7 +48,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       slug: p.slug,
       title: p.title,
       excerpt: p.excerpt,
-      cover_image: p.cover_image,
+      cover_image: mobileImageUrl(p.cover_image, 384),
       published_at: p.published_at,
       created_at: p.created_at,
     }));
@@ -59,7 +60,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       content: post.content,
       excerpt: post.excerpt,
       author: post.author,
-      cover_image: post.cover_image,
+      cover_image: mobileImageUrl(post.cover_image, 1080),
       cover_image_credit: post.cover_image_credit,
       published_at: post.published_at,
       created_at: post.created_at,

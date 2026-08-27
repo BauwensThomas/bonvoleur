@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAllPostsCached } from "@/lib/posts-cache";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { trackMobileRequest } from "@/lib/request-track";
+import { mobileImageUrl } from "@/lib/mobile-image";
 
 export const OPTIONS = corsPreflight;
 
@@ -21,7 +22,7 @@ export async function GET() {
       slug: p.slug,
       title: p.title,
       excerpt: p.excerpt,
-      cover_image: p.cover_image,
+      cover_image: mobileImageUrl(p.cover_image, 640),
       published_at: p.published_at,
       created_at: p.created_at,
     }));

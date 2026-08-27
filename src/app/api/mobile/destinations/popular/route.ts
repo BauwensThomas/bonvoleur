@@ -5,6 +5,7 @@ import { getAllDealsPublic } from "@/lib/deals-public";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { trackMobileRequest } from "@/lib/request-track";
+import { mobileImageUrl } from "@/lib/mobile-image";
 
 export const OPTIONS = corsPreflight;
 
@@ -61,7 +62,7 @@ export async function GET() {
         a.destCity.localeCompare(b.destCity)
     )
     .slice(0, FEATURED)
-    .map((d) => ({ slug: d.slug, city: d.destCity, image: d.image }));
+    .map((d) => ({ slug: d.slug, city: d.destCity, image: mobileImageUrl(d.image, 384) }));
 
   return withCors(NextResponse.json({ destinations, totalDestinations: destGroups.length }));
 }

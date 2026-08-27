@@ -72,7 +72,11 @@ export async function POST(req: Request) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     const { data } = sb.storage.from("photos").getPublicUrl(path);
-    return NextResponse.json({ url: data.publicUrl });
+    // Chemin stable (upsert) + cache long cote optimiseur d'images (voir
+    // next.config.ts) : sans ce ?v=, remplacer une photo existante servirait
+    // l'ancienne version depuis le cache CDN pendant toute la duree du TTL.
+    // Meme pattern deja utilise par rehost.ts (content-publisher).
+    return NextResponse.json({ url: `${data.publicUrl}?v=${Date.now()}` });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }

@@ -5,6 +5,7 @@ import { getAllDealsPublic } from "@/lib/deals-public";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { trackMobileRequest } from "@/lib/request-track";
+import { mobileImageUrl } from "@/lib/mobile-image";
 
 export const OPTIONS = corsPreflight;
 
@@ -65,7 +66,7 @@ export async function GET() {
       destIata: d.destIata,
       destCity: d.destCity,
       region: d.region,
-      image: d.image,
+      image: mobileImageUrl(d.image, 640),
       originCount,
     };
   });

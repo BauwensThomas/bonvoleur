@@ -39,6 +39,15 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "hdzzfhjnjcblcejcpnkw.supabase.co" },
       { protocol: "https", hostname: "images.unsplash.com" },
     ],
+    // Ces photos ne changent jamais une fois publiees (une nouvelle route/
+    // un nouvel article = une nouvelle image, jamais un remplacement en
+    // place) - cache 1 an cote optimiseur au lieu des 60s par defaut. Les
+    // rares remplacements manuels (admin /admin/photos) restent surs : les 3
+    // points d'upload (rehost.ts, rehost-photo/route.ts, upload/route.ts)
+    // ajoutent tous un ?v=<timestamp> ou un nom de fichier unique, donc une
+    // photo remplacee obtient une URL differente et ne sert jamais l'ancien
+    // cache.
+    minimumCacheTTL: 31536000,
   },
   async headers() {
     return [

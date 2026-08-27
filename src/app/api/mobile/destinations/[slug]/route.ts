@@ -6,6 +6,7 @@ import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { site } from "@/lib/site";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { trackMobileRequest } from "@/lib/request-track";
+import { mobileImageUrl } from "@/lib/mobile-image";
 
 export const OPTIONS = corsPreflight;
 
@@ -108,9 +109,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       destIata: dest.destIata,
       destCity: dest.destCity,
       region: dest.region,
-      image: dest.image,
+      image: mobileImageUrl(dest.image, 1080),
       imageCredit: dest.imageCredit,
-      photos: dest.photos,
+      photos: dest.photos?.map((p) => ({ ...p, url: mobileImageUrl(p.url, 384) })),
       content: dest.content,
       origins,
       faq: faqFor(dest.destCity, origins.map((o) => o.originCity)),
