@@ -26,6 +26,20 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  images: {
+    // Egress Supabase (2026-08-27) : les photos de destinations/articles
+    // etaient jusqu'ici des hotlinks directs (<img>/background-image) vers
+    // Supabase Storage - chaque visite re-telechargeait l'original depuis
+    // Supabase, sans aucune couche de cache partagee entre visiteurs. En
+    // passant par next/image, Vercel ne va chercher l'original qu'UNE FOIS
+    // par taille/format puis sert son propre cache CDN a tout le monde
+    // ensuite - gratuit (inclus dans le plan Vercel existant), egress
+    // Supabase quasi supprime pour ces images.
+    remotePatterns: [
+      { protocol: "https", hostname: "hdzzfhjnjcblcejcpnkw.supabase.co" },
+      { protocol: "https", hostname: "images.unsplash.com" },
+    ],
+  },
   async headers() {
     return [
       {

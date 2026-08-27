@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 interface Photo {
   url: string;
@@ -31,12 +32,14 @@ export default function GalleryLightbox({ photos, city }: { photos: Photo[]; cit
             className="w-[38%] shrink-0 snap-start sm:w-full"
             aria-label={`Voir ${city} - photo ${i + 1}`}
           >
-            <div className="aspect-square w-full overflow-hidden rounded-xl">
-              <img
+            <div className="relative aspect-square w-full overflow-hidden rounded-xl">
+              <Image
                 src={p.url}
                 alt={i === 0 ? `Vols pas chers vers ${city}` : `${city} en photos - vue ${i}`}
+                fill
+                sizes="(max-width: 640px) 38vw, 20vw"
                 loading="lazy"
-                className="h-full w-full object-cover transition hover:opacity-90 hover:scale-[1.02]"
+                className="object-cover transition hover:opacity-90 hover:scale-[1.02]"
               />
             </div>
           </button>
@@ -52,9 +55,12 @@ export default function GalleryLightbox({ photos, city }: { photos: Photo[]; cit
             className="relative max-h-full max-w-4xl w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <img
+            <Image
               src={photos[open].url}
               alt={open === 0 ? `Vols pas chers vers ${city}` : `${city} en photos - vue ${open}`}
+              width={1200}
+              height={800}
+              sizes="(max-width: 896px) 100vw, 896px"
               className="max-h-[80vh] w-full rounded-xl object-contain"
             />
             {photos[open].credit && (

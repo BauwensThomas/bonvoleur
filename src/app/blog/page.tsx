@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fragment } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -65,10 +66,15 @@ export default async function BlogIndex() {
                   className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
                 >
                   {p.cover_image && (
-                    <div
-                      className="h-40 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                      style={{ backgroundImage: `url(${p.cover_image})` }}
-                    />
+                    <div className="relative h-40 overflow-hidden">
+                      <Image
+                        src={p.cover_image}
+                        alt=""
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 33vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
                   )}
                   <div className="flex flex-1 flex-col p-5">
                     <h2 className="text-lg font-semibold line-clamp-2 min-h-14">

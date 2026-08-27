@@ -1,5 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import Header from "@/components/Header";
@@ -315,9 +316,13 @@ export default async function DestinationPage({
         {/* Bannière : photo de la destination (dégradé de secours si absente) */}
         <div className="relative mt-3 overflow-hidden rounded-2xl bg-linear-to-br from-brand-dark to-brand">
           {image && (
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${image})` }}
+            <Image
+              src={image}
+              alt=""
+              fill
+              priority
+              sizes="(max-width: 1280px) 100vw, 1280px"
+              className="object-cover object-center"
             />
           )}
           <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/45 to-black/25" />
@@ -448,10 +453,15 @@ export default async function DestinationPage({
                   className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
                 >
                   {p.cover_image && (
-                    <div
-                      className="h-36 bg-cover bg-center"
-                      style={{ backgroundImage: `url(${p.cover_image})` }}
-                    />
+                    <div className="relative h-36">
+                      <Image
+                        src={p.cover_image}
+                        alt=""
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 33vw"
+                        className="object-cover"
+                      />
+                    </div>
                   )}
                   <div className="flex flex-1 flex-col p-4">
                     <p className="font-semibold text-slate-800 leading-snug line-clamp-2">{p.title}</p>

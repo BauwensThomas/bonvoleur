@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { discountPct } from "@/lib/site";
 import { destinationImage, DEFAULT_DEST_IMAGE } from "@/lib/destinations";
 import { formatDealDates } from "@/lib/dates";
@@ -42,8 +43,14 @@ export default function DealCard({
       <div className={`flex h-72 flex-col ${cardClass}`}>
         <div className="relative h-[70%] bg-linear-to-br from-brand-dark to-brand overflow-hidden">
           {img && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={img} alt={destination} width={400} height={200} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+            <Image
+              src={img}
+              alt={destination}
+              fill
+              loading="lazy"
+              sizes="(max-width: 640px) 100vw, 400px"
+              className="object-cover"
+            />
           )}
           <span className="absolute top-3 left-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-brand-dark">
             Bon plan
@@ -71,8 +78,14 @@ export default function DealCard({
     <div className={cardClass}>
       {img && (
         <div className="relative h-32 bg-slate-100 overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={img} alt={destination} width={400} height={128} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+          <Image
+            src={img}
+            alt={destination}
+            fill
+            loading="lazy"
+            sizes="(max-width: 640px) 100vw, 400px"
+            className="object-cover"
+          />
         </div>
       )}
       <div className="p-5">

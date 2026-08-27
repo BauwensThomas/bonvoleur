@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { DEFAULT_DEST_IMAGE } from "@/lib/destinations";
 import { AD_SLOTS } from "@/lib/ads";
@@ -43,15 +44,13 @@ export default function DestinationsGrid({
             href={`/vols-pas-chers/${d.slug}`}
             className="group relative block aspect-4/3 overflow-hidden rounded-2xl bg-slate-200 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={d.image ?? DEFAULT_DEST_IMAGE}
               alt=""
-              width={400}
-              height={300}
+              fill
               loading="lazy"
-              decoding="async"
-              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
             <span className="absolute bottom-3 left-4 text-lg font-bold text-white drop-shadow">

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -127,10 +128,16 @@ export default async function BlogPost({
         {/* En-tete : cadre avec la photo a gauche, titre + meta a cote. */}
         <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sm:flex">
           {post.cover_image && (
-            <div
-              className="min-h-60 w-full bg-cover bg-center sm:min-h-80 sm:w-1/2"
-              style={{ backgroundImage: `url(${post.cover_image})` }}
-            />
+            <div className="relative min-h-60 w-full sm:min-h-80 sm:w-1/2">
+              <Image
+                src={post.cover_image}
+                alt=""
+                fill
+                priority
+                sizes="(max-width: 640px) 100vw, 50vw"
+                className="object-cover"
+              />
+            </div>
           )}
           <div className="flex flex-col justify-center p-6 sm:w-1/2">
             <h1 className="text-2xl font-bold sm:text-3xl">{post.title}</h1>
@@ -221,10 +228,15 @@ export default async function BlogPost({
                   className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
                 >
                   {p.cover_image && (
-                    <div
-                      className="h-36 bg-cover bg-center"
-                      style={{ backgroundImage: `url(${p.cover_image})` }}
-                    />
+                    <div className="relative h-36">
+                      <Image
+                        src={p.cover_image}
+                        alt=""
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 33vw"
+                        className="object-cover"
+                      />
+                    </div>
                   )}
                   <div className="flex flex-1 flex-col p-4">
                     <h3 className="font-semibold leading-snug text-slate-800 line-clamp-2">{p.title}</h3>
