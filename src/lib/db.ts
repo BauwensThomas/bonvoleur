@@ -60,6 +60,43 @@ export async function getRecentDeals(days: number): Promise<Tables["deals"][]> {
   return (data ?? []) as Tables["deals"][];
 }
 
+// Signal public "y a-t-il un deal frais" (app mobile : listes destinations,
+// popular, weekCount) - ne sert jamais a afficher un deal individuel, juste a
+// calculer origin/destination/is_hot/dates/published_at/created_at. Query
+// etroite (colonnes + fenetre de fraicheur) au lieu de getAll("deals") en
+// entier : la table a grossi au point que le JSON complet (6800+ lignes,
+// toutes colonnes) depassait la limite de 2 Mo par entree du cache de
+// donnees Next.js (unstable_cache), faisant echouer /api/mobile/destinations
+// en silence (voir memoire project_conventions_techniques, 2026-08-27).
+// Meme regle de fraicheur que "verite premium" (published_at ?? created_at)
+// mais evaluee cote SQL plutot que redupliquee en JS. Pagine reellement
+// (comme getAll()) : sans ca, la fenetre de 5 jours (1300+ lignes en
+// pratique) se ferait quand meme tronquer au plafond serveur Supabase de
+// 1000 lignes - constate en verifiant ce fix (1333 lignes reelles, requete
+// simple n'en renvoyait que 1000).
+export async function getPublicFreshDeals(
+  days: number
+): Promise<Pick<Tables["deals"], "origin" | "destination" | "is_hot" | "published_at" | "created_at" | "dates">[]> {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const pageSize = 1000;
+  type Row = Pick<Tables["deals"], "origin" | "destination" | "is_hot" | "published_at" | "created_at" | "dates">;
+  const all: Row[] = [];
+  let offset = 0;
+  while (true) {
+    const { data, error } = await sb()
+      .from("deals")
+      .select("origin,destination,is_hot,published_at,created_at,dates")
+      .or(`published_at.gte.${since},and(published_at.is.null,created_at.gte.${since})`)
+      .range(offset, offset + pageSize - 1);
+    if (error) throw new Error(`Supabase getPublicFreshDeals: ${error.message}`);
+    if (!data?.length) break;
+    all.push(...(data as Row[]));
+    if (data.length < pageSize) break;
+    offset += pageSize;
+  }
+  return all;
+}
+
 export async function getById<T extends TableName>(
   table: T,
   id: string

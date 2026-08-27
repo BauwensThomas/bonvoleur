@@ -5,14 +5,20 @@
 // directement). Cache court (60s, même tolérance que getHomepageDeals) : le
 // scanner tourne ~3x/jour, pas besoin d'un aller-retour Supabase à chaque
 // appel. Voir memoire project_conventions_techniques (2026-08-13, egress).
+//
+// getPublicFreshDeals() (pas getAll("deals")) : query étroite (colonnes +
+// fenêtre FRESH_MAX_DAYS) plutôt que la table entière - getAll("deals")
+// dépassait la limite de 2 Mo par entrée du cache de données Next.js une
+// fois la table au-delà de ~6800 lignes (voir memoire
+// project_conventions_techniques, 2026-08-27).
 import "server-only";
 
 import { unstable_cache } from "next/cache";
-import { getAll } from "./db";
-import type { Deal } from "./types";
+import { getPublicFreshDeals } from "./db";
+import { FRESH_MAX_DAYS } from "./deal-freshness";
 
 export const getAllDealsPublic = unstable_cache(
-  async (): Promise<Deal[]> => getAll("deals"),
+  async () => getPublicFreshDeals(FRESH_MAX_DAYS),
   ["all-deals-public"],
   { tags: ["deals-public"], revalidate: 60 }
 );
