@@ -39,6 +39,9 @@ export const metadata: Metadata = {
     description: site.description,
   },
   robots: { index: true, follow: true },
+  // Bing Webmaster Tools - ancien compte perdu, nouvelle propriete creee le
+  // 2026-08-27.
+  verification: { other: { "msvalidate.01": "83EE57CB502C7BC5F3A83EBA319E856B" } },
 };
 
 export default function RootLayout({
