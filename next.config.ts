@@ -39,6 +39,16 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "hdzzfhjnjcblcejcpnkw.supabase.co" },
       { protocol: "https", hostname: "images.unsplash.com" },
     ],
+    // Tailles resserrees sur celles reellement utilisees par les `sizes`
+    // passes a next/image dans ce projet (bannieres/covers pleine largeur,
+    // vignettes galerie/liste) - par defaut Next combine 8 deviceSizes + 8
+    // imageSizes (jusqu'a 16 variantes par image a "rechauffer" dans le
+    // cache), et arrondit toute largeur non listee A LA PROCHAINE PLUS
+    // GRANDE (ex. une banniere demandee a 1280px etait servie a 1920px,
+    // faute d'un palier a 1280 dans la liste par defaut) - gaspillage sur le
+    // volume ET la vitesse de convergence du cache 1 an ci-dessous.
+    deviceSizes: [384, 640, 750, 1080, 1280, 1920],
+    imageSizes: [256, 384, 640],
     // Ces photos ne changent jamais une fois publiees (une nouvelle route/
     // un nouvel article = une nouvelle image, jamais un remplacement en
     // place) - cache 1 an cote optimiseur au lieu des 60s par defaut. Les
