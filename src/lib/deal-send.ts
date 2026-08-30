@@ -163,7 +163,10 @@ export async function sendDealToSubscribers(dealId: string): Promise<SendResult>
   if (!deal.email) throw new Error("L'email du deal n'est pas encore généré.");
 
   const iata = originIata(deal.origin);
-  const subs = (await getAll("subscribers")).filter((s) => matches(s, iata));
+  const subs = (await getAll(
+    "subscribers",
+    "id,email,tier,home_airports,unsubscribe_token,consent_at,unsubscribed_at"
+  )).filter((s) => matches(s, iata));
 
   let sent = 0;
   for (const sub of subs) {
@@ -226,9 +229,15 @@ export interface DigestResult {
 }
 
 export async function sendDigest(dealIds: string[]): Promise<DigestResult> {
-  const allDeals = await getAll("deals");
+  const allDeals = await getAll(
+    "deals",
+    "id,origin,destination,price,normal_price,discount_pct,dates,airline,booking_url,is_error_fare,is_hot,valid_until,published_at,email,created_at"
+  );
   const deals = allDeals.filter((d) => dealIds.includes(d.id));
-  const subs = await getAll("subscribers");
+  const subs = await getAll(
+    "subscribers",
+    "id,email,tier,home_airports,unsubscribe_token,consent_at,unsubscribed_at"
+  );
 
   let emails = 0;
   for (const sub of subs) {
@@ -339,14 +348,20 @@ export async function sendScheduledDigest(
   const since = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
   const periodMs = periodDays * 24 * 60 * 60 * 1000;
   const activeIatas = await getActiveAirportCodes();
-  const allDeals = await getAll("deals");
+  const allDeals = await getAll(
+    "deals",
+    "id,origin,destination,price,normal_price,discount_pct,dates,airline,booking_url,is_error_fare,is_hot,valid_until,published_at,email,created_at"
+  );
   const recent = allDeals.filter((d) => {
     if (new Date(d.created_at).getTime() < since) return false;
     if (hotOnly && d.is_hot === false) return false;
     return true;
   });
 
-  const subs = (await getAll("subscribers")).filter((s) => {
+  const subs = (await getAll(
+    "subscribers",
+    "id,email,tier,home_airports,unsubscribe_token,consent_at,unsubscribed_at,email_frequency"
+  )).filter((s) => {
     if (s.unsubscribed_at) return false;
     if (!s.consent_at) return false; // double opt-in : non confirmé -> pas d'envoi
     if (tier !== null && s.tier !== tier) return false;
@@ -361,14 +376,14 @@ export async function sendScheduledDigest(
     }
     return true;
   });
-  const sends = await getAll("sends");
+  const sends = await getAll("sends", "id,deal_id,subscriber_id,sent_at,opened_at,created_at");
   const alreadySent = new Set(
     sends.map((s) => `${s.deal_id}|${s.subscriber_id}`)
   );
   // Un abonné qui a déjà laissé un avis (peu importe son statut) ne doit
   // plus voir le bloc "Ton avis nous intéresse" dans ses prochains emails.
   const reviewedSubscriberIds = new Set(
-    (await getAll("reviews")).map((r) => r.subscriber_id)
+    (await getAll("reviews", "subscriber_id")).map((r) => r.subscriber_id)
   );
   // Dernier envoi par abonné (pour le plafond par période).
   const lastSentAt = new Map<string, number>();

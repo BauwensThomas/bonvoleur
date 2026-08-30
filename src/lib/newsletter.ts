@@ -38,7 +38,10 @@ export async function sendBlogNewsletter(
 }
 
 async function runNewsletter(): Promise<NewsletterResult> {
-  const posts = (await getAll("posts"))
+  const posts = (await getAll(
+    "posts",
+    "id,slug,title,excerpt,content,faq,cover_image,cover_image_credit,status,published_at,created_at"
+  ))
     .filter((p) => p.status === "published")
     .sort((a, b) =>
       (b.published_at ?? b.created_at).localeCompare(
@@ -54,7 +57,10 @@ async function runNewsletter(): Promise<NewsletterResult> {
   // Abonnés ciblés : inscription confirmée, non désinscrits, newsletter activée
   // (le champ est optionnel -> activée par défaut, donc on exclut seulement
   // ceux qui l'ont explicitement mise à false).
-  const subs = (await getAll("subscribers")).filter(
+  const subs = (await getAll(
+    "subscribers",
+    "id,email,tier,unsubscribe_token,consent_at,unsubscribed_at,newsletter"
+  )).filter(
     (s) => s.consent_at && !s.unsubscribed_at && s.newsletter !== false
   );
 

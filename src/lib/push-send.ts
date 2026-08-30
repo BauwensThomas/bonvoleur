@@ -54,7 +54,10 @@ function justAppeared(deal: Deal, tier: Tier, now: number): boolean {
 export async function sendPushForHotDeals(): Promise<PushResult> {
   const now = Date.now();
 
-  const subs = (await getAll("subscribers")).filter(
+  const subs = (await getAll(
+    "subscribers",
+    "id,tier,home_airports,consent_at,unsubscribed_at,push_enabled,push_tokens"
+  )).filter(
     (s) => !s.unsubscribed_at && s.consent_at && s.push_enabled !== false && (s.push_tokens?.length ?? 0) > 0
   );
   if (subs.length === 0) return { notifications: 0, recipients: 0 };
@@ -72,7 +75,7 @@ export async function sendPushForHotDeals(): Promise<PushResult> {
   }
 
   const alreadySent = new Set(
-    (await getAll("push_sends")).map((p) => `${p.deal_id}|${p.subscriber_id}`)
+    (await getAll("push_sends", "deal_id,subscriber_id")).map((p) => `${p.deal_id}|${p.subscriber_id}`)
   );
 
   type Entry = { sub: Subscriber; deals: Deal[] };

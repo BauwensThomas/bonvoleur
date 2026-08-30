@@ -3,7 +3,7 @@
 // comme ouverts dans la table sends. Utilisé pour la sunset policy.
 
 import { createClient } from "@supabase/supabase-js";
-import { getAll } from "@/lib/db";
+import { findSubscriberByUnsubscribeToken } from "@/lib/db";
 
 // 1x1 GIF transparent (44 octets)
 const GIF = Buffer.from(
@@ -23,8 +23,7 @@ export async function GET(req: Request) {
   try {
     const token = new URL(req.url).searchParams.get("t");
     if (token) {
-      const subs = await getAll("subscribers");
-      const sub = subs.find((s) => s.unsubscribe_token === token);
+      const sub = await findSubscriberByUnsubscribeToken(token);
       if (sub) {
         await sb()
           .from("sends")

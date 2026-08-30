@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 import SummerPromoPopup from "@/components/SummerPromoPopup";
 import AirportDeals, { type AirportProof } from "@/components/AirportDeals";
 import GalleryLightbox from "@/components/GalleryLightbox";
-import { getAll } from "@/lib/db";
+import { getDealsForRoute } from "@/lib/db";
 import { getAllPostsCached } from "@/lib/posts-cache";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { DEFAULT_DEST_IMAGE } from "@/lib/destinations";
@@ -100,10 +100,8 @@ async function proofFor(
   try {
     const todayStr = new Date().toISOString().slice(0, 10);
     const cityLower = destCity.toLowerCase();
-    const all = (await getAll("deals")).filter((d) => {
+    const all = (await getDealsForRoute(originIata, cityLower)).filter((d) => {
       if (d.is_hot === false) return false;
-      if (!d.origin.toUpperCase().includes(`(${originIata})`)) return false;
-      if (!d.destination.toLowerCase().startsWith(cityLower)) return false;
       const dep = (d.dates ?? "").match(/\d{4}-\d{2}-\d{2}/)?.[0];
       if (dep && dep < todayStr) return false;
       return true;

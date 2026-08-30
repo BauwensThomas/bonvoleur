@@ -66,7 +66,7 @@ export async function getRecentDeals(days: number): Promise<Tables["deals"][]> {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await sb()
     .from("deals")
-    .select("*")
+    .select("id,origin,destination,price,normal_price,discount_pct,dates,airline,booking_url,is_error_fare,is_hot,valid_until,published_at,email,created_at")
     .neq("is_hot", false)
     .gte("created_at", since);
   if (error) throw new Error(`Supabase getRecentDeals: ${error.message}`);
@@ -122,6 +122,29 @@ export async function getById<T extends TableName>(
     .maybeSingle();
   if (error) throw new Error(`Supabase getById(${table}): ${error.message}`);
   return (data as unknown as Tables[T]) ?? null;
+}
+
+export async function findSubscriberByUnsubscribeToken(token: string): Promise<Tables["subscribers"] | null> {
+  const { data, error } = await sb()
+    .from("subscribers")
+    .select("id")
+    .eq("unsubscribe_token", token)
+    .maybeSingle();
+  if (error) throw new Error(`Supabase findSubscriberByUnsubscribeToken: ${error.message}`);
+  return (data as unknown as Tables["subscribers"]) ?? null;
+}
+
+export async function getDealsForRoute(
+  originIata: string,
+  destinationCity: string
+): Promise<Tables["deals"][]> {
+  const { data, error } = await sb()
+    .from("deals")
+    .select("id,origin,destination,price,normal_price,discount_pct,dates,airline,booking_url,is_error_fare,is_hot,valid_until,published_at,created_at")
+    .ilike("origin", `%(${originIata})%`)
+    .ilike("destination", `${destinationCity}%`);
+  if (error) throw new Error(`Supabase getDealsForRoute: ${error.message}`);
+  return (data ?? []) as unknown as Tables["deals"][];
 }
 
 // findOne garde un prédicat JS : on récupère puis on filtre côté code.

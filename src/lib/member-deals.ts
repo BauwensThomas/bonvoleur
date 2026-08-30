@@ -56,7 +56,10 @@ export async function getMemberDeals(
   const now = Date.now();
   const onSite = await getActiveAirportCodes();
   const iataOf = (s: string) => s.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
-  let all = (await getAll("deals")).filter(
+  let all = (await getAll(
+    "deals",
+    "id,origin,destination,price,normal_price,discount_pct,dates,airline,booking_url,is_error_fare,is_hot,valid_until,published_at,created_at"
+  )).filter(
     (d) => d.is_hot !== false && onSite.has(iataOf(d.origin)),
   );
 

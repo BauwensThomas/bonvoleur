@@ -15,7 +15,7 @@ import type { AgentRun, FaqItem } from "./types";
 
 async function getActiveAirportNames(): Promise<string[]> {
   try {
-    const rows = await getAll("airports");
+    const rows = await getAll("airports", "iata,city,active");
     const NAMES: Record<string, string> = {
       BRU: "Bruxelles", CRL: "Charleroi", LGG: "Liège", ANR: "Anvers", OST: "Ostende",
       CDG: "Paris CDG", ORY: "Paris Orly", BVA: "Paris Beauvais",
@@ -33,11 +33,11 @@ async function getActiveAirportNames(): Promise<string[]> {
 // Routes actives : destinations disponibles sur le site avec leurs origines actives.
 async function getActiveRoutes(): Promise<string> {
   try {
-    const airports = await getAll("airports");
+    const airports = await getAll("airports", "iata,active");
     const activeIatas = new Set(
       airports.filter((a: { active: boolean }) => a.active).map((a: { iata: string }) => a.iata)
     );
-    const routes = await getAll("routes");
+    const routes = await getAll("routes", "origin_iata,origin_city,destination_city");
     const byDest = new Map<string, Set<string>>();
     for (const r of routes) {
       if (!activeIatas.has(r.origin_iata)) continue;
@@ -59,7 +59,7 @@ async function getActiveRoutes(): Promise<string> {
 async function getRecentDealDestinations(): Promise<string[]> {
   try {
     const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
-    const deals = await getAll("deals");
+    const deals = await getAll("deals", "destination,created_at");
     const recent = deals.filter((d: { created_at: string }) => d.created_at >= since);
     const destCount = new Map<string, number>();
     for (const d of recent) {
@@ -198,7 +198,7 @@ function jaccard(a: Set<string>, b: Set<string>): number {
 
 async function maxSimilarity(content: string): Promise<number> {
   const set = wordSet(content);
-  const posts = await getAll("posts");
+  const posts = await getAll("posts", "content");
   let max = 0;
   for (const p of posts) {
     const s = jaccard(set, wordSet(p.content));
@@ -209,7 +209,7 @@ async function maxSimilarity(content: string): Promise<number> {
 
 // Titres des articles publiés/créés depuis moins de N jours (anti-répétition).
 async function recentTitles(days = 30): Promise<string[]> {
-  const posts = await getAll("posts");
+  const posts = await getAll("posts", "title,published_at,created_at");
   const since = Date.now() - days * 24 * 60 * 60 * 1000;
   return posts
     .filter((p) => {
@@ -451,7 +451,7 @@ export async function generateArticle(): Promise<GeneratedArticle> {
 
   // 3) Articles déjà publiés : on les donne au modèle pour qu'il choisisse un
   //    angle DIFFÉRENT et ne rabâche pas les mêmes sections.
-  const existing = (await getAll("posts"))
+  const existing = (await getAll("posts", "title,excerpt"))
     .map((p) => `- "${p.title}" : ${p.excerpt ?? ""}`)
     .join("\n");
 
@@ -564,7 +564,7 @@ export async function runContentPublisher(
   // Pour le cron quotidien : skip si le dernier article date de moins de 3 jours.
   // Permet de rattraper un raté Vercel le lendemain sans surpublier.
   if (trigger === "cron") {
-    const posts = await getAll("posts");
+    const posts = await getAll("posts", "published_at");
     const last = posts
       .filter((p) => p.published_at)
       .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))[0];
