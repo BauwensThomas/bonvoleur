@@ -28,19 +28,32 @@ function sb(): SupabaseClient {
 // Sans pagination, getAll("deals") ne renvoie qu'une tranche arbitraire (pas
 // forcément la plus récente) une fois la table au-delà de 1000 lignes.
 export async function getAll<T extends TableName>(
-  table: T
+  table: T,
+  selectCols = "*",
+  options: { limit?: number; offset?: number } = {}
 ): Promise<Tables[T][]> {
+  const limit = options.limit;
+  if (typeof limit === "number") {
+    const offset = options.offset ?? 0;
+    const { data, error } = await sb()
+      .from(table)
+      .select(selectCols)
+      .range(offset, offset + limit - 1);
+    if (error) throw new Error(`Supabase getAll(${table}): ${error.message}`);
+    return (data ?? []) as unknown as Tables[T][];
+  }
+
   const pageSize = 1000;
   const all: Tables[T][] = [];
   let offset = 0;
   while (true) {
     const { data, error } = await sb()
       .from(table)
-      .select("*")
+      .select(selectCols)
       .range(offset, offset + pageSize - 1);
     if (error) throw new Error(`Supabase getAll(${table}): ${error.message}`);
     if (!data?.length) break;
-    all.push(...(data as Tables[T][]));
+    all.push(...(data as unknown as Tables[T][]));
     if (data.length < pageSize) break;
     offset += pageSize;
   }
@@ -76,16 +89,16 @@ export async function getRecentDeals(days: number): Promise<Tables["deals"][]> {
 // simple n'en renvoyait que 1000).
 export async function getPublicFreshDeals(
   days: number
-): Promise<Pick<Tables["deals"], "origin" | "destination" | "is_hot" | "published_at" | "created_at" | "dates">[]> {
+): Promise<Pick<Tables["deals"], "origin" | "destination" | "price" | "is_hot" | "published_at" | "created_at" | "dates">[]> {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
   const pageSize = 1000;
-  type Row = Pick<Tables["deals"], "origin" | "destination" | "is_hot" | "published_at" | "created_at" | "dates">;
+  type Row = Pick<Tables["deals"], "origin" | "destination" | "price" | "is_hot" | "published_at" | "created_at" | "dates">;
   const all: Row[] = [];
   let offset = 0;
   while (true) {
     const { data, error } = await sb()
       .from("deals")
-      .select("origin,destination,is_hot,published_at,created_at,dates")
+      .select("origin,destination,price,is_hot,published_at,created_at,dates")
       .or(`published_at.gte.${since},and(published_at.is.null,created_at.gte.${since})`)
       .range(offset, offset + pageSize - 1);
     if (error) throw new Error(`Supabase getPublicFreshDeals: ${error.message}`);
@@ -99,15 +112,16 @@ export async function getPublicFreshDeals(
 
 export async function getById<T extends TableName>(
   table: T,
-  id: string
+  id: string,
+  selectCols = "*"
 ): Promise<Tables[T] | null> {
   const { data, error } = await sb()
     .from(table)
-    .select("*")
+    .select(selectCols)
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(`Supabase getById(${table}): ${error.message}`);
-  return (data as Tables[T]) ?? null;
+  return (data as unknown as Tables[T]) ?? null;
 }
 
 // findOne garde un prédicat JS : on récupère puis on filtre côté code.

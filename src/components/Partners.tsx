@@ -1,8 +1,8 @@
-import { getAll } from "@/lib/db";
+import { getPublicPartners } from "@/lib/partners-cache";
 
 // Affiche dynamiquement les partenaires actifs, triés par position.
 export default async function Partners() {
-  const all = await getAll("partners");
+  const all = await getPublicPartners();
   const partners = all
     .filter((p) => p.is_active)
     .sort((a, b) => a.position - b.position);

@@ -1,35 +1,37 @@
 import { NextResponse } from "next/server";
-import { getAll } from "@/lib/db";
 import { getActiveAirports } from "@/lib/airports";
-import { getHomepageDeals } from "@/lib/homepage";
 import { getDestinations } from "@/lib/routes";
 import { getReviewStats } from "@/lib/reviews";
+import { getAllDealsPublic } from "@/lib/deals-public";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { trackMobileRequest } from "@/lib/request-track";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const OPTIONS = corsPreflight;
 
 // Cache 60s (egress Supabase, voir memoire project_conventions_techniques).
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 // Stats publiques (écran d'accueil app, avant connexion) - mêmes chiffres que
 // la barre de stats de la homepage web (src/app/page.tsx). Pas d'auth : ce
 // sont les mêmes données déjà visibles publiquement sur bonvoleur.com.
-export async function GET() {
+export async function GET(req: Request) {
+  const limited = rateLimit(req, "/api/mobile/stats");
+  if (limited) return withCors(limited);
   trackMobileRequest("/api/mobile/stats");
-  const [{ liveCount }, airports, destGroups, reviewStats] = await Promise.all([
-    getHomepageDeals(),
+  const [airports, destGroups, reviewStats, allDeals] = await Promise.all([
     getActiveAirports(),
     getDestinations(),
     getReviewStats(),
+    getAllDealsPublic(),
   ]);
 
   const activeIatas = new Set(airports.map((a) => a.iata));
   const now = Date.now();
   const today = new Date(now).toISOString().slice(0, 10);
-  const activeDeals = (await getAll("deals")).filter((d) => {
+  const activeDeals = allDeals.filter((d) => {
     if (d.is_hot === false) return false;
     const seen = d.published_at ?? d.created_at;
     if (now - new Date(seen).getTime() > FRESH_MAX_MS) return false;
@@ -38,6 +40,8 @@ export async function GET() {
     const origIata = d.origin.match(/\(([A-Z]{3})\)/)?.[1] ?? "";
     return activeIatas.has(origIata);
   });
+
+  const liveRoutes = new Set(activeDeals.map((d) => `${d.origin}->${d.destination}`));
 
   const originsPerDest = new Map<string, Set<string>>();
   for (const d of activeDeals) {
@@ -53,7 +57,7 @@ export async function GET() {
 
   return withCors(
     NextResponse.json({
-      liveCount,
+      liveCount: liveRoutes.size,
       airportsCount: airports.length,
       totalDest,
       reviewAverage: reviewStats.average,

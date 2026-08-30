@@ -3,6 +3,7 @@ import { getAll, insert, update, remove } from "@/lib/db";
 import { discountPct } from "@/lib/site";
 import { requireAdmin } from "@/lib/auth";
 import { runDealWriter } from "@/lib/deal-writer";
+import { revalidateTag } from "next/cache";
 
 export async function GET() {
   const unauth = await requireAdmin();
@@ -43,6 +44,7 @@ export async function POST(req: Request) {
   // Automatisation : génère l'email du deal dès sa création (deal-writer).
   // Tolérant aux pannes : l'échec est journalisé mais ne bloque pas la création.
   await runDealWriter(row.id, "auto");
+  revalidateTag("deals-public", "max");
   const withEmail = (await getAll("deals")).find((d) => d.id === row.id) ?? row;
   return NextResponse.json(withEmail, { status: 201 });
 }
@@ -63,9 +65,11 @@ export async function PUT(req: Request) {
   const touchesEmail = ["origin", "destination", "price", "normal_price", "dates", "airline", "booking_url", "is_error_fare"].some((k) => k in patch);
   if (touchesEmail) {
     await runDealWriter(id, "auto");
+    revalidateTag("deals-public", "max");
     const fresh = await getAll("deals");
     return NextResponse.json(fresh.find((d) => d.id === id) ?? row);
   }
+  revalidateTag("deals-public", "max");
   return NextResponse.json(row);
 }
 
@@ -76,5 +80,6 @@ export async function DELETE(req: Request) {
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id requis." }, { status: 400 });
   const ok = await remove("deals", id);
+  if (ok) revalidateTag("deals-public", "max");
   return NextResponse.json({ ok });
 }

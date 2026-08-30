@@ -1,4 +1,50 @@
-// Protection anti-force-brute par IP.
+import "server-only";
+
+import { NextResponse } from "next/server";
+
+interface Bucket {
+  count: number;
+  resetAt: number;
+}
+
+const buckets = new Map<string, Bucket>();
+const WINDOW_MS = 60_000;
+let lastCleanup = 0;
+
+function clientIp(req: Request): string {
+  const forwarded = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || req.headers.get("x-real-ip") || "unknown";
+}
+
+export function rateLimit(
+  req: Request,
+  name: string,
+  limit = 120
+): NextResponse | null {
+  const now = Date.now();
+  if (now - lastCleanup > WINDOW_MS) {
+    for (const [key, bucket] of buckets) {
+      if (bucket.resetAt <= now) buckets.delete(key);
+    }
+    lastCleanup = now;
+  }
+
+  const key = `${name}:${clientIp(req)}`;
+  const current = buckets.get(key);
+  if (!current || current.resetAt <= now) {
+    buckets.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    return null;
+  }
+
+  current.count += 1;
+  if (current.count <= limit) return null;
+
+  const retryAfter = Math.max(1, Math.ceil((current.resetAt - now) / 1000));
+  return NextResponse.json(
+    { error: "Trop de requêtes. Réessaie plus tard." },
+    { status: 429, headers: { "Retry-After": String(retryAfter) } }
+  );
+}// Protection anti-force-brute par IP.
 // Utilise Upstash Redis (UPSTASH_REDIS_REST_URL + TOKEN) si disponible,
 // sinon repli sur un store en mémoire (local dev / instance unique).
 // Toutes les fonctions sont async pour supporter les deux backends sans

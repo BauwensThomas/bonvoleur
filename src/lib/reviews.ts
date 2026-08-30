@@ -3,6 +3,7 @@
 // validation manuelle par l'admin avant affichage public.
 import { site } from "./site";
 import { getAll } from "./db";
+import { getPublicReviews } from "./reviews-cache";
 import type { Review } from "./types";
 
 // Lien vers la page de notation, note pré-sélectionnée. Identifie l'abonné
@@ -25,7 +26,7 @@ export interface ReviewStats {
 
 // Stats publiques (homepage) : uniquement les avis approuvés par l'admin.
 export async function getReviewStats(): Promise<ReviewStats> {
-  const all = await getAll("reviews");
+  const all = await getPublicReviews();
   const approved = all
     .filter((r) => r.status === "approved")
     .sort((a, b) => b.created_at.localeCompare(a.created_at));

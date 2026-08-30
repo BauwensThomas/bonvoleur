@@ -6,6 +6,7 @@ import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { trackMobileRequest } from "@/lib/request-track";
 import { mobileImageUrl } from "@/lib/mobile-image";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const OPTIONS = corsPreflight;
 
@@ -13,7 +14,7 @@ export const OPTIONS = corsPreflight;
 // (getDestinations()/getAllDealsPublic(), voir memoire
 // project_conventions_techniques 2026-08-13) - export const revalidate seul
 // ne suffit pas a cacher un route.ts qui appelle Supabase.
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 // Liste des destinations (app mobile) - equivalent de /vols-pas-chers sur le
@@ -32,7 +33,9 @@ export const revalidate = 60;
 // multi-aeroports comme Rome (FCO/CIA) peut voir le scanner utiliser des
 // codes differents (voire un code generique "ROM") selon le scrape - grouper
 // par IATA loupait de vrais deals recents (bug reel trouve le 2026-07-30).
-export async function GET() {
+export async function GET(req: Request) {
+  const limited = rateLimit(req, "/api/mobile/destinations");
+  if (limited) return withCors(limited);
   trackMobileRequest("/api/mobile/destinations");
   const activeIatas = await getActiveAirportCodes();
   const allDeals = await getAllDealsPublic();

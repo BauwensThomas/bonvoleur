@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // On isole la logique de gating : la couche DB est mockée.
+vi.mock("server-only", () => ({}));
+vi.mock("next/cache", () => ({ unstable_cache: (fn: unknown) => fn }));
 vi.mock("./db", () => ({ getAll: vi.fn() }));
 
 import { getAll } from "./db";

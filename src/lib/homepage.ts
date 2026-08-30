@@ -4,7 +4,7 @@
 // de réservation) n'est dévoilée -> impossible de retrouver l'offre soi-même,
 // donc on peut montrer des deals récents sans casser l'incitation à s'inscrire.
 import { unstable_cache } from "next/cache";
-import { getAll } from "./db";
+import { getPublicFreshDeals } from "./db";
 import { FRESH_MAX_MS } from "./deal-freshness";
 import { getActiveAirportCodes } from "./airports";
 
@@ -29,7 +29,10 @@ async function computeHomepageDeals(): Promise<{
   liveCount: number; // bons plans frais en ce moment (preuve sociale)
   destinationCount: number; // destinations distinctes parmi ces deals
 }> {
-  const [all, onSite] = await Promise.all([getAll("deals"), getActiveAirportCodes()]);
+  const [all, onSite] = await Promise.all([
+    getPublicFreshDeals(7),
+    getActiveAirportCodes(),
+  ]);
   const now = Date.now();
   const today = new Date(now).toISOString().slice(0, 10);
   const iataOf = (s: string) => s.match(/\(([A-Z]{3})\)/)?.[1] ?? "";

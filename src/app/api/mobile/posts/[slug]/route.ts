@@ -3,6 +3,7 @@ import { getAllPostsCached, findPostCached } from "@/lib/posts-cache";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { trackMobileRequest } from "@/lib/request-track";
 import { mobileImageUrl } from "@/lib/mobile-image";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const OPTIONS = corsPreflight;
 
@@ -26,6 +27,8 @@ function readingMinutes(content: string): number {
 // correspondance par mots du titre (>4 lettres) que la page web - precalcule
 // ici car le mobile n'a pas la liste complete des articles sous la main.
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const limited = rateLimit(req, "/api/mobile/posts/[slug]");
+  if (limited) return withCors(limited);
   trackMobileRequest("/api/mobile/posts/[slug]");
   const { slug } = await params;
   const post = await findPostCached((p) => p.slug === slug);

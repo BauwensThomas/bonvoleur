@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAll, update, remove } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { revalidateTag } from "next/cache";
 
 export async function GET() {
   const unauth = await requireAdmin();
@@ -21,6 +22,7 @@ export async function PUT(req: Request) {
   const { id, ...patch } = b;
   const row = await update("reviews", id, patch);
   if (!row) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+  revalidateTag("reviews-public", "max");
   return NextResponse.json(row);
 }
 
@@ -31,5 +33,6 @@ export async function DELETE(req: Request) {
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id requis." }, { status: 400 });
   const ok = await remove("reviews", id);
+  if (ok) revalidateTag("reviews-public", "max");
   return NextResponse.json({ ok });
 }

@@ -1,7 +1,10 @@
 // Source de vérité unique pour les aéroports actifs sur le site.
 // Lire depuis Supabase (table airports, colonne active = true).
 // Repli sur les 4 aéroports historiques si la DB est inaccessible.
+import "server-only";
+
 import { createClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
 
 const AIRPORT_NAMES: Record<string, { city: string; country: "BE" | "FR" }> = {
   BRU: { city: "Bruxelles",      country: "BE" },
@@ -40,7 +43,7 @@ const FALLBACK: ActiveAirport[] = [
   { iata: "LYS", city: "Lyon",      country: "FR" },
 ];
 
-export async function getActiveAirports(): Promise<ActiveAirport[]> {
+async function fetchActiveAirports(): Promise<ActiveAirport[]> {
   try {
     const sb = createClient(
       process.env.SUPABASE_URL!,
@@ -57,6 +60,16 @@ export async function getActiveAirports(): Promise<ActiveAirport[]> {
   } catch {
     return FALLBACK;
   }
+}
+
+const getCachedActiveAirports = unstable_cache(
+  fetchActiveAirports,
+  ["airports-public"],
+  { tags: ["airports-public"], revalidate: 60 }
+);
+
+export async function getActiveAirports(): Promise<ActiveAirport[]> {
+  return getCachedActiveAirports();
 }
 
 export async function getActiveAirportCodes(): Promise<Set<string>> {

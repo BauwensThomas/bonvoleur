@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@supabase/supabase-js";
 import { notifyAirportDeactivated } from "@/lib/airport-deactivation";
+import { revalidateTag } from "next/cache";
 
 // Envoi email+push à tous les abonnés de l'aéroport désactivé peut prendre
 // plus que le délai par défaut d'une route Next.js si l'aéroport est populaire.
@@ -23,6 +24,7 @@ export async function POST(req: Request) {
   );
   const { error } = await sb.from("airports").update({ active }).eq("iata", iata);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  revalidateTag("airports-public", "max");
 
   // Désactivation : alerte immédiate (email + push) aux abonnés concernés.
   // Ne fait jamais échouer le toggle lui-même si l'envoi échoue.

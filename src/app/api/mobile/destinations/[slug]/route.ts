@@ -7,6 +7,7 @@ import { site } from "@/lib/site";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { trackMobileRequest } from "@/lib/request-track";
 import { mobileImageUrl } from "@/lib/mobile-image";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const OPTIONS = corsPreflight;
 
@@ -80,6 +81,8 @@ function faqFor(city: string, originCities: string[]) {
 // /vols-pas-chers/[route]. Public, pas d'auth. Une seule ville dessert
 // plusieurs aeroports de depart (origins), pas une route par couple.
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const limited = rateLimit(req, "/api/mobile/destinations/[slug]");
+  if (limited) return withCors(limited);
   trackMobileRequest("/api/mobile/destinations/[slug]");
   const { slug } = await params;
   const dest = await getDestination(slug);

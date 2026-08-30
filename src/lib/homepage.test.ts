@@ -3,10 +3,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // unstable_cache exige le runtime serveur Next.js ("incrementalCache") - non
 // disponible sous Vitest. Neutralisé en pass-through (comme "server-only"),
 // voir memoire project_conventions_techniques (2026-08-13).
+vi.mock("server-only", () => ({}));
 vi.mock("next/cache", () => ({ unstable_cache: (fn: unknown) => fn }));
-vi.mock("./db", () => ({ getAll: vi.fn() }));
+vi.mock("./db", () => ({ getAll: vi.fn(), getPublicFreshDeals: vi.fn() }));
 
-import { getAll } from "./db";
+import { getPublicFreshDeals } from "./db";
 import { getHomepageDeals } from "./homepage";
 
 const HOUR = 3600 * 1000;
@@ -33,7 +34,7 @@ beforeEach(() => vi.clearAllMocks());
 
 describe("getHomepageDeals — vitrine teaser", () => {
   it("limite à 3 cartes, dédoublonnées par route", async () => {
-    vi.mocked(getAll).mockResolvedValue([
+    vi.mocked(getPublicFreshDeals).mockResolvedValue([
       deal({ destination: "Lisbonne (LIS)", created_at: iso(2 * HOUR) }),
       deal({ destination: "Lisbonne (LIS)", created_at: iso(50 * HOUR) }), // doublon route
       deal({ destination: "Barcelone (BCN)" }),
@@ -45,7 +46,7 @@ describe("getHomepageDeals — vitrine teaser", () => {
   });
 
   it("n'expose que route + prix (aucune info actionnable)", async () => {
-    vi.mocked(getAll).mockResolvedValue([deal({})] as never);
+    vi.mocked(getPublicFreshDeals).mockResolvedValue([deal({})] as never);
     const { teaserDeals } = await getHomepageDeals();
     expect(Object.keys(teaserDeals![0]).sort()).toEqual([
       "destination",
@@ -55,13 +56,13 @@ describe("getHomepageDeals — vitrine teaser", () => {
   });
 
   it("renvoie null s'il n'y a aucun bon plan", async () => {
-    vi.mocked(getAll).mockResolvedValue([] as never);
+    vi.mocked(getPublicFreshDeals).mockResolvedValue([] as never);
     const { teaserDeals } = await getHomepageDeals();
     expect(teaserDeals).toBeNull();
   });
 
   it("ignore les deals non hot", async () => {
-    vi.mocked(getAll).mockResolvedValue([
+    vi.mocked(getPublicFreshDeals).mockResolvedValue([
       deal({ destination: "Rome (FCO)", is_hot: false }),
     ] as never);
     const { teaserDeals } = await getHomepageDeals();

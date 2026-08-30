@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAll, insert, update, remove } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { revalidateTag } from "next/cache";
 
 export async function GET() {
   const unauth = await requireAdmin();
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
     position: typeof b.position === "number" ? b.position : maxPos + 1,
     updated_at: now,
   });
+  revalidateTag("partners-public", "max");
   return NextResponse.json(row, { status: 201 });
 }
 
@@ -46,6 +48,7 @@ export async function PUT(req: Request) {
   patch.updated_at = new Date().toISOString();
   const row = await update("partners", id, patch);
   if (!row) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+  revalidateTag("partners-public", "max");
   return NextResponse.json(row);
 }
 
@@ -56,5 +59,6 @@ export async function DELETE(req: Request) {
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id requis." }, { status: 400 });
   const ok = await remove("partners", id);
+  if (ok) revalidateTag("partners-public", "max");
   return NextResponse.json({ ok });
 }

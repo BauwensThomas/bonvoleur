@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
-import { getAll, findOne, insert } from "@/lib/db";
+import { findOne, insert } from "@/lib/db";
+import { getPublicReviews } from "@/lib/reviews-cache";
 import { sendEmail } from "@/lib/email";
 import { newReviewAlertEmail } from "@/lib/email-templates";
 import { getMobileMemberState } from "@/lib/mobile-auth";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { trackMobileRequest } from "@/lib/request-track";
+import { revalidateTag } from "next/cache";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const OPTIONS = corsPreflight;
 
@@ -15,8 +18,10 @@ export const OPTIONS = corsPreflight;
 // propre avis, quel que soit son statut) pour que l'app sache si le
 // membre a deja laisse un avis et doive proposer le formulaire ou non.
 export async function GET(req: Request) {
+  const limited = rateLimit(req, "/api/mobile/reviews");
+  if (limited) return withCors(limited);
   trackMobileRequest("/api/mobile/reviews");
-  const all = await getAll("reviews");
+  const all = await getPublicReviews();
   const approved = all
     .filter((r) => r.status === "approved")
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
@@ -27,7 +32,7 @@ export async function GET(req: Request) {
   const state = await getMobileMemberState(req);
   let myReview = null;
   if (state.status === "member") {
-    const mine = await findOne("reviews", (r) => r.subscriber_id === state.subscriber.id);
+    const mine = all.find((r) => r.subscriber_id === state.subscriber.id) ?? null;
     myReview = mine
       ? {
           id: mine.id,
@@ -49,6 +54,8 @@ export async function GET(req: Request) {
 // remplacer son avis existant), l'app REFUSE si un avis existe deja pour cet
 // abonne (demande explicite : un seul avis par membre depuis l'app).
 export async function POST(req: Request) {
+  const limited = rateLimit(req, "/api/mobile/reviews:write", 20);
+  if (limited) return withCors(limited);
   trackMobileRequest("/api/mobile/reviews");
   const state = await getMobileMemberState(req);
   if (state.status !== "member") {
@@ -81,6 +88,7 @@ export async function POST(req: Request) {
     comment,
     status: "pending",
   });
+  revalidateTag("reviews-public", "max");
 
   try {
     await sendEmail(newReviewAlertEmail(rating, name, comment));

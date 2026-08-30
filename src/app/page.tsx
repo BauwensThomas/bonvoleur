@@ -17,7 +17,7 @@ import { site } from "@/lib/site";
 import { getHomepageDeals } from "@/lib/homepage";
 import { getActiveAirports } from "@/lib/airports";
 import { getDestinations, destinationSlug } from "@/lib/routes";
-import { getAll } from "@/lib/db";
+import { getAll, getPublicFreshDeals } from "@/lib/db";
 import { getAllPostsCached } from "@/lib/posts-cache";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { getReviewStats, formatRating } from "@/lib/reviews";
@@ -32,7 +32,6 @@ import AdSlot from "@/components/AdSlot";
 function destSlugOf(label: string): string {
   return destinationSlug(label.replace(/\s*\([A-Z]{3}\)\s*$/, "").trim());
 }
-
 
 export async function generateMetadata(): Promise<Metadata> {
   const [title, description] = await Promise.all([
@@ -84,7 +83,7 @@ export default async function Home() {
   const [{ teaserDeals, liveCount }, airports, allSubscribers, reviewStats, adsEnabled] = await Promise.all([
     getHomepageDeals(),
     getActiveAirports(),
-    getAll("subscribers"),
+    getAll("subscribers", "id,tier", { limit: 500 }),
     getReviewStats(),
     getAdsEnabled(),
   ]);
@@ -101,7 +100,7 @@ export default async function Home() {
   // aéroport actif, is_hot != false.
   const now = Date.now();
   const today = new Date(now).toISOString().slice(0, 10);
-  const activeDeals = (await getAll("deals")).filter((d) => {
+  const activeDeals = (await getPublicFreshDeals(7)).filter((d) => {
     if (d.is_hot === false) return false;
     const seen = d.published_at ?? d.created_at;
     if (now - new Date(seen).getTime() > FRESH_MAX_MS) return false;

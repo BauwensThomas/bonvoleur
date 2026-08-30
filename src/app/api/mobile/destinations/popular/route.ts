@@ -6,12 +6,13 @@ import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { trackMobileRequest } from "@/lib/request-track";
 import { mobileImageUrl } from "@/lib/mobile-image";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const OPTIONS = corsPreflight;
 
 // La mise en cache reelle vient du niveau donnee (voir memoire
 // project_conventions_techniques 2026-08-13).
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 const FEATURED = 8;
@@ -21,7 +22,9 @@ const FEATURED = 8;
 // depart ayant un bon plan actif en ce moment, pas juste le plus d'aeroports
 // surveilles. Meme algorithme reimplemente ici (page-local cote web, pas
 // exporte d'une lib partagee). Public, pas d'auth - meme contenu que la home.
-export async function GET() {
+export async function GET(req: Request) {
+  const limited = rateLimit(req, "/api/mobile/destinations/popular");
+  if (limited) return withCors(limited);
   trackMobileRequest("/api/mobile/destinations/popular");
   const [destGroups, airports, allDeals] = await Promise.all([
     getDestinations(),
