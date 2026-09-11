@@ -33,29 +33,15 @@ export async function proxy(req: NextRequest) {
   const maintenanceActive =
     maintenanceEnabled() && (until === null || Date.now() < until);
   const isMaintenanceAsset = pathname === "/logo.svg";
-  const isAdminPath = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
-  const isAdminLogin =
-    pathname === "/admin/login" || pathname === "/api/admin/login";
-  const adminToken = req.cookies.get(ADMIN_COOKIE)?.value;
-  const adminBearer = req.headers.get("authorization") === `Bearer ${expectedToken()}`;
-  const isAuthenticatedAdmin = adminToken === expectedToken() || adminBearer;
   const isMaintenanceOperationalRoute =
     pathname === "/api/billing/webhook" ||
-    pathname === "/api/maintenance/status" ||
-    isAdminLogin ||
-    (isAdminPath && isAuthenticatedAdmin);
+    pathname === "/api/maintenance/status";
   if (
     maintenanceActive &&
     !isMaintenanceAsset &&
     !isMaintenanceOperationalRoute &&
     pathname !== "/maintenance"
   ) {
-    if (isAdminPath && !isAdminLogin && !isAuthenticatedAdmin) {
-      const url = req.nextUrl.clone();
-      url.pathname = "/admin/login";
-      url.searchParams.set("from", pathname);
-      return NextResponse.redirect(url, 307);
-    }
     if (pathname.startsWith("/api/")) {
       return NextResponse.json(
         { error: "Service temporairement indisponible" },
