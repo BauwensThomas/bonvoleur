@@ -33,7 +33,14 @@ export async function proxy(req: NextRequest) {
   const maintenanceActive =
     maintenanceEnabled() && (until === null || Date.now() < until);
   const isMaintenanceAsset = pathname === "/logo.svg";
-  if (maintenanceActive && !isMaintenanceAsset && pathname !== "/maintenance") {
+  const isMaintenanceOperationalRoute =
+    pathname === "/api/ingest/deal" || pathname === "/api/billing/webhook";
+  if (
+    maintenanceActive &&
+    !isMaintenanceAsset &&
+    !isMaintenanceOperationalRoute &&
+    pathname !== "/maintenance"
+  ) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json(
         { error: "Service temporairement indisponible" },

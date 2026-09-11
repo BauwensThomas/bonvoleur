@@ -8,8 +8,8 @@ Stack : Next.js / TypeScript / Tailwind CSS.
 
 ## Maintenance temporaire
 
-Pour afficher la page de maintenance sans interrompre les routes cron, push et
-mobile, définir dans l'environnement de déploiement :
+Pour afficher la page de maintenance sans interrompre les routes cron, push,
+mobile, scanner et Stripe, définir dans l'environnement de déploiement :
 
 ```env
 SITE_MAINTENANCE_ENABLED=TRUE
