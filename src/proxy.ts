@@ -13,8 +13,37 @@ function gatePassword(): string {
   return process.env.SITE_GATE_PASSWORD ?? "";
 }
 
+function maintenanceEnabled(): boolean {
+  return process.env.SITE_MAINTENANCE_ENABLED?.trim().toLowerCase() === "true";
+}
+
+function maintenanceUntil(): number | null {
+  const value = process.env.SITE_MAINTENANCE_UNTIL;
+  if (!value) return null;
+  const timestamp = Date.parse(value);
+  return Number.isNaN(timestamp) ? null : timestamp;
+}
+
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Coupure temporaire sans appel Supabase : la page reste accessible meme
+  // lorsque le projet a atteint sa limite d'egress.
+  const until = maintenanceUntil();
+  const maintenanceActive =
+    maintenanceEnabled() && (until === null || Date.now() < until);
+  const isMaintenanceAsset = pathname === "/logo.svg";
+  if (maintenanceActive && !isMaintenanceAsset && pathname !== "/maintenance") {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: "Service temporairement indisponible" },
+        { status: 503, headers: { "Retry-After": "86400" } }
+      );
+    }
+    const url = req.nextUrl.clone();
+    url.pathname = "/maintenance";
+    return NextResponse.redirect(url, 307);
+  }
 
   // 1) Verrou pre-lancement : tant que SITE_GATE_PASSWORD est defini, tout le
   //    site exige le mot de passe (sauf la page/API de deverrouillage et les

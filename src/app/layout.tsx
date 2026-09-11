@@ -44,11 +44,21 @@ export const metadata: Metadata = {
   verification: { other: { "msvalidate.01": "83EE57CB502C7BC5F3A83EBA319E856B" } },
 };
 
+function isMaintenanceActive(): boolean {
+  const maintenanceUntil = Date.parse(process.env.SITE_MAINTENANCE_UNTIL ?? "");
+  return (
+    process.env.SITE_MAINTENANCE_ENABLED?.trim().toLowerCase() === "true" &&
+    (Number.isNaN(maintenanceUntil) || Date.now() < maintenanceUntil)
+  );
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const maintenanceActive = isMaintenanceActive();
+
   return (
     <html
       lang="fr"
@@ -63,22 +73,24 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3549294158319032"
           crossOrigin="anonymous"
         />
-        {/* Travelpayouts Drive — doit être dans le HTML statique pour la vérification */}
-        <script
-          {...{ nowprocket: "", "seraph-accel-crit": "1" }}
-          data-noptimize="1"
-          data-cfasync="false"
-          data-wpfc-render="false"
-          data-no-defer="1"
-          dangerouslySetInnerHTML={{
-            __html: `(function () {
+        {!maintenanceActive && (
+          /* Travelpayouts Drive — inutile pendant la maintenance */
+          <script
+            {...{ nowprocket: "", "seraph-accel-crit": "1" }}
+            data-noptimize="1"
+            data-cfasync="false"
+            data-wpfc-render="false"
+            data-no-defer="1"
+            dangerouslySetInnerHTML={{
+              __html: `(function () {
   var script = document.createElement("script");
   script.async = 1;
   script.src = 'https://emrldtp.com/NTQ0NTQ4.js?t=544548';
   document.head.appendChild(script);
 })();`,
-          }}
-        />
+            }}
+          />
+        )}
       </head>
       <body className="min-h-full flex flex-col">
         {children}
