@@ -39,6 +39,17 @@ BASE_URL = os.environ.get("BONVOLEUR_URL", "http://localhost:3000")
 INGEST_SECRET = os.environ.get("INGEST_SECRET", "")
 CRON_SECRET = os.environ.get("CRON_SECRET", "")
 
+
+def maintenance_active() -> bool:
+    """Verifie le mode maintenance sans contacter Supabase."""
+    try:
+        response = requests.get(f"{BASE_URL}/api/maintenance/status", timeout=15)
+        response.raise_for_status()
+        return bool(response.json().get("active"))
+    except (requests.RequestException, ValueError) as error:
+        print(f"Impossible de verifier la maintenance ({error}) : scan annule")
+        return True
+
 # Horaires de scan dans la journée (heure locale du PC), séparés par des virgules.
 # Après CHAQUE scan, on envoie à chaque abonné les deals de son aéroport pas
 # encore reçus (dédoublonnage via la table sends) : tout le monde est servi sur
@@ -774,6 +785,10 @@ def run_supabase() -> None:
 
 if __name__ == "__main__":
     import sys
+
+    if maintenance_active():
+        print("Maintenance active : scanner suspendu, aucune requete Supabase.")
+        raise SystemExit(0)
 
     # Mode "--supabase" : ecrit les deals directement dans Supabase, sans email.
     # Pas besoin d'INGEST_SECRET (aucun appel au site).

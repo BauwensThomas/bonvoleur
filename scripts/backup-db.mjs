@@ -33,6 +33,15 @@ try {
   /* pas de .env.local (CI) */
 }
 
+const maintenanceUntil = Date.parse(env.SITE_MAINTENANCE_UNTIL ?? "");
+const maintenanceActive =
+  env.SITE_MAINTENANCE_ENABLED?.trim().toLowerCase() === "true" &&
+  (Number.isNaN(maintenanceUntil) || Date.now() < maintenanceUntil);
+if (maintenanceActive) {
+  console.log("Maintenance active : backup Supabase suspendu.");
+  process.exit(0);
+}
+
 const SUPABASE_URL = env.SUPABASE_URL;
 const KEY = env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_URL || !KEY) {

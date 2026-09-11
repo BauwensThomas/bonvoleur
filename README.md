@@ -8,8 +8,9 @@ Stack : Next.js / TypeScript / Tailwind CSS.
 
 ## Maintenance temporaire
 
-Pour afficher la page de maintenance sans interrompre les routes cron, push,
-mobile, scanner et Stripe, définir dans l'environnement de déploiement :
+Pour afficher la page de maintenance et suspendre le scanner, les crons, les
+digests et les backups qui utilisent Supabase, définir dans l'environnement de
+déploiement :
 
 ```env
 SITE_MAINTENANCE_ENABLED=TRUE
@@ -17,6 +18,6 @@ SITE_MAINTENANCE_UNTIL=2026-09-17T00:00:00+02:00
 ```
 
 La page `/maintenance` est accessible pendant la coupure et le site se rouvre
-automatiquement après la date indiquée. Mettre `SITE_MAINTENANCE_ENABLED=FALSE`
-pour rouvrir immédiatement. Après un changement dans Vercel, redéployer le
-projet.
+automatiquement après la date indiquée. Le webhook Stripe reste actif. Mettre
+`SITE_MAINTENANCE_ENABLED=FALSE` pour rouvrir immédiatement. Après un changement
+dans Vercel, redéployer le projet.

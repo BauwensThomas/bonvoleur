@@ -24,13 +24,27 @@ on:
 jobs:
   scan:
     runs-on: ubuntu-latest
+    env:
+      BONVOLEUR_URL: https://www.bonvoleur.com
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install -r scripts/requirements.txt
+      - name: Vérifie le mode maintenance
+        id: maintenance
+        run: |
+          if ! RESPONSE=$(curl -fsS "$BONVOLEUR_URL/api/maintenance/status"); then
+            echo "active=true" >> "$GITHUB_OUTPUT"
+            echo "Statut de maintenance inaccessible : workflow suspendu par sécurité."
+          else
+            ACTIVE=$(echo "$RESPONSE" | python -c 'import json, sys; print(str(json.load(sys.stdin)["active"]).lower())')
+            echo "active=$ACTIVE" >> "$GITHUB_OUTPUT"
+            echo "Maintenance active: $ACTIVE"
+          fi
       - name: Scan + ecriture dans Supabase
+        if: steps.maintenance.outputs.active != 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -41,12 +55,15 @@ jobs:
       # Genere la fiche (contenu + photo) des destinations PAS ENCORE en base.
       # Saute les destinations connues -> aucun token gaspille.
       - uses: actions/setup-node@v4
+        if: steps.maintenance.outputs.active != 'true'
         with:
           node-version: "24"
       # npm install (tolerant) plutot que npm ci : evite l'echec lie aux binaires
       # optionnels par plateforme (sharp, dependance optionnelle de Next).
       - run: npm install --no-audit --no-fund
+        if: steps.maintenance.outputs.active != 'true'
       - name: Fiches auto des nouvelles destinations
+        if: steps.maintenance.outputs.active != 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -61,7 +78,7 @@ jobs:
       # "trop tot" (< plafond depuis le dernier envoi), le scan suivant rattrape.
       # github.event.schedule = la cron qui a declenche ('' en manuel -> saute).
       - name: Digests (apres chaque scan, plafond = frequence)
-        if: ${{ success() && github.event.schedule != '' }}
+        if: ${{ success() && steps.maintenance.outputs.active != 'true' && github.event.schedule != '' }}
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |

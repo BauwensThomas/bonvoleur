@@ -34,7 +34,8 @@ export async function proxy(req: NextRequest) {
     maintenanceEnabled() && (until === null || Date.now() < until);
   const isMaintenanceAsset = pathname === "/logo.svg";
   const isMaintenanceOperationalRoute =
-    pathname === "/api/ingest/deal" || pathname === "/api/billing/webhook";
+    pathname === "/api/billing/webhook" ||
+    pathname === "/api/maintenance/status";
   if (
     maintenanceActive &&
     !isMaintenanceAsset &&
@@ -50,6 +51,15 @@ export async function proxy(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.pathname = "/maintenance";
     return NextResponse.redirect(url, 307);
+  }
+
+  if (
+    pathname.startsWith("/api/cron/") ||
+    pathname === "/api/ingest/deal" ||
+    pathname === "/api/billing/webhook" ||
+    pathname === "/api/maintenance/status"
+  ) {
+    return NextResponse.next();
   }
 
   // 1) Verrou pre-lancement : tant que SITE_GATE_PASSWORD est defini, tout le
@@ -151,6 +161,6 @@ export const config = {
   // Auth par requete ET empeche ces routes d'etre mises en cache (voir
   // memoire project_conventions_techniques, 2026-08-13).
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|llms.txt|api/mobile|api/push|api/cron).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|llms.txt|api/mobile|api/push).*)",
   ],
 };
