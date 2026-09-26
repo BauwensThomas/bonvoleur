@@ -1,6 +1,10 @@
 import { useEffect, useRef } from "react";
 import { apiFetch } from "../lib/api";
-import { registerForPushNotificationsAsync } from "../lib/push";
+import {
+  registerForPushNotificationsAsync,
+  getLastRegisteredPushToken,
+  setLastRegisteredPushToken,
+} from "../lib/push";
 import { useSession } from "./useSession";
 
 // Enregistre le jeton Expo Push de cet appareil des qu'un membre est connecte.
@@ -17,13 +21,26 @@ export function usePushRegistration() {
   useEffect(() => {
     if (!session || registered.current) return;
     registered.current = true;
-    registerForPushNotificationsAsync().then((token) => {
+    registerForPushNotificationsAsync().then(async (token) => {
       if (!token) return;
-      apiFetch("/api/push/register", {
+      // Le jeton Expo peut changer sans prevenir (reinstall, rotation
+      // FCM/APNs) - si ce n'est plus celui qu'on avait enregistre, on
+      // desinscrit d'abord l'ancien pour ne pas laisser cet appareil avec
+      // deux jetons valides (= une notif recue en double).
+      const previous = await getLastRegisteredPushToken();
+      if (previous && previous !== token) {
+        await apiFetch("/api/push/unregister", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: previous }),
+        }).catch(() => {});
+      }
+      await apiFetch("/api/push/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),
       }).catch(() => {});
+      await setLastRegisteredPushToken(token);
     });
   }, [session]);
 }

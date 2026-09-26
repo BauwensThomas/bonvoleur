@@ -8,7 +8,7 @@ import { useStats } from "../hooks/useStats";
 import { formatRating } from "../lib/format";
 import { supabase } from "../lib/supabase";
 import { apiFetch } from "../lib/api";
-import { registerForPushNotificationsAsync } from "../lib/push";
+import { getLastRegisteredPushToken, clearLastRegisteredPushToken } from "../lib/push";
 import VersionFooter from "../components/VersionFooter";
 import BannerAdSlot from "../components/BannerAdSlot";
 import TileDecor, { type IconName } from "../components/TileDecor";
@@ -49,14 +49,18 @@ export default function DashboardScreen() {
   async function logout() {
     // Retire le jeton push AVANT de couper la session (l'API a besoin du
     // jeton bearer, effacé par signOut()) - sinon cet appareil resterait
-    // notifie pour un compte dont il est deconnecte.
-    const pushToken = await registerForPushNotificationsAsync();
+    // notifie pour un compte dont il est deconnecte. On utilise le jeton
+    // reellement enregistre cote serveur (pas un nouvel appel a Expo, qui
+    // pourrait renvoyer un jeton different si Expo l'a fait tourner entre-
+    // temps, et desinscrire le mauvais).
+    const pushToken = await getLastRegisteredPushToken();
     if (pushToken) {
       await apiFetch("/api/push/unregister", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: pushToken }),
       }).catch(() => {});
+      await clearLastRegisteredPushToken();
     }
     await supabase.auth.signOut();
   }

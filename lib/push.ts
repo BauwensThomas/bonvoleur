@@ -2,6 +2,26 @@ import { Platform } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
+import * as SecureStore from "expo-secure-store";
+
+// Dernier jeton Expo Push effectivement enregistré côté serveur pour CET
+// appareil. Le jeton Expo peut changer (réinstall, rotation FCM/APNs) sans
+// prévenir - sans cette mémoire locale, l'ancien jeton reste orphelin dans
+// push_tokens côté serveur (jamais désinscrit) et l'appareil reçoit alors
+// chaque notif en double, une fois par jeton encore valide.
+const LAST_TOKEN_KEY = "push_token_last_registered";
+
+export async function getLastRegisteredPushToken(): Promise<string | null> {
+  return SecureStore.getItemAsync(LAST_TOKEN_KEY).catch(() => null);
+}
+
+export async function setLastRegisteredPushToken(token: string): Promise<void> {
+  await SecureStore.setItemAsync(LAST_TOKEN_KEY, token).catch(() => {});
+}
+
+export async function clearLastRegisteredPushToken(): Promise<void> {
+  await SecureStore.deleteItemAsync(LAST_TOKEN_KEY).catch(() => {});
+}
 
 // Demande la permission puis récupère le jeton Expo Push de cet appareil.
 // null si : web (pas de vrai push natif, comme datetimepicker), simulateur
