@@ -38,6 +38,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "hdzzfhjnjcblcejcpnkw.supabase.co" },
       { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "plus.unsplash.com" },
     ],
     // Tailles resserrees sur celles reellement utilisees par les `sizes`
     // passes a next/image dans ce projet (bannieres/covers pleine largeur,
