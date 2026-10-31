@@ -119,23 +119,40 @@ async function proofFor(
   }
 }
 
-function faqFor(city: string, originCities: string[]) {
+function plainText(text: string): string {
+  return text.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+}
+
+function faqFor(
+  city: string,
+  originCities: string[],
+  content: { airlines: string[]; duration: string; bestPeriod: string } | null
+) {
   const depuis =
     originCities.length > 0
       ? originCities.join(", ")
       : "nos aéroports surveillés";
+  const airlines = content?.airlines ?? [];
+  const duration = content?.duration ? plainText(content.duration) : "";
+  const bestPeriod = content?.bestPeriod ? plainText(content.bestPeriod) : "";
   return [
     {
       q: `Quel est le prix d'un vol vers ${city} ?`,
-      a: `Les prix varient selon la saison, l'aéroport de départ et la compagnie. On repère les tarifs anormalement bas vers ${city} et on te prévient par email. Les prix affichés sont indicatifs : le tarif exact se confirme au moment de réserver.`,
+      a: `Les prix varient selon la saison, l'aéroport de départ et la compagnie${
+        airlines.length > 0 ? ` (${airlines.join(", ")} desservent ${city})` : ""
+      }. On repère les tarifs anormalement bas vers ${city} et on te prévient par email. Les prix affichés sont indicatifs : le tarif exact se confirme au moment de réserver.`,
     },
     {
       q: `Depuis quels aéroports peut-on rejoindre ${city} ?`,
-      a: `On surveille les départs depuis ${depuis}. Inscris-toi gratuitement pour recevoir une alerte dès qu'on repère un bon plan vers ${city}.`,
+      a: `On surveille les départs depuis ${depuis}.${
+        duration ? ` Durée de vol : ${duration}.` : ""
+      } Inscris-toi gratuitement pour recevoir une alerte dès qu'on repère un bon plan vers ${city}.`,
     },
     {
       q: `Quand réserver un vol vers ${city} pas cher ?`,
-      a: `Les meilleurs prix partent vite. Le plus simple est de s'inscrire gratuitement pour recevoir nos bons plans vers ${city} par email.`,
+      a: bestPeriod
+        ? `${bestPeriod} Les meilleurs prix partent vite : inscris-toi gratuitement pour recevoir nos bons plans vers ${city} par email.`
+        : `Les meilleurs prix partent vite. Le plus simple est de s'inscrire gratuitement pour recevoir nos bons plans vers ${city} par email.`,
     },
     {
       q: `BonVoleur vend-il les billets ?`,
@@ -247,7 +264,7 @@ export default async function DestinationPage({
     (r, i, arr) => arr.findIndex((x) => x.originIata === r.originIata) === i
   );
   const originCities = uniqueRoutes.map((r) => r.originCity);
-  const faq = faqFor(dest.destCity, originCities);
+  const faq = faqFor(dest.destCity, originCities, content);
   const isMember = member.status === "member";
   const airports: AirportProof[] = await Promise.all(
     uniqueRoutes.map(async (r) => {
@@ -256,8 +273,17 @@ export default async function DestinationPage({
     })
   );
 
-  // Maillage interne : toutes les autres destinations.
-  const others = (await getDestinations()).filter((x) => x.slug !== dest.slug);
+  // Maillage interne : les 12 destinations suivantes dans un anneau (region puis
+  // slug). Chaque destination est liee par 12 autres, donc aucune n'est
+  // orpheline, sans diluer le poids des liens comme avec la liste complete.
+  const ring = [...(await getDestinations())].sort(
+    (a, b) => a.region.localeCompare(b.region) || a.slug.localeCompare(b.slug)
+  );
+  const ringIndex = ring.findIndex((x) => x.slug === dest.slug);
+  const others =
+    ringIndex < 0
+      ? []
+      : Array.from({ length: Math.min(12, ring.length - 1) }, (_, k) => ring[(ringIndex + 1 + k) % ring.length]);
 
   const allPosts = (await getAllPostsCached())
     .filter((p) => p.status === "published")

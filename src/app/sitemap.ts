@@ -4,6 +4,10 @@ import { getAllPostsCached } from "@/lib/posts-cache";
 import { site } from "@/lib/site";
 import { getDestinations, destinationSlug } from "@/lib/routes";
 
+// Filet de securite : sans delai, le sitemap pre-rendu restait fige et omettait
+// des articles publies (8 manquants constates le 2026-10-31).
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = site.canonicalBase;
 

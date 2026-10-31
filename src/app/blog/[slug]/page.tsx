@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getAllPostsCached, findPostCached } from "@/lib/posts-cache";
 import { site } from "@/lib/site";
+import { getRoutes, destinationSlug } from "@/lib/routes";
 import { formatArticleDate } from "@/lib/dates";
 import { getAdsEnabled } from "@/lib/settings";
 import { AD_SLOTS } from "@/lib/ads";
@@ -21,6 +22,30 @@ type Params = { slug: string };
 function readingMinutes(content: string): number {
   const words = content.trim().split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
+}
+
+const stripAccents = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+// Destinations du site citees dans l'article (nom capitalise, sans tenir compte
+// des accents), les plus mentionnees d'abord : donne aux articles un lien vers
+// les pages /vols-pas-chers/... qu'ils evoquent.
+function citedDestinations(
+  text: string,
+  routes: { destCity: string }[],
+  limit = 6
+): { city: string; slug: string }[] {
+  const haystack = stripAccents(text);
+  const seen = new Set<string>();
+  const found: { city: string; slug: string; count: number }[] = [];
+  for (const { destCity } of routes) {
+    const slug = destinationSlug(destCity);
+    if (seen.has(slug)) continue;
+    seen.add(slug);
+    const escaped = stripAccents(destCity).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const count = haystack.match(new RegExp(`(?<![\\p{L}])${escaped}(?![\\p{L}])`, "gu"))?.length ?? 0;
+    if (count > 0) found.push({ city: destCity, slug, count });
+  }
+  return found.sort((a, b) => b.count - a.count).slice(0, limit);
 }
 
 export async function generateStaticParams() {
@@ -72,6 +97,7 @@ export default async function BlogPost({
   const allPosts = (await getAllPostsCached())
     .filter((p) => p.status === "published" && p.slug !== slug)
     .sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at));
+  const cited = citedDestinations(`${post.title ?? ""} ${post.content ?? ""}`, await getRoutes());
   const titleWords = (post.title ?? "").toLowerCase().split(/\s+/).filter((w) => w.length > 4);
   const scored = allPosts.map((p) => ({
     post: p,
@@ -216,6 +242,23 @@ export default async function BlogPost({
             S&apos;inscrire gratuitement
           </Link>
         </div>
+
+        {cited.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-xl font-bold">Vols pas chers vers les destinations citées</h2>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {cited.map((d) => (
+                <Link
+                  key={d.slug}
+                  href={`/vols-pas-chers/${d.slug}`}
+                  className="rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-600 transition hover:border-brand hover:text-brand"
+                >
+                  Vols vers {d.city}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {related.length > 0 && (
           <section className="mt-10">
