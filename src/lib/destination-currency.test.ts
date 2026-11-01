@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectCurrency, splitCurrencyTips } from "./destination-currency";
+import { detectCurrency, replaceCurrencyTips, splitCurrencyTips } from "./destination-currency";
 
 describe("detectCurrency", () => {
   it("lit le code ISO entre parentheses", () => {
@@ -33,5 +33,19 @@ describe("splitCurrencyTips", () => {
   it("ne touche pas aux fiches en zone euro", () => {
     const tips = ["Monnaie : Palerme est en zone euro, on paie en euros (EUR)."];
     expect(splitCurrencyTips(tips)).toEqual({ code: null, rest: tips });
+  });
+});
+
+describe("replaceCurrencyTips", () => {
+  it("remplace le conseil monnaie a sa place et garde les autres", () => {
+    const out = replaceCurrencyTips(
+      ["Transfert en tram.", "Monnaie : le zloty (PLN). Environ 1 € = 4,3 PLN.", "Bagages stricts."],
+      "Monnaie du jour"
+    );
+    expect(out).toEqual(["Transfert en tram.", "Monnaie du jour", "Bagages stricts."]);
+  });
+  it("ne remplace rien en zone euro", () => {
+    const tips = ["Monnaie : on paie en euros (EUR)."];
+    expect(replaceCurrencyTips(tips, "x")).toEqual(tips);
   });
 });

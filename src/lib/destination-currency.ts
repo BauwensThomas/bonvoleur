@@ -67,6 +67,24 @@ export function splitCurrencyTips(tips: string[]): { code: string | null; rest: 
   return { code, rest };
 }
 
+// Remplace, a la place du premier conseil monnaie reconnu, par `liveTip` et
+// retire les autres conseils monnaie reconnus. Meme regle que splitCurrencyTips.
+export function replaceCurrencyTips(tips: string[], liveTip: string): string[] {
+  const out: string[] = [];
+  let placed = false;
+  for (const tip of tips) {
+    if (isCurrencyTip(tip) && detectCurrency(tip)) {
+      if (!placed) {
+        out.push(liveTip);
+        placed = true;
+      }
+      continue;
+    }
+    out.push(tip);
+  }
+  return out;
+}
+
 export function currencyName(code: string): string {
   try {
     return new Intl.DisplayNames(["fr"], { type: "currency" }).of(code) ?? code;

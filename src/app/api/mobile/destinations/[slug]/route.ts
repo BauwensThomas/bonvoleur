@@ -8,6 +8,8 @@ import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { trackMobileRequest } from "@/lib/request-track";
 import { mobileImageUrl } from "@/lib/mobile-image";
 import { rateLimit } from "@/lib/rate-limit";
+import { getFx } from "@/lib/fx";
+import { liveCurrencyTips } from "@/lib/live-currency-tip";
 
 export const OPTIONS = corsPreflight;
 
@@ -90,6 +92,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     return withCors(NextResponse.json({ error: "Destination introuvable" }, { status: 404 }));
   }
 
+  // Taux de change du jour a la place du taux ecrit a la main dans le conseil
+  // Monnaie (meme logique que la fiche web).
+  const fx = await getFx();
+  const content = dest.content
+    ? { ...dest.content, tips: liveCurrencyTips(dest.content.tips, fx) }
+    : dest.content;
+
   const onSite = await getActiveAirportCodes();
   const activeRoutes = dest.routes.filter((r) => onSite.has(r.originIata));
   const seenOrigins = new Set<string>();
@@ -115,7 +124,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       image: mobileImageUrl(dest.image, 1080),
       imageCredit: dest.imageCredit,
       photos: dest.photos?.map((p) => ({ ...p, url: mobileImageUrl(p.url, 384) })),
-      content: dest.content,
+      content,
       origins,
       faq: faqFor(dest.destCity, origins.map((o) => o.originCity)),
     })
