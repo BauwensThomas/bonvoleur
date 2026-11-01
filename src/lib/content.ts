@@ -257,20 +257,26 @@ async function pickTrendingTopic(recent: string[]): Promise<string | null> {
       messages: [
         {
           role: "user",
-          content: `Tu écris pour ${site.name}, un blog de vols pas chers pour la Belgique et la France. Nous sommes le ${todayFr()}. ${DATE_RULE} Cherche sur le web les sujets de voyage et de vols les plus recherchés / tendance en ce moment (saison actuelle, destinations populaires, vacances scolaires, événements). Propose UN seul titre d'article de blog, en français, accrocheur et optimisé SEO, concret, lié aux vols pas chers depuis la Belgique ou la France. N'utilise AUCUN de ces sujets déjà traités récemment : ${recent.join(" ; ") || "(aucun)"}. Évite absolument les sujets fourre-tout du type « guide complet », « tout savoir » ou « le guide ultime » qui recoupent plusieurs articles : choisis un angle PRÉCIS et original (une destination donnée, une compagnie, une période ou un événement précis, une astuce concrète). Réponds UNIQUEMENT par le titre, sans guillemets ni explication.`,
+          content: `Tu écris pour ${site.name}, un blog de vols pas chers pour la Belgique et la France. Nous sommes le ${todayFr()}. ${DATE_RULE} Cherche sur le web les sujets de voyage et de vols les plus recherchés / tendance en ce moment (saison actuelle, destinations populaires, vacances scolaires, événements). Propose UN seul titre d'article de blog, en français, accrocheur et optimisé SEO, concret, lié aux vols pas chers depuis la Belgique ou la France. N'utilise AUCUN de ces sujets déjà traités récemment : ${recent.join(" ; ") || "(aucun)"}. Évite absolument les sujets fourre-tout du type « guide complet », « tout savoir » ou « le guide ultime » qui recoupent plusieurs articles : choisis un angle PRÉCIS et original (une destination donnée, une compagnie, une période ou un événement précis, une astuce concrète). Réponds UNIQUEMENT par le titre, sans guillemets, sans explication et sans phrase d'introduction, même avant d'utiliser la recherche web.`,
         },
       ],
     }), "sujet tendance");
-    const text = res.content
-      .map((b) => (b.type === "text" ? b.text : ""))
-      .join(" ")
-      .trim();
-    const title = text
+    // Avec la recherche web, le modele ecrit parfois une phrase d'intro AVANT
+    // d'appeler l'outil ("Je vais chercher..."), puis le titre dans le DERNIER
+    // bloc texte : on ne garde que celui-la, et on rejette tout ce qui ressemble
+    // a du bavardage plutot qu'a un titre (le sujet de secours prend le relais).
+    const textBlocks = res.content
+      .map((b) => (b.type === "text" ? b.text.trim() : ""))
+      .filter(Boolean);
+    const lastBlock = textBlocks[textBlocks.length - 1] ?? "";
+    const title = lastBlock
       .split("\n")
       .map((s) => s.trim().replace(/^["'#\s-]+|["']+$/g, ""))
       .filter(Boolean)
       .pop();
-    return title ? title.slice(0, 90) : null;
+    if (!title || title.length < 20 || title.length > 120) return null;
+    if (/^(je |j'|voici|d'accord|ok\b|bien sûr|titre\s*:)/i.test(title)) return null;
+    return title;
   } catch {
     return null; // pas d'accès web search ou erreur : on retombe sur la liste curée
   }
