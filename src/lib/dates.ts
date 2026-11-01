@@ -14,3 +14,14 @@ export function formatArticleDate(iso: string): string {
 export function formatDealDates(raw: string): string {
   return raw.replace(/(\d{4})-(\d{2})-(\d{2})/g, "$3/$2/$1");
 }
+
+// Date complete ("1 novembre 2026") pour les donnees datees des fiches
+// destination (prix observe, taux de change).
+export function formatLongDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Europe/Brussels",
+  });
+}

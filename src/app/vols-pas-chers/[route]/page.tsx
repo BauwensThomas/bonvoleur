@@ -12,7 +12,7 @@ import { getDealsForRoute } from "@/lib/db";
 import { getAllPostsCached } from "@/lib/posts-cache";
 import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { DEFAULT_DEST_IMAGE } from "@/lib/destinations";
-import { formatArticleDate } from "@/lib/dates";
+import { formatArticleDate, formatLongDate } from "@/lib/dates";
 import { site } from "@/lib/site";
 import { getMemberState } from "@/lib/member-auth";
 import {
@@ -22,6 +22,10 @@ import {
   destinationSlug,
 } from "@/lib/routes";
 import { getActiveAirportCodes } from "@/lib/airports";
+import { getAllDealsPublic } from "@/lib/deals-public";
+import { getFx, formatRate, formatInverse } from "@/lib/fx";
+import { splitCurrencyTips, currencyName } from "@/lib/destination-currency";
+import { pickObservedPrice } from "@/lib/destination-price";
 import { getAdsEnabled, getSeoOverride } from "@/lib/settings";
 import { destinationDefaultTitle, destinationDefaultDescription } from "@/lib/seo-page-defaults";
 import { AD_SLOTS } from "@/lib/ads";
@@ -253,6 +257,22 @@ export default async function DestinationPage({
   const onSite = await getActiveAirportCodes();
   const siteRoutes = dest.routes.filter((r) => onSite.has(r.originIata));
 
+  // Prix observe (offres reelles du scanner) et taux de change du jour : donnees
+  // calculees au rendu, avec leur propre date, jamais ecrites a la main.
+  const [fx, freshDeals] = await Promise.all([
+    getFx(),
+    getAllDealsPublic().catch(() => []),
+  ]);
+  const observed = pickObservedPrice(freshDeals, dest.destCity, onSite);
+  const { code: currencyCode, rest: tipsWithoutCurrency } = splitCurrencyTips(
+    content?.tips ?? []
+  );
+  const fxRate = currencyCode && fx ? fx.rates[currencyCode] : undefined;
+  const showFx = currencyCode !== null && fx !== null && typeof fxRate === "number" && fxRate > 0;
+  // Le conseil "Monnaie" (taux ecrit a la main) n'est masque que si le bloc
+  // taux du jour peut le remplacer.
+  const tipsShown = showFx ? tipsWithoutCurrency : (content?.tips ?? []);
+
   // Bouton CTA : si connecté → espace membre filtré sur cette destination.
   const member = await getMemberState();
   const ctaHref = member.status !== "anonymous"
@@ -412,17 +432,53 @@ export default async function DestinationPage({
               </p>
             )}
 
-            {content.tips.length > 0 && (
+            {tipsShown.length > 0 && (
               <>
                 <h2 className="mt-8 text-2xl font-bold">
                   Conseils pour {dest.destCity}
                 </h2>
                 <ul className="mt-3 list-disc space-y-2 pl-5 text-slate-700">
-                  {content.tips.map((t, i) => (
+                  {tipsShown.map((t, i) => (
                     <li key={i}>{parseTip(t)}</li>
                   ))}
                 </ul>
               </>
+            )}
+          </section>
+        )}
+
+        {/* Prix observe + taux de change : chaque donnee porte sa date */}
+        {(observed || showFx) && (
+          <section className="mt-8 grid gap-4 sm:grid-cols-2">
+            {observed && (
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
+                  Prix observé
+                </p>
+                <p className="mt-1 text-slate-700">
+                  Aux alentours de <strong>{observed.price} €</strong> aller-retour depuis{" "}
+                  {observed.origin}
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Dernière observation le {formatLongDate(observed.seenAt)}. Prix indicatif, à
+                  confirmer au moment de réserver.
+                </p>
+              </div>
+            )}
+            {showFx && currencyCode && fx && typeof fxRate === "number" && (
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
+                  Monnaie : {currencyName(currencyCode)} ({currencyCode})
+                </p>
+                <p className="mt-1 text-slate-700">
+                  1 € = <strong>{formatRate(fxRate)} {currencyCode}</strong> (1 {currencyCode} ={" "}
+                  {formatInverse(1 / fxRate)} €)
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Taux du {formatLongDate(fx.updatedAt)}, indicatif. Hors zone euro, prévois un
+                  peu de liquide et vérifie les frais de change de ta carte.
+                </p>
+              </div>
             )}
           </section>
         )}

@@ -11,6 +11,7 @@ import { rehostImage } from "./rehost";
 import { notifySocial } from "./social";
 import { revalidatePosts } from "./revalidate-posts";
 import { getSetting, setSetting } from "./settings";
+import { getFxPromptLines } from "./fx";
 import type { AgentRun, FaqItem } from "./types";
 
 async function getActiveAirportNames(): Promise<string[]> {
@@ -542,6 +543,7 @@ export async function generateArticle(): Promise<GeneratedArticle> {
 
   // 3) Faits réels (recherche web) à intégrer dans l'article.
   const facts = await gatherFacts(topic);
+  const fxLines = await getFxPromptLines();
 
   // 3) Articles déjà publiés : on les donne au modèle pour qu'il choisisse un
   //    angle DIFFÉRENT et ne rabâche pas les mêmes sections.
@@ -560,6 +562,10 @@ Nous sommes le ${todayFr()}. ${DATE_RULE} Tout ce que tu écris doit être juste
 
 Rédige un article de blog complet, riche et optimisé SEO sur le sujet : "${topic}".
 
+${fxLines ? `TAUX DE CHANGE DU JOUR (${todayFr()}, source open.er-api.com). Quand tu cites un taux de change, utilise UNIQUEMENT ces valeurs, arrondies, avec « environ » et « à titre indicatif ». Pour une devise absente de cette liste, ne donne AUCUN chiffre de change.
+${fxLines}
+` : `Aucun taux de change fiable n'est disponible aujourd'hui : ne donne AUCUN taux de change chiffré dans l'article, parle seulement de la devise locale.
+`}
 ${facts ? `INFORMATIONS FACTUELLES VÉRIFIÉES (issues d'une recherche web) à intégrer quand c'est pertinent, sans rien inventer en plus :\n${facts}\n` : ""}
 ${activeRoutes ? `DESTINATIONS RÉELLEMENT DISPONIBLES SUR LE SITE (routes avec aéroport actif) : utilise cette liste pour citer des exemples concrets et vrais. Ne cite que des destinations de cette liste quand tu donnes des exemples de routes.\n${activeRoutes}\n` : ""}
 ${recentDealDests.length > 0 ? `DESTINATIONS AVEC DES BONS PLANS RÉCENTS (14 derniers jours) : ${recentDealDests.join(", ")}. Tu peux mentionner ces destinations comme "des destinations qui ont récemment eu des bons plans" ou "des vols en promo repérés ces derniers jours" SANS jamais citer de prix ni de dates précises. L'objectif est de créer de l'envie et du FOMO pour pousser le lecteur à s'inscrire à la newsletter premium. Exemple de formulation : "Des bons plans ont récemment été repérés vers [destination] - exactement le genre d'alerte que nos abonnés reçoivent en premier."\n` : ""}
