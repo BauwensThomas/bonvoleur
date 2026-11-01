@@ -22,10 +22,8 @@ import {
   destinationSlug,
 } from "@/lib/routes";
 import { getActiveAirportCodes } from "@/lib/airports";
-import { getAllDealsPublic } from "@/lib/deals-public";
 import { getFx, formatRate, formatInverse } from "@/lib/fx";
 import { splitCurrencyTips, currencyName } from "@/lib/destination-currency";
-import { pickObservedPrice } from "@/lib/destination-price";
 import { getAdsEnabled, getSeoOverride } from "@/lib/settings";
 import { destinationDefaultTitle, destinationDefaultDescription } from "@/lib/seo-page-defaults";
 import { AD_SLOTS } from "@/lib/ads";
@@ -257,13 +255,8 @@ export default async function DestinationPage({
   const onSite = await getActiveAirportCodes();
   const siteRoutes = dest.routes.filter((r) => onSite.has(r.originIata));
 
-  // Prix observe (offres reelles du scanner) et taux de change du jour : donnees
-  // calculees au rendu, avec leur propre date, jamais ecrites a la main.
-  const [fx, freshDeals] = await Promise.all([
-    getFx(),
-    getAllDealsPublic().catch(() => []),
-  ]);
-  const observed = pickObservedPrice(freshDeals, dest.destCity, onSite);
+  // Taux de change du jour : calcule au rendu, avec sa date, jamais ecrit a la main.
+  const fx = await getFx();
   const { code: currencyCode, rest: tipsWithoutCurrency } = splitCurrencyTips(
     content?.tips ?? []
   );
@@ -447,24 +440,9 @@ export default async function DestinationPage({
           </section>
         )}
 
-        {/* Prix observe + taux de change : chaque donnee porte sa date */}
-        {(observed || showFx) && (
-          <section className="mt-8 grid gap-4 sm:grid-cols-2">
-            {observed && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
-                  Prix observé
-                </p>
-                <p className="mt-1 text-slate-700">
-                  Aux alentours de <strong>{observed.price} €</strong> aller-retour depuis{" "}
-                  {observed.origin}
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  Dernière observation le {formatLongDate(observed.seenAt)}. Prix indicatif, à
-                  confirmer au moment de réserver.
-                </p>
-              </div>
-            )}
+        {/* Taux de change du jour, avec sa date */}
+        {showFx && (
+          <section className="mt-8">
             {showFx && currencyCode && fx && typeof fxRate === "number" && (
               <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
@@ -475,8 +453,7 @@ export default async function DestinationPage({
                   {formatInverse(1 / fxRate)} €)
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
-                  Taux du {formatLongDate(fx.updatedAt)}, indicatif. Hors zone euro, prévois un
-                  peu de liquide et vérifie les frais de change de ta carte.
+                  Taux du {formatLongDate(fx.updatedAt)}, indicatif.
                 </p>
               </div>
             )}
