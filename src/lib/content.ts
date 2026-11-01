@@ -219,6 +219,21 @@ function todayFr(): string {
   });
 }
 
+// Un prix chiffre dans un titre ("dès 45 €") promet un tarif que personne ne
+// garantit. Le corps de l'article peut donner des ordres de grandeur.
+const PRICE_IN_TITLE_RULE =
+  "Le titre ne contient AUCUN prix chiffré (pas de « dès 30 € », « à 45 € », « moins de 50 euros »).";
+const PRICE_RE = /\d[\d\s.,]*\s?(€|euros?|eur\b)/i;
+
+function hasPriceInHeadline(a: {
+  title: string;
+  meta_title: string;
+  meta_description: string;
+  excerpt: string;
+}): boolean {
+  return [a.title, a.meta_title, a.meta_description, a.excerpt].some((t) => PRICE_RE.test(t ?? ""));
+}
+
 const DATE_RULE =
   "Un événement, une promo ou une saison dont la date est déjà passée n'est PLUS d'actualité : ne le présente jamais comme à venir, ne propose jamais de le préparer ou d'y réserver.";
 
@@ -257,7 +272,7 @@ async function pickTrendingTopic(recent: string[]): Promise<string | null> {
       messages: [
         {
           role: "user",
-          content: `Tu écris pour ${site.name}, un blog de vols pas chers pour la Belgique et la France. Nous sommes le ${todayFr()}. ${DATE_RULE} Cherche sur le web les sujets de voyage et de vols les plus recherchés / tendance en ce moment (saison actuelle, destinations populaires, vacances scolaires, événements). Propose UN seul titre d'article de blog, en français, accrocheur et optimisé SEO, concret, lié aux vols pas chers depuis la Belgique ou la France. N'utilise AUCUN de ces sujets déjà traités récemment : ${recent.join(" ; ") || "(aucun)"}. Évite absolument les sujets fourre-tout du type « guide complet », « tout savoir » ou « le guide ultime » qui recoupent plusieurs articles : choisis un angle PRÉCIS et original (une destination donnée, une compagnie, une période ou un événement précis, une astuce concrète). Réponds UNIQUEMENT par le titre, sans guillemets, sans explication et sans phrase d'introduction, même avant d'utiliser la recherche web.`,
+          content: `Tu écris pour ${site.name}, un blog de vols pas chers pour la Belgique et la France. Nous sommes le ${todayFr()}. ${DATE_RULE} ${PRICE_IN_TITLE_RULE} Cherche sur le web les sujets de voyage et de vols les plus recherchés / tendance en ce moment (saison actuelle, destinations populaires, vacances scolaires, événements). Propose UN seul titre d'article de blog, en français, accrocheur et optimisé SEO, concret, lié aux vols pas chers depuis la Belgique ou la France. N'utilise AUCUN de ces sujets déjà traités récemment : ${recent.join(" ; ") || "(aucun)"}. Évite absolument les sujets fourre-tout du type « guide complet », « tout savoir » ou « le guide ultime » qui recoupent plusieurs articles : choisis un angle PRÉCIS et original (une destination donnée, une compagnie, une période ou un événement précis, une astuce concrète). Réponds UNIQUEMENT par le titre, sans guillemets, sans explication et sans phrase d'introduction, même avant d'utiliser la recherche web.`,
         },
       ],
     }), "sujet tendance");
@@ -275,6 +290,7 @@ async function pickTrendingTopic(recent: string[]): Promise<string | null> {
       .filter(Boolean)
       .pop();
     if (!title || title.length < 20 || title.length > 120) return null;
+    if (PRICE_RE.test(title)) return null;
     if (/^(je |j'|voici|d'accord|ok\b|bien sûr|titre\s*:)/i.test(title)) return null;
     return title;
   } catch {
@@ -575,6 +591,7 @@ Contraintes impératives :
 - Rubrique FAQ : 5 à 6 questions/réponses utiles et recherchées (réponses de 2 à 4 phrases). NE PAS l'inclure dans "content" : elle va dans le champ "faq".
 - "meta_title" : max 60 caractères, accrocheur, avec le mot-clé. "meta_description" : max 155 caractères.
 - "excerpt" : 1 à 2 phrases d'accroche.
+- AUCUN prix chiffré dans "title", "meta_title", "meta_description" ni "excerpt" (pas de « dès 30 € », « à 45 € », « moins de 50 euros ») : ces chiffres ne sont pas garantis. Les ordres de grandeur restent possibles dans "content", avec « aux alentours de ».
 - "slug" : court, minuscules, mots séparés par des tirets.
 - "image_query" : 2 à 4 mots EN ANGLAIS très spécifiques au sujet. Pour un article destination : lieu, monument ou paysage précis (ex. "Lisbon yellow tram", "Tirana Albania castle", "Lyon France river"). Pour un article guide pratique, astuces vols ou comparatif : avion ou aéroport concret (ex. "airplane window seat clouds", "airport departure terminal", "plane wing sunset"). INTERDIT : requêtes abstraites ou sans sujet visuel clair.
 - N'invente pas de prix présentés comme garantis : reste sur des fourchettes ou des ordres de grandeur ("aux alentours de", "à partir d'environ").
@@ -672,8 +689,16 @@ export async function runContentPublisher(
     // (jusqu'à 5 essais) pour éviter les doublons.
     let article = await generateArticle();
     for (let attempt = 1; attempt < 5; attempt += 1) {
-      if ((await maxSimilarity(article.content)) <= SIMILARITY_THRESHOLD) break;
+      if (
+        !hasPriceInHeadline(article) &&
+        (await maxSimilarity(article.content)) <= SIMILARITY_THRESHOLD
+      ) {
+        break;
+      }
       article = await generateArticle();
+    }
+    if (hasPriceInHeadline(article)) {
+      throw new Error(`Prix chiffré dans le titre ou les métadonnées après 5 essais : "${article.title}". Publication annulée.`);
     }
 
     let slug = article.slug;
