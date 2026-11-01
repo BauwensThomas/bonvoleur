@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import { BLOG_REDIRECT_TARGET, MERGED_BLOG_SLUGS } from "./src/lib/blog-redirects";
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
@@ -60,18 +61,11 @@ const nextConfig: NextConfig = {
     // cache.
     minimumCacheTTL: 31536000,
   },
-  // Articles "tendances" quasi identiques (cannibalisation constatee dans
-  // Search Console le 2026-10-31) fusionnes vers celui deja indexe.
+  // Articles fusionnes : voir src/lib/blog-redirects.ts.
   async redirects() {
-    const target = "/blog/tendances-vols-pas-chers-reperer";
-    return [
-      "tendances-voyage-2026-voler-moins-cher",
-      "tendances-voyage-vols-pas-chers-decryptage",
-      "lire-tendances-vols-choisir-destination",
-      "tendances-vols-prix-chutent",
-    ].map((slug) => ({
+    return MERGED_BLOG_SLUGS.map((slug) => ({
       source: `/blog/${slug}`,
-      destination: target,
+      destination: BLOG_REDIRECT_TARGET,
       permanent: true,
     }));
   },

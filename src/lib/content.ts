@@ -297,6 +297,42 @@ const schema = {
   ],
 } as const;
 
+// Le contrôle de similarité par mots (maxSimilarity) ne distingue pas un doublon
+// d'un article sans rapport (mesure du 2026-10-31 : deux articles "tendances"
+// différents à 0,26, un article Grèce contre un article Séville à 0,25, pour un
+// seuil à 0,28). Le doublon se juge donc AU NIVEAU DU SUJET, avant d'écrire
+// l'article long : un petit appel Haiku compare le titre proposé à tous les
+// articles existants et renvoie le titre en conflit, ou null.
+async function conflictingArticle(
+  topic: string,
+  existing: { title: string; excerpt: string | null }[]
+): Promise<string | null> {
+  if (!process.env.ANTHROPIC_API_KEY || existing.length === 0) return null;
+  try {
+    const client = new Anthropic();
+    const model = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5";
+    const list = existing.map((p) => `- ${p.title} : ${p.excerpt ?? ""}`).join("\n");
+    const res = await withRetry(() => client.messages.create({
+      model,
+      max_tokens: 200,
+      messages: [
+        {
+          role: "user",
+          content: `Sujet proposé pour un nouvel article : "${topic}"\n\nArticles DÉJÀ publiés :\n${list}\n\nUn article déjà publié traite-t-il le MÊME sujet central, ou répond-il à une intention de recherche très proche ? Deux articles sur « les tendances voyage », « voyager léger », « les destinations qui montent » ou « les meilleurs moments pour réserver » sont des doublons même si leurs titres diffèrent. Une destination, une compagnie ou un événement précis différent n'est PAS un doublon. Réponds UNIQUEMENT par NON, ou par le titre exact de l'article en conflit.`,
+        },
+      ],
+    }), "controle doublon sujet");
+    const answer = res.content
+      .map((b) => (b.type === "text" ? b.text : ""))
+      .join(" ")
+      .trim();
+    if (/^non\b/i.test(answer)) return null;
+    return answer.replace(/^["'\s-]+|["'\s]+$/g, "") || null;
+  } catch {
+    return null; // pas de contrôle possible : on laisse passer plutôt que de bloquer le cron
+  }
+}
+
 // Réessaie un appel sur erreur transitoire (529 surcharge, 429, 5xx) avec un
 // backoff exponentiel. Évite qu'un créneau cron rate à cause d'un pic de charge.
 async function withRetry<T>(
@@ -442,16 +478,37 @@ export async function generateArticle(): Promise<GeneratedArticle> {
   ]);
 
   // 2) Sujet : on tente un sujet tendance (recherche web), sinon liste curée.
-  //    Dans les deux cas, on évite les sujets traités depuis moins de 30 jours.
-  const recent = await recentTitles(30);
-  const topic = (await pickTrendingTopic(recent)) ?? (await pickTopic());
+  //    Le sélecteur voit TOUS les titres existants (pas seulement ceux des 30
+  //    derniers jours), puis un contrôle sémantique rejette un sujet déjà
+  //    couvert, avant de payer l'article long. Si aucun sujet inédit après 5
+  //    essais, on n'écrit rien : mieux vaut sauter un créneau qu'un doublon.
+  const allPosts = await getAll("posts", "title,excerpt");
+  const allTitles = allPosts.map((p) => p.title);
+  const rejected: string[] = [];
+  let topic: string | null = null;
+  for (let attempt = 0; attempt < 5 && !topic; attempt += 1) {
+    const candidate =
+      (await pickTrendingTopic([...allTitles, ...rejected])) ?? (await pickTopic());
+    const conflict = await conflictingArticle(candidate, allPosts);
+    if (!conflict) {
+      topic = candidate;
+    } else {
+      console.warn(`[content] sujet rejete (doublon de "${conflict}") : ${candidate}`);
+      rejected.push(candidate);
+    }
+  }
+  if (!topic) {
+    throw new Error(
+      `Aucun sujet inédit trouvé après 5 essais (rejetés : ${rejected.join(" ; ")}). Publication annulée pour éviter un doublon.`
+    );
+  }
 
   // 3) Faits réels (recherche web) à intégrer dans l'article.
   const facts = await gatherFacts(topic);
 
   // 3) Articles déjà publiés : on les donne au modèle pour qu'il choisisse un
   //    angle DIFFÉRENT et ne rabâche pas les mêmes sections.
-  const existing = (await getAll("posts", "title,excerpt"))
+  const existing = allPosts
     .map((p) => `- "${p.title}" : ${p.excerpt ?? ""}`)
     .join("\n");
 
