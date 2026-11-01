@@ -207,6 +207,21 @@ async function maxSimilarity(content: string): Promise<number> {
   return max;
 }
 
+// Date du jour en toutes lettres. Les modeles n'ont aucune notion de la date
+// courante : sans elle, l'agent a publie le 2026-11-01 un article sur les JO de
+// fevrier 2026 comme s'ils etaient a venir. A injecter dans CHAQUE prompt.
+function todayFr(): string {
+  return new Date().toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Europe/Brussels",
+  });
+}
+
+const DATE_RULE =
+  "Un événement, une promo ou une saison dont la date est déjà passée n'est PLUS d'actualité : ne le présente jamais comme à venir, ne propose jamais de le préparer ou d'y réserver.";
+
 // Titres des articles publiés/créés depuis moins de N jours (anti-répétition).
 async function recentTitles(days = 30): Promise<string[]> {
   const posts = await getAll("posts", "title,published_at,created_at");
@@ -242,7 +257,7 @@ async function pickTrendingTopic(recent: string[]): Promise<string | null> {
       messages: [
         {
           role: "user",
-          content: `Tu écris pour ${site.name}, un blog de vols pas chers pour la Belgique et la France. Cherche sur le web les sujets de voyage et de vols les plus recherchés / tendance en ce moment (saison actuelle, destinations populaires, vacances scolaires, événements). Propose UN seul titre d'article de blog, en français, accrocheur et optimisé SEO, concret, lié aux vols pas chers depuis la Belgique ou la France. N'utilise AUCUN de ces sujets déjà traités récemment : ${recent.join(" ; ") || "(aucun)"}. Évite absolument les sujets fourre-tout du type « guide complet », « tout savoir » ou « le guide ultime » qui recoupent plusieurs articles : choisis un angle PRÉCIS et original (une destination donnée, une compagnie, une période ou un événement précis, une astuce concrète). Réponds UNIQUEMENT par le titre, sans guillemets ni explication.`,
+          content: `Tu écris pour ${site.name}, un blog de vols pas chers pour la Belgique et la France. Nous sommes le ${todayFr()}. ${DATE_RULE} Cherche sur le web les sujets de voyage et de vols les plus recherchés / tendance en ce moment (saison actuelle, destinations populaires, vacances scolaires, événements). Propose UN seul titre d'article de blog, en français, accrocheur et optimisé SEO, concret, lié aux vols pas chers depuis la Belgique ou la France. N'utilise AUCUN de ces sujets déjà traités récemment : ${recent.join(" ; ") || "(aucun)"}. Évite absolument les sujets fourre-tout du type « guide complet », « tout savoir » ou « le guide ultime » qui recoupent plusieurs articles : choisis un angle PRÉCIS et original (une destination donnée, une compagnie, une période ou un événement précis, une astuce concrète). Réponds UNIQUEMENT par le titre, sans guillemets ni explication.`,
         },
       ],
     }), "sujet tendance");
@@ -379,7 +394,7 @@ async function gatherFacts(topic: string): Promise<string> {
       messages: [
         {
           role: "user",
-          content: `Recherche sur le web des informations FACTUELLES et vérifiables utiles pour un article sur : "${topic}" (contexte : vols pas chers depuis la Belgique et la France, aéroports BRU, CRL, CDG, LYS). Donne une liste de faits concrets et exacts : compagnies aériennes réelles, durées de vol, meilleures périodes, fourchettes de prix réalistes, règles de bagages cabine, etc. N'invente rien. Français, sans émoji, sans tiret long.`,
+          content: `Nous sommes le ${todayFr()}. Recherche sur le web des informations FACTUELLES et vérifiables, à jour à cette date, utiles pour un article sur : "${topic}" (contexte : vols pas chers depuis la Belgique et la France, aéroports BRU, CRL, CDG, LYS). Donne une liste de faits concrets et exacts : compagnies aériennes réelles, durées de vol, meilleures périodes, fourchettes de prix réalistes, règles de bagages cabine, etc. N'invente rien. Français, sans émoji, sans tiret long.`,
         },
       ],
     }), "faits web");
@@ -518,6 +533,8 @@ export async function generateArticle(): Promise<GeneratedArticle> {
   const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
 
   const prompt = `Tu es le rédacteur en chef de ${site.name} (${site.domain}), un média de deals de vols pas chers pour la Belgique et la France. Tu écris pour être LU et pour RANKER sur Google.
+
+Nous sommes le ${todayFr()}. ${DATE_RULE} Tout ce que tu écris doit être juste à cette date : saisons, prix, événements, périodes de réservation.
 
 Rédige un article de blog complet, riche et optimisé SEO sur le sujet : "${topic}".
 
