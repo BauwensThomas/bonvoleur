@@ -2,7 +2,6 @@ import type { MetadataRoute } from "next";
 import { getAll } from "@/lib/db";
 import { getAllPostsCached } from "@/lib/posts-cache";
 import { site } from "@/lib/site";
-import { MERGED_BLOG_SLUGS } from "@/lib/blog-redirects";
 import { getDestinations, destinationSlug } from "@/lib/routes";
 
 // Filet de securite : sans delai, le sitemap pre-rendu restait fige et omettait
@@ -48,7 +47,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const posts = await getAllPostsCached();
     postPages = posts
-      .filter((p) => p.status === "published" && !MERGED_BLOG_SLUGS.includes(p.slug))
+      .filter((p) => p.status === "published")
       .map((p) => ({
         url: `${base}/blog/${p.slug}`,
         lastModified: p.updated_at,

@@ -7,6 +7,7 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 import { getAll } from "./db";
+import { MERGED_BLOG_SLUGS } from "./blog-redirects";
 import type { Tables } from "./types";
 
 // Long filet de sécurité (1h) : le vrai rafraîchissement vient de
@@ -17,13 +18,17 @@ const getCachedPosts = unstable_cache(() => getAll("posts"), ["posts-all"], {
   revalidate: 3600,
 });
 
+// Listes (accueil, /blog, sitemap, app mobile, newsletter...) : sans les
+// articles fusionnes, rediriges vers l'article de reference (blog-redirects.ts).
 export async function getAllPostsCached(): Promise<Tables["posts"][]> {
-  return getCachedPosts();
+  return (await getCachedPosts()).filter((p) => !MERGED_BLOG_SLUGS.includes(p.slug));
 }
 
 export async function findPostCached(
   predicate: (p: Tables["posts"]) => boolean
 ): Promise<Tables["posts"] | null> {
-  const rows = await getAllPostsCached();
+  // Recherche unitaire : inclut les articles fusionnes pour que l'ancien lien
+  // d'un article (app mobile) continue de s'ouvrir.
+  const rows = await getCachedPosts();
   return rows.find(predicate) ?? null;
 }
