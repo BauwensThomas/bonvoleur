@@ -16,11 +16,20 @@ import { useSession } from "./useSession";
 // sans consequence si l'abonne a coupe les notifications.
 export function usePushRegistration() {
   const { session } = useSession();
-  const registered = useRef(false);
+  // Identifiant du compte pour lequel le jeton a ete enregistre. Avant, un simple
+  // booleen : apres une deconnexion puis une connexion avec un AUTRE compte dans
+  // la meme session de l'app, le jeton n'etait jamais enregistre pour le nouveau
+  // compte (pas de notifications) et restait sur l'ancien (constate 2026-11-03).
+  const registeredFor = useRef<string | null>(null);
+  const userId = session?.user?.id ?? null;
 
   useEffect(() => {
-    if (!session || registered.current) return;
-    registered.current = true;
+    if (!userId) {
+      registeredFor.current = null; // deconnecte : le prochain compte devra s'enregistrer
+      return;
+    }
+    if (registeredFor.current === userId) return;
+    registeredFor.current = userId;
     registerForPushNotificationsAsync().then(async (token) => {
       if (!token) return;
       // Le jeton Expo peut changer sans prevenir (reinstall, rotation
@@ -42,5 +51,5 @@ export function usePushRegistration() {
       }).catch(() => {});
       await setLastRegisteredPushToken(token);
     });
-  }, [session]);
+  }, [userId]);
 }

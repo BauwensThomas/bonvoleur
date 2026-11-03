@@ -12,7 +12,7 @@ const config = {
     name: "BonVoleur",
     slug: "bonvoleur-app",
     scheme: "bonvoleur",
-    version: "1.2.8",
+    version: "1.2.9",
     // Verrou portrait applique a l'execution sur telephone seulement (hooks/useOrientationPolicy.ts).
     orientation: "default",
     icon: "./assets/icon.png",
