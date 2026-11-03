@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMobileMemberState } from "@/lib/mobile-auth";
-import { update } from "@/lib/db";
+import { getAll, update } from "@/lib/db";
 import { withCors, corsPreflight } from "@/lib/mobile-cors";
 import { trackMobileRequest } from "@/lib/request-track";
 
@@ -21,6 +21,17 @@ export async function POST(req: Request) {
   // ("ExponentPushToken[...]") - borne defensive contre un abus du champ.
   if (!token || token.length > 200) {
     return withCors(NextResponse.json({ error: "Jeton invalide." }, { status: 400 }));
+  }
+
+  // Un jeton = un telephone = un seul compte a la fois. Si ce telephone etait
+  // connecte a un autre compte, on lui retire le jeton : sinon chaque
+  // notification arrive en double (une par compte).
+  const others = await getAll("subscribers", "id,push_tokens");
+  for (const other of others) {
+    if (other.id === state.subscriber.id || !other.push_tokens?.includes(token)) continue;
+    await update("subscribers", other.id, {
+      push_tokens: other.push_tokens.filter((t) => t !== token),
+    });
   }
 
   const tokens = new Set(state.subscriber.push_tokens ?? []);

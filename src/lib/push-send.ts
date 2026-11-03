@@ -97,13 +97,25 @@ export async function sendPushForHotDeals(): Promise<PushResult> {
   }
   if (entries.length === 0) return { notifications: 0, recipients: 0 };
 
+  // UN seul message par jeton : un telephone connecte tour a tour a deux comptes
+  // a le meme jeton enregistre sur les deux (constate le 2026-11-03), et
+  // recevait donc chaque notification en double. Tous les abonnes lies a un
+  // meme jeton sont marques comme notifies par ce message unique, sinon le
+  // second compte renverrait le meme push a l'execution suivante.
   const messages: PushMessage[] = [];
-  const messageOwners: Entry[] = []; // même index que messages, un message par jeton
+  const messageOwners: Entry[][] = []; // même index que messages
+  const messageIndexByToken = new Map<string, number>();
   for (const entry of entries) {
     const { title, body } = pushContent(entry.deals);
     for (const token of entry.sub.push_tokens ?? []) {
+      const existing = messageIndexByToken.get(token);
+      if (existing !== undefined) {
+        messageOwners[existing].push(entry);
+        continue;
+      }
+      messageIndexByToken.set(token, messages.length);
       messages.push({ to: token, title, body, data: { type: "deals" } });
-      messageOwners.push(entry);
+      messageOwners.push([entry]);
     }
   }
 
@@ -113,10 +125,11 @@ export async function sendPushForHotDeals(): Promise<PushResult> {
   const sentAt = new Date().toISOString();
   for (let i = 0; i < oks.length; i += 1) {
     if (!oks[i]) continue;
-    const entry = messageOwners[i];
-    notifiedSubs.add(entry.sub.id);
-    for (const d of entry.deals) {
-      rows.push({ deal_id: d.id, subscriber_id: entry.sub.id, sent_at: sentAt });
+    for (const entry of messageOwners[i]) {
+      notifiedSubs.add(entry.sub.id);
+      for (const d of entry.deals) {
+        rows.push({ deal_id: d.id, subscriber_id: entry.sub.id, sent_at: sentAt });
+      }
     }
   }
   // insertMany dédupliquerait mal si un même (deal,sub) apparaît plusieurs
