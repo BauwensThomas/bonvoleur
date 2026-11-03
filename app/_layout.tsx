@@ -5,6 +5,7 @@ import * as Notifications from "expo-notifications";
 import * as Sentry from "@sentry/react-native";
 import { usePushRegistration } from "../hooks/usePushRegistration";
 import { useInAppUpdate } from "../hooks/useInAppUpdate";
+import { useOrientationPolicy } from "../hooks/useOrientationPolicy";
 import { initAds } from "../lib/adsReady";
 
 // Affiche l'alerte meme si l'app est au premier plan (comportement par
@@ -30,6 +31,7 @@ function RootLayout() {
   const router = useRouter();
   usePushRegistration();
   useInAppUpdate();
+  useOrientationPolicy();
 
   useEffect(() => {
     // Lien profond minimal : taper sur une notification ouvre "Mes bons

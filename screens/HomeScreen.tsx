@@ -23,7 +23,8 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
-      <View style={styles.hero}>
+      {/* paddingTop : le contenu commence SOUS la ligne du logo (brandRow, positionnee en absolu), sinon il la chevauche quand la police systeme est grande ou que la barre d'etat est haute. */}
+      <View style={[styles.hero, { paddingTop: insets.top + 44 }]}>
         {/* contentPosition="bottom" : coupe le ciel en haut de la photo, garde la montagne/la baie */}
         <Image
           source={{ uri: HERO_IMAGE }}
@@ -76,7 +77,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   hero: {
-    height: 340,
+    // minHeight (et non height) : le bloc grandit si le texte est plus grand que prevu.
+    minHeight: 340,
     justifyContent: "center",
   },
   rest: {
