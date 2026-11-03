@@ -1,11 +1,16 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.bonvoleur.app",
       "sha256_cert_fingerprints": [
-        "B5:E8:47:13:F0:E2:A7:3E:B2:D4:03:57:7D:4E:DF:EE:BD:15:A4:82:98:80:BF:67:7F:28:CD:D5:94:71:BB:8D"
+        "B5:E8:47:13:F0:E2:A7:3E:B2:D4:03:57:7D:4E:DF:EE:BD:15:A4:82:98:80:BF:67:7F:28:CD:D5:94:71:BB:8D",
+        "83:FA:7D:47:53:47:5F:4E:EB:1A:75:39:E0:CB:A5:FE:9D:9B:5A:4E:A7:65:D1:1E:39:17:0D:A7:EA:12:46:6C",
+        "87:7D:23:EF:79:D6:2B:65:30:9B:F3:65:D9:D2:A7:FB:2A:E6:CB:7C:BA:6B:9C:30:A3:6A:9F:C4:92:84:96:9A",
+        "69:AF:32:03:C9:4D:12:A0:EA:92:DA:BF:45:96:4D:1F:22:85:F0:4D:C0:54:5B:DD:B8:04:7F:72:8A:C0:61:25"
       ]
     }
   }
