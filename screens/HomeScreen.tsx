@@ -78,8 +78,12 @@ const styles = StyleSheet.create({
   },
   hero: {
     // minHeight (et non height) : le bloc grandit si le texte est plus grand que prevu.
+    // Contenu aligne en haut (sous le logo, voir paddingTop en ligne) avec une marge
+    // en bas : centre, il laissait un grand vide sous le logo et collait le bouton
+    // au bord de la photo (constate sur la 1.2.9).
     minHeight: 340,
-    justifyContent: "center",
+    justifyContent: "flex-start",
+    paddingBottom: 28,
   },
   rest: {
     flex: 1,
@@ -123,7 +127,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.1)",
     paddingHorizontal: 14,
     paddingVertical: 6,
-    marginTop: 32,
+    marginTop: 20,
     marginBottom: 20,
   },
   badgeText: {
