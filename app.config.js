@@ -12,7 +12,7 @@ const config = {
     name: "BonVoleur",
     slug: "bonvoleur-app",
     scheme: "bonvoleur",
-    version: "1.2.9",
+    version: "1.2.10",
     // Verrou portrait applique a l'execution sur telephone seulement (hooks/useOrientationPolicy.ts).
     orientation: "default",
     icon: "./assets/icon.png",
@@ -40,8 +40,11 @@ const config = {
           action: "VIEW",
           autoVerify: true,
           data: [
+            // Uniquement www : bonvoleur.com (sans www) redirige en 308 vers www, et la
+            // validation Digital Asset Links interdit les redirections. Un domaine non
+            // conforme invalide AUSSI les autres sur Android 11 et avant (alerte Play
+            // Console 2026-11-03). Les retours Stripe utilisent deja www.
             { scheme: "https", host: "www.bonvoleur.com", pathPrefix: "/compte" },
-            { scheme: "https", host: "bonvoleur.com", pathPrefix: "/compte" },
           ],
           category: ["BROWSABLE", "DEFAULT"],
         },
