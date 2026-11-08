@@ -46,8 +46,27 @@ export default async function VolsPasChersIndex() {
     })),
   }));
 
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Vols pas chers depuis la Belgique et la France",
+    url: `${site.canonicalBase}/vols-pas-chers`,
+    inLanguage: "fr",
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: destinations.length,
+      itemListElement: destinations.map((d, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `${site.canonicalBase}/vols-pas-chers/${d.slug}`,
+        name: `Vols pas chers vers ${d.city}`,
+      })),
+    },
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
       <Header />
       <main className="mx-auto w-full max-w-7xl px-4 py-12">
         <h1 className="text-3xl font-bold sm:text-4xl">

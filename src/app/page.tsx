@@ -190,10 +190,25 @@ export default async function Home() {
     name: site.name,
     url: site.canonicalBase,
   };
+  const appJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "MobileApplication",
+    name: "BonVoleur",
+    operatingSystem: "ANDROID",
+    applicationCategory: "TravelApplication",
+    description: "Alertes de vols pas chers depuis la Belgique et la France, en notification et par email.",
+    url: site.canonicalBase,
+    downloadUrl: site.playStoreUrl,
+    installUrl: site.playStoreUrl,
+    inLanguage: "fr",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+    publisher: { "@type": "Organization", name: site.name, url: site.canonicalBase },
+  };
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(appJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }} />
       <Header />
       <SummerPromoPopup />

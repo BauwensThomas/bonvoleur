@@ -20,7 +20,8 @@
     "stripe:listen": "node scripts/stripe-listen.mjs",
     "stripe:products": "node scripts/setup-stripe-products.mjs",
     "stripe:portal": "node scripts/setup-stripe-portal.mjs",
-    "compress": "node scripts/compress-images.mjs"
+    "compress": "node scripts/compress-images.mjs",
+    "indexnow:all": "node scripts/indexnow-all.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",

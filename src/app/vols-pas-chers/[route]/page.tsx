@@ -83,8 +83,20 @@ export async function generateMetadata({
     },
     openGraph: {
       type: "website",
+      locale: "fr_BE",
+      siteName: site.name,
+      url: `${site.canonicalBase}/vols-pas-chers/${slug}`,
       title: `${title} - ${site.name}`,
       description,
+      // Le `openGraph` de la page remplace celui du layout : l'image par
+      // defaut doit etre redonnee ici (photo de la destination, sinon visuel du site).
+      images: [d?.image || `${site.canonicalBase}/opengraph-image`],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} - ${site.name}`,
+      description,
+      images: [d?.image || `${site.canonicalBase}/opengraph-image`],
     },
   };
 }

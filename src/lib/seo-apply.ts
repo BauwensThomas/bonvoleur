@@ -21,6 +21,7 @@ import { destinationSlug } from "./routes";
 import { revalidateDestinations } from "./revalidate-destinations";
 import { revalidatePosts } from "./revalidate-posts";
 import { submitSitemap } from "./gsc";
+import { submitToIndexNow } from "./indexnow";
 import { setSeoOverride, type SeoOverrideField } from "./settings";
 import { site } from "./site";
 import type { SeoSuggestion } from "./types";
@@ -32,6 +33,16 @@ export interface ApplyResult {
 
 const GSC_SITE_URL = "sc-domain:bonvoleur.com";
 
+// Apres une application reelle : Google (sitemap re-signale) + Bing/Yandex et
+// moteurs IA via IndexNow. Ne leve jamais, renvoie une phrase pour la note admin.
+async function notifySearchEngines(path: string): Promise<string> {
+  const [sm, ix] = await Promise.all([
+    submitSitemap(GSC_SITE_URL, `${site.canonicalBase}/sitemap.xml`).catch(() => false),
+    submitToIndexNow([path]),
+  ]);
+  return `Sitemap ${sm ? "re-signalé à Google" : "non re-signalé (erreur)"}, IndexNow ${ix.ok ? "notifié" : "non notifié"}.`;
+}
+
 export async function applySeoSuggestion(s: SeoSuggestion): Promise<ApplyResult> {
   const pageType = classifyPage(s.page);
   const slug = pageSlug(s.page);
@@ -42,8 +53,8 @@ export async function applySeoSuggestion(s: SeoSuggestion): Promise<ApplyResult>
     const field = s.suggestion_type === "title" ? "title" : "meta_description";
     await update("posts", post.id, { [field]: s.proposed_value });
     revalidatePosts(slug);
-    await submitSitemap(GSC_SITE_URL, `${site.canonicalBase}/sitemap.xml`);
-    return { applied: true, note: `Champ "${field}" mis à jour sur l'article, sitemap re-signalé à Google.` };
+    const sig = await notifySearchEngines(`/blog/${slug}`);
+    return { applied: true, note: `Champ "${field}" mis à jour sur l'article. ${sig}` };
   }
 
   if (pageType === "destination" && s.suggestion_type === "content") {
@@ -59,10 +70,10 @@ export async function applySeoSuggestion(s: SeoSuggestion): Promise<ApplyResult>
       await update("routes", r.id, { intro: s.proposed_value });
     }
     revalidateDestinations(slug);
-    await submitSitemap(GSC_SITE_URL, `${site.canonicalBase}/sitemap.xml`);
+    const sig = await notifySearchEngines(`/vols-pas-chers/${slug}`);
     return {
       applied: true,
-      note: `Intro mise à jour sur ${matches.length} route${matches.length > 1 ? "s" : ""} vers cette destination, sitemap re-signalé à Google.`,
+      note: `Intro mise à jour sur ${matches.length} route${matches.length > 1 ? "s" : ""} vers cette destination. ${sig}`,
     };
   }
 
@@ -83,10 +94,10 @@ export async function applySeoSuggestion(s: SeoSuggestion): Promise<ApplyResult>
     const field: SeoOverrideField = s.suggestion_type === "title" ? "title" : "meta_description";
     await setSeoOverride(path, field, s.proposed_value);
     revalidatePath(path);
-    await submitSitemap(GSC_SITE_URL, `${site.canonicalBase}/sitemap.xml`);
+    const sig = await notifySearchEngines(path);
     return {
       applied: true,
-      note: `Surcharge "${field}" enregistrée pour ${path}, sitemap re-signalé à Google.`,
+      note: `Surcharge "${field}" enregistrée pour ${path}. ${sig}`,
     };
   }
 

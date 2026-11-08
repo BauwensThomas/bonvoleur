@@ -3,6 +3,7 @@ import { getAll, insert, update, remove, findOne } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { rehostImage } from "@/lib/rehost";
 import { revalidatePosts } from "@/lib/revalidate-posts";
+import { submitToIndexNow } from "@/lib/indexnow";
 
 // rehostImage fait un fetch + sharp + upload Supabase -> peut dépasser 10s
 export const maxDuration = 60;
@@ -66,6 +67,7 @@ export async function POST(req: Request) {
     updated_at: now,
   });
   revalidatePosts(slug);
+  if (status === "published") await submitToIndexNow([`/blog/${slug}`, "/blog"]);
   return NextResponse.json(row, { status: 201 });
 }
 
@@ -94,6 +96,7 @@ export async function PUT(req: Request) {
     const row = await update("posts", id, patch);
     if (!row) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
     revalidatePosts(row.slug);
+    if (row.status === "published") await submitToIndexNow([`/blog/${row.slug}`]);
     return NextResponse.json(row);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);

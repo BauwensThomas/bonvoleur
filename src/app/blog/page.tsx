@@ -42,8 +42,26 @@ export default async function BlogIndex() {
       )
     );
 
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Le blog BonVoleur",
+    url: "https://www.bonvoleur.com/blog",
+    inLanguage: "fr",
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: posts.slice(0, 30).map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `https://www.bonvoleur.com/blog/${p.slug}`,
+        name: p.title,
+      })),
+    },
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
       <Header />
       <main className="mx-auto w-full max-w-7xl px-4 py-12">
         <h1 className="text-3xl font-bold">Le blog BonVoleur</h1>

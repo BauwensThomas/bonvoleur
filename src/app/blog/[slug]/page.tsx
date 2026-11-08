@@ -77,7 +77,18 @@ export async function generateMetadata({
       type: "article",
       title: post.meta_title ?? post.title,
       description: post.meta_description ?? post.excerpt,
-      images: post.cover_image ? [post.cover_image] : undefined,
+      locale: "fr_BE",
+      siteName: site.name,
+      url: `${site.canonicalBase}/blog/${slug}`,
+      publishedTime: post.published_at ?? undefined,
+      modifiedTime: post.updated_at ?? undefined,
+      images: [post.cover_image || `${site.canonicalBase}/opengraph-image`],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.meta_title ?? post.title,
+      description: post.meta_description ?? post.excerpt,
+      images: [post.cover_image || `${site.canonicalBase}/opengraph-image`],
     },
   };
 }

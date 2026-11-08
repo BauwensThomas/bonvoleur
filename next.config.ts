@@ -69,6 +69,11 @@ const nextConfig: NextConfig = {
       permanent: true,
     }));
   },
+  // IndexNow : le fichier de verification /<cle>.txt est servi par une route.
+  async rewrites() {
+    const key = process.env.INDEXNOW_KEY;
+    return key ? [{ source: `/${key}.txt`, destination: "/api/indexnow-key" }] : [];
+  },
   async headers() {
     return [
       {

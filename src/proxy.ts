@@ -161,6 +161,6 @@ export const config = {
   // Auth par requete ET empeche ces routes d'etre mises en cache (voir
   // memoire project_conventions_techniques, 2026-08-13).
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|llms.txt|api/mobile|api/push).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|llms.txt|[a-f0-9]{32}\.txt|api/mobile|api/push).*)",
   ],
 };

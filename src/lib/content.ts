@@ -10,6 +10,7 @@ import { getDestinations } from "./routes";
 import { rehostImage } from "./rehost";
 import { notifySocial } from "./social";
 import { revalidatePosts } from "./revalidate-posts";
+import { submitToIndexNow } from "./indexnow";
 import { getSetting, setSetting } from "./settings";
 import { getFxPromptLines } from "./fx";
 import type { AgentRun, FaqItem } from "./types";
@@ -730,6 +731,7 @@ export async function runContentPublisher(
       updated_at: now,
     });
     revalidatePosts(post.slug);
+    await submitToIndexNow([`/blog/${post.slug}`, "/blog"]);
 
     // Réseaux sociaux : prévient Make (webhook) pour publier sur IG/FB.
     // Ne lève jamais -> ne bloque pas la publication de l'article.
