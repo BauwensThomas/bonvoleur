@@ -123,3 +123,43 @@ export async function rehostImage(
     return sourceUrl;
   }
 }
+
+// Version CARREE (1080x1080, recadree au centre) d'une image pour les reseaux
+// sociaux. Instagram refuse toute image dont le ratio sort de 4:5 a 1,91:1
+// ("The aspect ratio is not supported", erreur 36003) : les photos Unsplash
+// en panoramique ou tres allongees faisaient echouer le scenario Make. Le
+// carre est toujours accepte par Instagram et Facebook. Renvoie null en cas
+// d'echec (l'appelant retombe alors sur l'image d'origine).
+export async function socialSquareImage(sourceUrl: string | null, name: string): Promise<string | null> {
+  if (!sourceUrl) return null;
+  const client = sb();
+  if (!client) return null;
+  try {
+    const r = await fetch(sourceUrl.split("?v=")[0], { headers: { "User-Agent": "Mozilla/5.0 BonVoleur" } });
+    if (!r.ok) return null;
+    const raw = Buffer.from(await r.arrayBuffer());
+    if (raw.byteLength === 0) return null;
+    const sharp = (await import("sharp")).default;
+    const jpeg = await sharp(raw)
+      .resize({ width: 1080, height: 1080, fit: "cover", position: "centre" })
+      .jpeg({ quality: 85 })
+      .toBuffer();
+    await ensureBucket(client);
+    const path = `social/${slugify(name)}.jpg`;
+    const { error } = await client.storage
+      .from("photos")
+      .upload(path, new Blob([new Uint8Array(jpeg)], { type: "image/jpeg" }), {
+        contentType: "image/jpeg",
+        upsert: true,
+        cacheControl: "31536000",
+      });
+    if (error) {
+      console.warn("[social-image] upload echoue:", error.message);
+      return null;
+    }
+    return `${client.storage.from("photos").getPublicUrl(path).data.publicUrl}?v=${Date.now()}`;
+  } catch (e) {
+    console.warn("[social-image] echec:", e);
+    return null;
+  }
+}

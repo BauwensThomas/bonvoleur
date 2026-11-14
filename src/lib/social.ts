@@ -6,6 +6,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { getAll, insert } from "./db";
 import { site } from "./site";
+import { socialSquareImage } from "./rehost";
 import type { Post, AgentTrigger } from "./types";
 
 // Mot-clé à commenter pour déclencher l'envoi du lien en DM via ManyChat.
@@ -102,7 +103,8 @@ export async function notifySocial(
     const payload: SocialPayload = {
       title: post.title,
       url,
-      image_url: post.cover_image ?? FALLBACK_IMAGE,
+      // Carre 1080x1080 : Instagram refuse les ratios hors 4:5 a 1,91:1.
+      image_url: (await socialSquareImage(post.cover_image, post.slug)) ?? post.cover_image ?? FALLBACK_IMAGE,
       caption,
       comment,
       keyword: KEYWORD,
