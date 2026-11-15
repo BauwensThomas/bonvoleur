@@ -110,6 +110,51 @@ export async function getPublicFreshDeals(
   return all;
 }
 
+const DIGEST_DEAL_COLS = "id,origin,destination,price,normal_price,discount_pct,dates,airline,booking_url,is_error_fare,is_hot,valid_until,published_at,email,created_at";
+
+// Deals crees depuis `sinceMs` (epoch ms), cote SQL, pagines. Remplace
+// getAll("deals", ...) dans les digests (table entiere telechargee a chaque envoi).
+export async function getDealsCreatedSince(sinceMs: number): Promise<Tables["deals"][]> {
+  const since = new Date(sinceMs).toISOString();
+  const all: Tables["deals"][] = [];
+  let offset = 0;
+  while (true) {
+    const { data, error } = await sb()
+      .from("deals")
+      .select(DIGEST_DEAL_COLS)
+      .gte("created_at", since)
+      .range(offset, offset + 999);
+    if (error) throw new Error(`Supabase getDealsCreatedSince: ${error.message}`);
+    if (!data?.length) break;
+    all.push(...(data as unknown as Tables["deals"][]));
+    if (data.length < 1000) break;
+    offset += 1000;
+  }
+  return all;
+}
+
+export async function getDealsByIds(ids: string[]): Promise<Tables["deals"][]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await sb().from("deals").select(DIGEST_DEAL_COLS).in("id", ids);
+  if (error) throw new Error(`Supabase getDealsByIds: ${error.message}`);
+  return (data ?? []) as unknown as Tables["deals"][];
+}
+
+// Recherche d'un deal par son lien de reservation, cote SQL. Remplace
+// findOne("deals", ...) qui telechargeait TOUTE la table deals (17 000 lignes,
+// ~4,5 Mo) a chaque deal ingere par le scanner (~130 par jour) : cause
+// principale de l'egress Supabase au-dela des 5 Go (diagnostic 2026-11-15).
+export async function findDealByBookingUrl(bookingUrl: string): Promise<Tables["deals"] | null> {
+  const { data, error } = await sb()
+    .from("deals")
+    .select("*")
+    .eq("booking_url", bookingUrl)
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(`Supabase findDealByBookingUrl: ${error.message}`);
+  return (data as unknown as Tables["deals"]) ?? null;
+}
+
 export async function getById<T extends TableName>(
   table: T,
   id: string,

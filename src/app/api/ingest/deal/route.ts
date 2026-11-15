@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { insert, findOne } from "@/lib/db";
+import { insert, findDealByBookingUrl } from "@/lib/db";
 import { discountPct } from "@/lib/site";
 import { runDealWriter } from "@/lib/deal-writer";
 import { sendDealAuto } from "@/lib/deal-send";
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
   const autosend = b.autosend !== false; // par défaut : envoi automatique
 
   // Dédoublonnage : si un deal avec le même lien existe déjà, on ne refait rien.
-  const existing = await findOne("deals", (d) => d.booking_url === bookingUrl);
+  const existing = await findDealByBookingUrl(bookingUrl);
   if (existing) {
     return NextResponse.json({ ok: true, duplicate: true, dealId: existing.id });
   }

@@ -2,7 +2,7 @@
 // Cible : les abonnés dont l'aéroport choisi (home_airport) correspond à
 // l'origine du deal, non désinscrits. L'email vient de deal.email (Deal Writer).
 
-import { getAll, getById, insert, insertMany } from "./db";
+import { getAll, getById, insert, insertMany, getDealsCreatedSince, getDealsByIds } from "./db";
 import { sendEmail, sendBatch, type EmailMessage } from "./email";
 import { emailLayout } from "./email-templates";
 import { site, discountPct } from "./site";
@@ -229,11 +229,7 @@ export interface DigestResult {
 }
 
 export async function sendDigest(dealIds: string[]): Promise<DigestResult> {
-  const allDeals = await getAll(
-    "deals",
-    "id,origin,destination,price,normal_price,discount_pct,dates,airline,booking_url,is_error_fare,is_hot,valid_until,published_at,email,created_at"
-  );
-  const deals = allDeals.filter((d) => dealIds.includes(d.id));
+  const deals = await getDealsByIds(dealIds);
   const subs = await getAll(
     "subscribers",
     "id,email,tier,home_airports,unsubscribe_token,consent_at,unsubscribed_at"
@@ -348,10 +344,10 @@ export async function sendScheduledDigest(
   const since = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
   const periodMs = periodDays * 24 * 60 * 60 * 1000;
   const activeIatas = await getActiveAirportCodes();
-  const allDeals = await getAll(
-    "deals",
-    "id,origin,destination,price,normal_price,discount_pct,dates,airline,booking_url,is_error_fare,is_hot,valid_until,published_at,email,created_at"
-  );
+  // Fenetre elargie a 45 jours (au moins) : le repli "3 deals les plus recents
+  // hors fenetre recente" en a besoin ; au-dela, un deal est de toute facon
+  // perime. Evite de telecharger les 17 000 deals de l'historique a chaque envoi.
+  const allDeals = await getDealsCreatedSince(Math.min(since, Date.now() - 45 * 24 * 60 * 60 * 1000));
   const recent = allDeals.filter((d) => {
     if (new Date(d.created_at).getTime() < since) return false;
     if (hotOnly && d.is_hot === false) return false;
