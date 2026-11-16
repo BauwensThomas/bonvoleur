@@ -10,6 +10,7 @@ const links = [
   { href: "/admin/photos", label: "Photos" },
   { href: "/admin/partners", label: "Partenaires" },
   { href: "/admin/blog", label: "Blog" },
+  { href: "/admin/article-ideas", label: "Idées d'articles" },
   { href: "/admin/reviews", label: "Avis" },
   { href: "/admin/subscribers", label: "Abonnés" },
   { href: "/admin/agents", label: "Agents" },

@@ -236,6 +236,26 @@ export interface SeoSuggestion {
   apply_note: string | null;
 }
 
+export type ArticleIdeaStatus = "pending" | "processing" | "done" | "skipped" | "error";
+
+// Idee d'article saisie a la main (/admin/article-ideas), traitee en priorite
+// par le content-publisher.
+export interface ArticleIdea {
+  id: string;
+  instructions: string;
+  source_urls: string[];
+  link_url: string | null;
+  link_label: string | null;
+  photo_url: string | null;
+  photo_credit: string | null;
+  review_first: boolean;
+  status: ArticleIdeaStatus;
+  post_id: string | null;
+  post_slug: string | null;
+  note: string | null;
+  created_at: string;
+}
+
 // Map nom de table -> type de ligne
 export interface Tables {
   subscribers: Subscriber;
@@ -253,6 +273,7 @@ export interface Tables {
   seo_gsc_daily: SeoGscDaily;
   seo_suggestions: SeoSuggestion;
   seo_indexation: SeoIndexation;
+  article_ideas: ArticleIdea;
 }
 
 export type TableName = keyof Tables;
