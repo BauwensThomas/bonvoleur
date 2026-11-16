@@ -133,6 +133,14 @@ export default function BlogManager({ initial }: { initial: Post[] }) {
                       Reseaux
                     </button>
                   )}
+                  <a
+                    href={p.status === "published" ? `/blog/${p.slug}` : `/apercu-admin/${p.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-emerald-700 hover:underline"
+                  >
+                    {p.status === "published" ? "Voir" : "Aperçu"}
+                  </a>
                   <button
                     onClick={() => setDraft(p)}
                     className="text-brand hover:underline"
