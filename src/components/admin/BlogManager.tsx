@@ -48,6 +48,21 @@ export default function BlogManager({ initial }: { initial: Post[] }) {
     reload();
   }
 
+  async function sharePreview(p: Post) {
+    const res = await fetch(`/api/admin/posts/share?slug=${encodeURIComponent(p.slug)}`);
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.url) {
+      alert(data?.error ?? "Erreur");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(data.url);
+      alert(`Lien copié (valable ${data.days} jours, visible par toute personne qui l'a) :\n\n${data.url}`);
+    } catch {
+      prompt(`Copie ce lien (valable ${data.days} jours) :`, data.url);
+    }
+  }
+
   async function shareToSocial(p: Post) {
     const res = await fetch("/api/admin/agents/run", {
       method: "POST",
@@ -141,6 +156,11 @@ export default function BlogManager({ initial }: { initial: Post[] }) {
                   >
                     {p.status === "published" ? "Voir" : "Aperçu"}
                   </a>
+                  {p.status !== "published" && (
+                    <button onClick={() => sharePreview(p)} className="text-violet-700 hover:underline">
+                      Lien à partager
+                    </button>
+                  )}
                   <button
                     onClick={() => setDraft(p)}
                     className="text-brand hover:underline"

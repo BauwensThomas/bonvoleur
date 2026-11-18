@@ -6,7 +6,7 @@ import { site } from "@/lib/site";
 // /avis...) sont en `noindex` et NON bloquees ici : un Disallow empecherait
 // Google de lire le noindex et pourrait garder l'URL dans l'index.
 // Seuls /admin et /api/ (jamais du contenu public) sont fermes.
-const PRIVATE_PATHS = ["/admin", "/api/"];
+const PRIVATE_PATHS = ["/admin", "/api/", "/apercu/", "/apercu-admin/"];
 
 const ALLOWED_BOTS = [
   "Googlebot",

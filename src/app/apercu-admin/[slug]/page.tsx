@@ -4,6 +4,7 @@ import { getAll } from "@/lib/db";
 import { getAdsEnabled } from "@/lib/settings";
 import { isAuthenticated } from "@/lib/auth";
 import ArticleView from "@/components/ArticleView";
+import PrintPreviewBar from "@/components/PrintPreviewBar";
 
 // Aperçu d'un article (brouillon ou publié) avec exactement la mise en page de
 // la page publique. Réservé à l'admin connecté (sinon 404, comme si la page
@@ -24,11 +25,13 @@ export default async function ArticlePreviewPage({ params }: { params: Promise<{
 
   return (
     <>
-      {post.status !== "published" && (
-        <div className="bg-amber-100 px-4 py-2 text-center text-sm font-semibold text-amber-900">
-          Aperçu du brouillon : cet article n&apos;est pas publié et n&apos;est visible que par toi.
-        </div>
-      )}
+      <PrintPreviewBar
+        message={
+          post.status !== "published"
+            ? "Aperçu du brouillon : cet article n'est pas publié et n'est visible que par toi."
+            : "Aperçu de l'article publié."
+        }
+      />
       <ArticleView post={post} slug={slug} adsEnabled={adsEnabled} />
     </>
   );
