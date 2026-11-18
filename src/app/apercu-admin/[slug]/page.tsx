@@ -4,7 +4,7 @@ import { getAll } from "@/lib/db";
 import { getAdsEnabled } from "@/lib/settings";
 import { isAuthenticated } from "@/lib/auth";
 import ArticleView from "@/components/ArticleView";
-import PrintPreviewBar from "@/components/PrintPreviewBar";
+import PreviewBar from "@/components/PreviewBar";
 
 // Aperçu d'un article (brouillon ou publié) avec exactement la mise en page de
 // la page publique. Réservé à l'admin connecté (sinon 404, comme si la page
@@ -25,7 +25,7 @@ export default async function ArticlePreviewPage({ params }: { params: Promise<{
 
   return (
     <>
-      <PrintPreviewBar
+      <PreviewBar
         message={
           post.status !== "published"
             ? "Aperçu du brouillon : cet article n'est pas publié et n'est visible que par toi."
