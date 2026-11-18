@@ -114,7 +114,7 @@ export default function BlogManager({ initial }: { initial: Post[] }) {
                     ) : (
                       <span className="h-10 w-16 shrink-0 rounded bg-slate-100" />
                     )}
-                    {p.title}
+                    <span className="line-clamp-2 min-w-0">{p.title}</span>
                   </span>
                 </td>
                 <td className="px-4 py-2">
@@ -139,40 +139,45 @@ export default function BlogManager({ initial }: { initial: Post[] }) {
                       })
                     : "-"}
                 </td>
-                <td className="px-4 py-2 text-right space-x-3">
-                  {p.status === "published" && (
-                    <button
-                      onClick={() => shareToSocial(p)}
-                      className="text-amber-600 hover:underline"
+                <td className="px-4 py-2">
+                  <div className="flex items-center justify-end gap-2 whitespace-nowrap">
+                    <a
+                      href={p.status === "published" ? `/blog/${p.slug}` : `/apercu-admin/${p.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100"
                     >
-                      Reseaux
+                      {p.status === "published" ? "Voir" : "Aperçu"}
+                    </a>
+                    {p.status !== "published" && (
+                      <button
+                        onClick={() => sharePreview(p)}
+                        className="rounded-md border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700 hover:bg-violet-100"
+                      >
+                        Lien à partager
+                      </button>
+                    )}
+                    {p.status === "published" && (
+                      <button
+                        onClick={() => shareToSocial(p)}
+                        className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100"
+                      >
+                        Réseaux
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setDraft(p)}
+                      className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                      Modifier
                     </button>
-                  )}
-                  <a
-                    href={p.status === "published" ? `/blog/${p.slug}` : `/apercu-admin/${p.slug}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-emerald-700 hover:underline"
-                  >
-                    {p.status === "published" ? "Voir" : "Aperçu"}
-                  </a>
-                  {p.status !== "published" && (
-                    <button onClick={() => sharePreview(p)} className="text-violet-700 hover:underline">
-                      Lien à partager
+                    <button
+                      onClick={() => del(p)}
+                      className="rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                    >
+                      Supprimer
                     </button>
-                  )}
-                  <button
-                    onClick={() => setDraft(p)}
-                    className="text-brand hover:underline"
-                  >
-                    Modifier
-                  </button>
-                  <button
-                    onClick={() => del(p)}
-                    className="text-red-600 hover:underline"
-                  >
-                    Supprimer
-                  </button>
+                  </div>
                 </td>
               </tr>
             ))}

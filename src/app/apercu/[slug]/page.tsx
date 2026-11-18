@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { findPostCached } from "@/lib/posts-cache";
 import { getAdsEnabled } from "@/lib/settings";
 import { verifyPreviewToken } from "@/lib/preview-token";
@@ -29,6 +29,9 @@ export default async function PrivatePreviewPage({
   // l'admin) : une visite du lien ne retelecharge pas toute la table.
   const [post, adsEnabled] = await Promise.all([findPostCached((p) => p.slug === slug), getAdsEnabled()]);
   if (!post) notFound();
+  // Article publie : le lien prive expire aussitot (la version publique prend
+  // le relais, rien n'est expose de plus).
+  if (post.status === "published") redirect(`/blog/${slug}`);
 
   return (
     <>
