@@ -704,12 +704,8 @@ RAPPEL FINAL CRITIQUE : TOUT le texte (title, excerpt, content, meta_title, meta
 
 // Exécute l'agent content-publisher : génère un article, le PUBLIE directement
 // et journalise l'exécution. Utilisé par le cron et le bouton admin.
-const PUBLISH_INTERVAL_DAYS = 3;
-// Marge de tolérance sur le seuil : le cron Vercel ne tourne qu'une fois par
-// jour, donc un décalage de quelques heures (jitter) suffit à faire passer
-// daysSince juste sous PUBLISH_INTERVAL_DAYS - ce qui décale la publication
-// d'un jour entier plutôt que de quelques heures. La tolérance absorbe ce jitter.
-const PUBLISH_TOLERANCE_HOURS = 6;
+// Planning (lundi/mercredi/vendredi 18h, dimanche 8h30, heure de Bruxelles) :
+// voir blog-schedule.ts et /api/cron/content-publisher.
 
 // Le lien vers le site source doit apparaitre dans le CORPS du texte (pas en
 // fin d'article) : present, et pas dans le dernier quart du contenu.
@@ -725,32 +721,6 @@ export async function runContentPublisher(
 ): Promise<AgentRun> {
   const startedAt = new Date().toISOString();
   let idea: ArticleIdea | null = null;
-
-  // Pour le cron quotidien : skip si le dernier article date de moins de 3 jours.
-  // Permet de rattraper un raté Vercel le lendemain sans surpublier.
-  if (trigger === "cron") {
-    const posts = await getAll("posts", "published_at");
-    const last = posts
-      .filter((p) => p.published_at)
-      .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))[0];
-    if (last?.published_at) {
-      const daysSince =
-        (Date.now() - new Date(last.published_at).getTime()) / (1000 * 60 * 60 * 24);
-      const effectiveThreshold = PUBLISH_INTERVAL_DAYS - PUBLISH_TOLERANCE_HOURS / 24;
-      if (daysSince < effectiveThreshold) {
-        return insert("agent_runs", {
-          agent_name: "content-publisher",
-          started_at: startedAt,
-          finished_at: new Date().toISOString(),
-          status: "skip",
-          trigger,
-          summary: `Dernier article il y a ${daysSince.toFixed(1)}j - prochain dans ${(PUBLISH_INTERVAL_DAYS - daysSince).toFixed(1)}j.`,
-          output_ref: null,
-          error: null,
-        });
-      }
-    }
-  }
 
   try {
     // Idee saisie dans /admin/article-ideas : traitee AVANT tout sujet automatique
@@ -825,7 +795,9 @@ export async function runContentPublisher(
       await submitToIndexNow([`/blog/${post.slug}`, "/blog"]);
       // Réseaux sociaux : prévient Make (webhook) pour publier sur IG/FB.
       // Ne lève jamais -> ne bloque pas la publication de l'article.
-      await notifySocial(post);
+      // Lancement manuel : tout de suite. Cron : 2 h plus tard, par le cron
+      // /api/cron/social-clipper?scheduled=1 (voir blog-schedule.ts).
+      if (trigger === "manuel") await notifySocial(post);
     }
 
     return insert("agent_runs", {

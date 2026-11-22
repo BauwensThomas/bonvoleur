@@ -140,6 +140,21 @@ export async function getDealsByIds(ids: string[]): Promise<Tables["deals"][]> {
   return (data ?? []) as unknown as Tables["deals"][];
 }
 
+// Nombre d'executions d'un agent (table agent_runs), avec filtres optionnels.
+// Sert aux crons planifies a ne jamais executer deux fois le meme creneau.
+export async function countAgentRuns(
+  agentName: string,
+  opts: { status?: string; since?: string; outputRef?: string } = {}
+): Promise<number> {
+  let q = sb().from("agent_runs").select("id", { count: "exact", head: true }).eq("agent_name", agentName);
+  if (opts.status) q = q.eq("status", opts.status);
+  if (opts.since) q = q.gte("created_at", opts.since);
+  if (opts.outputRef) q = q.eq("output_ref", opts.outputRef);
+  const { count, error } = await q;
+  if (error) throw new Error(`Supabase countAgentRuns: ${error.message}`);
+  return count ?? 0;
+}
+
 // Recherche d'un deal par son lien de reservation, cote SQL. Remplace
 // findOne("deals", ...) qui telechargeait TOUTE la table deals (17 000 lignes,
 // ~4,5 Mo) a chaque deal ingere par le scanner (~130 par jour) : cause
