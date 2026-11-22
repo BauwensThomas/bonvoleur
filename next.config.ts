@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs/config";
 import { BLOG_REDIRECT_TARGET, MERGED_BLOG_SLUGS } from "./src/lib/blog-redirects";
 
 const securityHeaders = [
