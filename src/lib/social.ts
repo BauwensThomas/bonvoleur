@@ -104,7 +104,7 @@ export async function notifySocial(
       title: post.title,
       url,
       // Carre 1080x1080 : Instagram refuse les ratios hors 4:5 a 1,91:1.
-      image_url: (await socialSquareImage(post.cover_image, post.slug)) ?? post.cover_image ?? FALLBACK_IMAGE,
+      image_url: (await socialSquareImage(post.cover_image ?? FALLBACK_IMAGE, post.slug)) ?? post.cover_image ?? FALLBACK_IMAGE,
       caption,
       comment,
       keyword: KEYWORD,

@@ -762,7 +762,14 @@ export async function runContentPublisher(
     const ideaPhoto = idea?.photo_url
       ? { url: idea.photo_url, credit: idea.photo_credit ?? null }
       : null;
-    const photo = ideaPhoto ?? (await unsplashImage(article.image_query || article.title));
+    // Requete trop pointue (aucun resultat Unsplash, constate le 2026-11-23 avec
+    // "Krokus break") : on retente avec le titre puis une requete generique, plutot
+    // que de publier un article sans photo.
+    const photo =
+      ideaPhoto ??
+      (await unsplashImage(article.image_query || article.title)) ??
+      (await unsplashImage(article.title)) ??
+      (await unsplashImage("airplane wing sky travel"));
     const reviewFirst = Boolean(idea?.review_first);
     const now = new Date().toISOString();
     const post = await insert("posts", {
