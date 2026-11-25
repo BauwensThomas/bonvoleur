@@ -41,6 +41,20 @@ function citedDestinations(
   return found.sort((a, b) => b.count - a.count).slice(0, limit);
 }
 
+// Partenaires d'affiliation du site (voir la liste du prompt de generation dans
+// content.ts) : seuls ces liens portent rel="sponsored".
+const AFFILIATE_HOST_RE =
+  /(^|\.)(booking|hostelworld|getyourguide|viator|discovercars|kiwitaxi|welcomepickups|airhelp|airalo|yesim|omio|travelpayouts|emrldtp)\.(com|app|fr|net)$|\.tp\.st$|^tp\.media$/i;
+
+function isAffiliateLink(href: string | undefined): boolean {
+  if (!href) return false;
+  try {
+    return AFFILIATE_HOST_RE.test(new URL(href).hostname);
+  } catch {
+    return false;
+  }
+}
+
 // Rendu de l'article, partage avec l'apercu admin des brouillons
 // (/admin/blog/preview/[slug]) pour voir EXACTEMENT la page publique.
 export default async function ArticleView({
@@ -152,12 +166,14 @@ export default async function ArticleView({
             components={{
               a: ({ href, children }) => {
                 const external = href?.startsWith("http");
+                // "sponsored" uniquement pour les liens d'affiliation/partenaires.
+                // Une citation editoriale (ex. un site qu'on cite comme source)
+                // reste un lien normal, sans l'attribut sponsored.
+                const rel = isAffiliateLink(href) ? "sponsored noopener noreferrer" : "noopener";
                 return (
                   <a
                     href={href}
-                    {...(external
-                      ? { target: "_blank", rel: "sponsored noopener noreferrer" }
-                      : {})}
+                    {...(external ? { target: "_blank", rel } : {})}
                   >
                     {children}
                   </a>
