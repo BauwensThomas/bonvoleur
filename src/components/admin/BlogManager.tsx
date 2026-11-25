@@ -100,7 +100,11 @@ export default function BlogManager({ initial }: { initial: Post[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {items.map((p) => (
+            {[...items]
+              .sort((a, b) =>
+                (b.published_at ?? b.created_at ?? "").localeCompare(a.published_at ?? a.created_at ?? "")
+              )
+              .map((p) => (
               <tr key={p.id}>
                 <td className="px-4 py-2 font-medium">
                   <span className="flex items-center gap-3">

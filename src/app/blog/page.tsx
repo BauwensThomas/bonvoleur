@@ -1,20 +1,11 @@
 import type { Metadata } from "next";
-import { Fragment } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getAllPostsCached } from "@/lib/posts-cache";
 import { formatArticleDate } from "@/lib/dates";
 import { getAdsEnabled, getSeoOverride } from "@/lib/settings";
 import { SEO_PAGE_DEFAULTS } from "@/lib/seo-page-defaults";
-import { AD_SLOTS } from "@/lib/ads";
-import AdUnit from "@/components/AdUnit";
-
-const AD_INTERVAL = 6;
-// La 1ere pub arrive plus tot que le rythme de croisiere (sinon la liste
-// parait vide avant de voir une seule pub), puis on retombe sur AD_INTERVAL.
-const AD_FIRST = 3;
+import BlogList from "@/components/BlogList";
 
 // ISR (comme l'accueil) : pas de donnee par visiteur sur cette page, voir
 // vols-pas-chers/page.tsx pour le contexte complet (egress Supabase).
@@ -76,60 +67,17 @@ export default async function BlogIndex() {
             Les premiers articles arrivent bientôt.
           </p>
         ) : (
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {posts.map((p, i) => (
-              <Fragment key={p.id}>
-                <Link
-                  href={`/blog/${p.slug}`}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
-                >
-                  {p.cover_image && (
-                    <div className="relative h-40 overflow-hidden">
-                      <Image
-                        src={p.cover_image}
-                        alt=""
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 33vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </div>
-                  )}
-                  <div className="flex flex-1 flex-col p-5">
-                    <h2 className="text-lg font-semibold line-clamp-2 min-h-14">
-                      {p.title}
-                    </h2>
-                    <p className="mt-2 text-sm text-slate-600 line-clamp-3 min-h-15">
-                      {p.excerpt}
-                    </p>
-                    <div className="mt-auto flex items-center justify-between pt-3">
-                      <span className="text-sm font-medium text-brand">
-                        Lire l&apos;article
-                      </span>
-                      <span className="text-xs text-slate-900">
-                        {formatArticleDate(p.published_at ?? p.created_at)}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-                {adsEnabled &&
-                  (i + 1 === AD_FIRST ||
-                    (i + 1 > AD_FIRST && (i + 1 - AD_FIRST) % AD_INTERVAL === 0)) && (
-                  <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <span className="absolute left-3 top-2 z-10 rounded bg-slate-900/70 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-                      Publicité
-                    </span>
-                    <div className="pt-7">
-                      <AdUnit
-                        slot={AD_SLOTS.inFeedBlog.slot}
-                        layoutKey={AD_SLOTS.inFeedBlog.layoutKey}
-                        format="fluid"
-                      />
-                    </div>
-                  </div>
-                )}
-              </Fragment>
-            ))}
-          </div>
+          <BlogList
+            adsEnabled={adsEnabled}
+            posts={posts.map((p) => ({
+              id: p.id,
+              slug: p.slug,
+              title: p.title,
+              excerpt: p.excerpt ?? "",
+              cover_image: p.cover_image,
+              dateLabel: formatArticleDate(p.published_at ?? p.created_at),
+            }))}
+          />
         )}
       </main>
       <Footer />
