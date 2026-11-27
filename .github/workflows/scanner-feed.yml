@@ -71,6 +71,18 @@ jobs:
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
         run: node scripts/generate-routes.mjs
 
+      # Trajet aeroport -> centre-ville des destinations qui n'ont pas encore de
+      # fait verifie (nouvelles destinations). Idempotent, plafonne a 5 par run,
+      # n'echoue jamais le scan (continue-on-error).
+      - name: Faits verifies des nouvelles destinations
+        if: steps.maintenance.outputs.active != 'true'
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/generate-destination-facts.mjs --limit=5
+
       # APRES chaque scan (3x/jour) : on declenche les digests SANS sharding.
       # C'est le PLAFOND par periode qui regle la frequence (premium = 24h,
       # gratuit = 7j) : un abonne n'est servi qu'une fois passe son delai. Lancer

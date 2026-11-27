@@ -14,6 +14,8 @@ import { FRESH_MAX_MS } from "@/lib/deal-freshness";
 import { DEFAULT_DEST_IMAGE } from "@/lib/destinations";
 import { formatArticleDate, formatLongDate } from "@/lib/dates";
 import { site } from "@/lib/site";
+import { getDestinationFact, formatTransferDuration } from "@/lib/destination-facts";
+import type { DestinationFact } from "@/lib/types";
 import { getMemberState } from "@/lib/member-auth";
 import {
   getDestination,
@@ -140,7 +142,8 @@ function plainText(text: string): string {
 function faqFor(
   city: string,
   originCities: string[],
-  content: { airlines: string[]; duration: string; bestPeriod: string } | null
+  content: { airlines: string[]; duration: string; bestPeriod: string } | null,
+  fact: DestinationFact | null = null
 ) {
   const depuis =
     originCities.length > 0
@@ -149,6 +152,15 @@ function faqFor(
   const airlines = content?.airlines ?? [];
   const duration = content?.duration ? plainText(content.duration) : "";
   const bestPeriod = content?.bestPeriod ? plainText(content.bestPeriod) : "";
+  const transferFaq =
+    fact && fact.transfer_summary && (fact.transfer_min || fact.transfer_max)
+      ? [
+          {
+            q: `Combien de temps faut-il pour aller de l'aéroport au centre de ${city} ?`,
+            a: `${fact.transfer_summary} Durée indicative : ${formatTransferDuration(fact.transfer_min, fact.transfer_max)}.`,
+          },
+        ]
+      : [];
   return [
     {
       q: `Quel est le prix d'un vol vers ${city} ?`,
@@ -168,6 +180,7 @@ function faqFor(
         ? `${bestPeriod} Les meilleurs prix partent vite : inscris-toi gratuitement pour recevoir nos bons plans vers ${city} par email.`
         : `Les meilleurs prix partent vite. Le plus simple est de s'inscrire gratuitement pour recevoir nos bons plans vers ${city} par email.`,
     },
+    ...transferFaq,
     {
       q: `BonVoleur vend-il les billets ?`,
       a: `Non. ${site.name} déniche les bons plans et te renvoie vers le site de la compagnie ou d'un partenaire pour réserver. Tu réserves toujours en direct.`,
@@ -289,7 +302,8 @@ export default async function DestinationPage({
     (r, i, arr) => arr.findIndex((x) => x.originIata === r.originIata) === i
   );
   const originCities = uniqueRoutes.map((r) => r.originCity);
-  const faq = faqFor(dest.destCity, originCities, content);
+  const fact = await getDestinationFact(dest.slug);
+  const faq = faqFor(dest.destCity, originCities, content, fact);
   const isMember = member.status === "member";
   const airports: AirportProof[] = await Promise.all(
     uniqueRoutes.map(async (r) => {
@@ -449,6 +463,37 @@ export default async function DestinationPage({
                 </ul>
               </>
             )}
+          </section>
+        )}
+
+        {/* Trajet aéroport -> centre-ville (fait vérifié, avec source et date) */}
+        {fact && fact.transfer_summary && (fact.transfer_min || fact.transfer_max) && (
+          <section className="mt-8">
+            <h2 className="text-2xl font-bold">De l&apos;aéroport au centre de {dest.destCity}</h2>
+            <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
+                {fact.transfer_mode ? `${fact.transfer_mode[0].toUpperCase()}${fact.transfer_mode.slice(1)}` : "Transfert"}
+                {fact.airport_name ? ` depuis ${fact.airport_name}` : ""}
+                {fact.transfer_to ? ` vers ${fact.transfer_to}` : ""}
+              </p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">
+                {formatTransferDuration(fact.transfer_min, fact.transfer_max)}
+              </p>
+              <p className="mt-2 text-slate-700">{fact.transfer_summary}</p>
+              <p className="mt-2 text-xs text-slate-500">
+                Durée indicative, vérifiée le {formatLongDate(fact.verified_at)}
+                {fact.source_url && (
+                  <>
+                    {" "}
+                    · Source :{" "}
+                    <a href={fact.source_url} target="_blank" rel="noopener" className="underline">
+                      {new URL(fact.source_url).hostname.replace(/^www\./, "")}
+                    </a>
+                  </>
+                )}
+                . Pense à compter ce temps dans ton séjour : c&apos;est du temps de visite en moins.
+              </p>
+            </div>
           </section>
         )}
 

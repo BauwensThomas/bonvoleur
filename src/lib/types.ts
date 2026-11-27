@@ -236,6 +236,23 @@ export interface SeoSuggestion {
   apply_note: string | null;
 }
 
+// Fait verifie sur une destination (trajet aeroport -> centre-ville), une
+// ligne par destination. Voir scripts/sql/add-destination-facts.sql.
+export interface DestinationFact {
+  id: string; // colonne generee = slug (le code generique de db.ts attend un `id`)
+  slug: string;
+  city: string;
+  airport_name: string | null;
+  transfer_mode: string | null;
+  transfer_min: number | null;
+  transfer_max: number | null;
+  transfer_to: string | null;
+  transfer_summary: string | null;
+  source_url: string | null;
+  verified_at: string;
+  created_at: string;
+}
+
 export type ArticleIdeaStatus = "pending" | "processing" | "done" | "skipped" | "error";
 
 // Idee d'article saisie a la main (/admin/article-ideas), traitee en priorite
@@ -274,6 +291,7 @@ export interface Tables {
   seo_suggestions: SeoSuggestion;
   seo_indexation: SeoIndexation;
   article_ideas: ArticleIdea;
+  destination_facts: DestinationFact;
 }
 
 export type TableName = keyof Tables;
