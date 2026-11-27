@@ -131,8 +131,10 @@ for (const d of deals) {
 const AFFILIATE_MARKER = "Hébergement : [Booking.com]";
 
 const client = env.ANTHROPIC_API_KEY ? new Anthropic({ apiKey: env.ANTHROPIC_API_KEY }) : null;
-// Haiku 4.5 : 5x moins cher qu'Opus, suffisant pour des fiches factuelles courtes.
-const model = env.ANTHROPIC_MODEL || "claude-haiku-4-5";
+// Haiku 5.5 (0,10 $ / 0,50 $ par million de jetons), suffisant pour des fiches
+// factuelles courtes. Volontairement PAS de variable ANTHROPIC_MODEL ici : une
+// valeur oubliee sur un gros modele a deja coute cher.
+const model = "claude-haiku-5-5";
 
 function extractJson(text) {
   const i = text.indexOf("{"), j = text.lastIndexOf("}");
@@ -142,10 +144,11 @@ function extractJson(text) {
 
 async function genCityContent(city, origins) {
   if (!client) return null;
-  for (let attempt = 0; attempt < 4; attempt += 1) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
    try {
     const res = await client.messages.create({
     model, max_tokens: 2800,
+    thinking: { type: "disabled" },
     tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
     messages: [{
       role: "user",

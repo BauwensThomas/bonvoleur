@@ -37,7 +37,7 @@ let done = {};
 try { done = JSON.parse(await readFile(TMP, "utf-8")); } catch {}
 
 const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-const model = env.ANTHROPIC_MODEL || "claude-opus-4-8";
+const model = "claude-haiku-5-5"; // cheap : une valeur oubliee sur Opus coutait tres cher
 
 function extractJson(text) {
   const i = text.indexOf("{"); const j = text.lastIndexOf("}");

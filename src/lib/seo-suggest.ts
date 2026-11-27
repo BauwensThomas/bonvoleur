@@ -10,6 +10,8 @@ import { getAll, insert, findOne } from "./db";
 import { detectSeoOpportunities, classifyPage, pageSlug, type Opportunity } from "./seo-opportunities";
 import { destinationSlug } from "./routes";
 import { getSeoOverride } from "./settings";
+import { CHEAP_MODEL, ARTICLE_MODEL, noThinking } from "./models";
+import { recordUsage } from "./ai-usage";
 import { SEO_PAGE_DEFAULTS, destinationDefaultTitle, destinationDefaultDescription } from "./seo-page-defaults";
 import { sendEmail } from "./email";
 import { seoSuggestionsAlertEmail } from "./email-templates";
@@ -179,9 +181,9 @@ async function reaccentuateBatch(client: Anthropic, texts: string[]): Promise<st
   if (nonEmpty.length === 0) return texts;
   try {
     const res = await client.messages.create({
-      model: "claude-haiku-4-5",
+      model: CHEAP_MODEL,
       max_tokens: 4000,
-      thinking: { type: "disabled" },
+      thinking: noThinking(CHEAP_MODEL),
       messages: [
         {
           role: "user",
@@ -189,6 +191,7 @@ async function reaccentuateBatch(client: Anthropic, texts: string[]): Promise<st
         },
       ],
     });
+    recordUsage(CHEAP_MODEL, res.usage);
     const out = res.content.find((b) => b.type === "text");
     if (!out || out.type !== "text") return texts;
     const fixed = out.text.trim().split(SEP.trim()).map((t) => t.trim());
@@ -201,7 +204,7 @@ async function reaccentuateBatch(client: Anthropic, texts: string[]): Promise<st
 
 async function generateSuggestions(contexts: PageContext[]): Promise<RawSuggestion[]> {
   const client = new Anthropic();
-  const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
+  const model = ARTICLE_MODEL;
 
   const pagesBlock = contexts
     .map((c, i) => {
@@ -251,12 +254,13 @@ RAPPEL FINAL CRITIQUE : dans "proposed_value" ET "reason", mets TOUS les accents
       client.messages.create({
         model,
         max_tokens: 8000,
-        thinking: { type: "disabled" },
+        thinking: noThinking(model),
         output_config: { format: { type: "json_schema", schema } },
         messages: [{ role: "user", content: prompt }],
       }),
     "génération suggestions SEO"
   );
+  recordUsage(model, response.usage);
 
   const textBlock = response.content.find((b) => b.type === "text");
   if (!textBlock || textBlock.type !== "text") throw new Error("Réponse vide de l'API.");

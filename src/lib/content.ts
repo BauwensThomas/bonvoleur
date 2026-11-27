@@ -13,6 +13,8 @@ import { revalidatePosts } from "./revalidate-posts";
 import { submitToIndexNow } from "./indexnow";
 import { getSetting, setSetting } from "./settings";
 import { getFxPromptLines } from "./fx";
+import { CHEAP_MODEL, ARTICLE_MODEL, noThinking } from "./models";
+import { recordUsage, resetUsage, usageSummary } from "./ai-usage";
 import type { AgentRun, ArticleIdea, FaqItem } from "./types";
 
 async function getActiveAirportNames(): Promise<string[]> {
@@ -90,9 +92,9 @@ async function reaccentuate(client: Anthropic, text: string): Promise<string> {
   if (!text || ACCENT_RE.test(text)) return text;
   try {
     const res = await client.messages.create({
-      model: "claude-haiku-4-5",
+      model: CHEAP_MODEL,
       max_tokens: 16000,
-      thinking: { type: "disabled" },
+      thinking: noThinking(CHEAP_MODEL),
       messages: [
         {
           role: "user",
@@ -100,6 +102,7 @@ async function reaccentuate(client: Anthropic, text: string): Promise<string> {
         },
       ],
     });
+    recordUsage(CHEAP_MODEL, res.usage);
     const out = res.content.find((b) => b.type === "text");
     let fixed = out && out.type === "text" ? out.text.trim() : null;
     if (!fixed) return text;
@@ -265,12 +268,13 @@ async function pickTrendingTopic(recent: string[]): Promise<string | null> {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   try {
     const client = new Anthropic();
-    // Appel court (recherche d'un titre) : Haiku, 5x moins cher.
-    const model = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5";
+    // Appel court (recherche d'un titre) : Haiku 5.5 (voir models.ts).
+    const model = CHEAP_MODEL;
     const res = await withRetry(() => client.messages.create({
       model,
       max_tokens: 1200,
-      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
+      thinking: noThinking(model),
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 2 }],
       messages: [
         {
           role: "user",
@@ -278,6 +282,7 @@ async function pickTrendingTopic(recent: string[]): Promise<string | null> {
         },
       ],
     }), "sujet tendance");
+    recordUsage(model, res.usage);
     // Avec la recherche web, le modele ecrit parfois une phrase d'intro AVANT
     // d'appeler l'outil ("Je vais chercher..."), puis le titre dans le DERNIER
     // bloc texte : on ne garde que celui-la, et on rejette tout ce qui ressemble
@@ -349,11 +354,12 @@ async function conflictingArticle(
   if (!process.env.ANTHROPIC_API_KEY || existing.length === 0) return null;
   try {
     const client = new Anthropic();
-    const model = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5";
+    const model = CHEAP_MODEL;
     const list = existing.map((p) => `- ${p.title} : ${p.excerpt ?? ""}`).join("\n");
     const res = await withRetry(() => client.messages.create({
       model,
       max_tokens: 200,
+      thinking: noThinking(model),
       messages: [
         {
           role: "user",
@@ -361,6 +367,7 @@ async function conflictingArticle(
         },
       ],
     }), "controle doublon sujet");
+    recordUsage(model, res.usage);
     const answer = res.content
       .map((b) => (b.type === "text" ? b.text : ""))
       .join(" ")
@@ -437,12 +444,13 @@ async function gatherFacts(topic: string): Promise<string> {
   if (!process.env.ANTHROPIC_API_KEY) return "";
   try {
     const client = new Anthropic();
-    // Collecte de faits (recherche web) : Haiku, 5x moins cher.
-    const model = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5";
+    // Collecte de faits (recherche web) : Haiku 5.5 (voir models.ts).
+    const model = CHEAP_MODEL;
     const res = await withRetry(() => client.messages.create({
       model,
       max_tokens: 1500,
-      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
+      thinking: noThinking(model),
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 2 }],
       messages: [
         {
           role: "user",
@@ -450,6 +458,7 @@ async function gatherFacts(topic: string): Promise<string> {
         },
       ],
     }), "faits web");
+    recordUsage(model, res.usage);
     return stripTags(
       res.content
         .map((b) => (b.type === "text" ? b.text : ""))
@@ -582,8 +591,8 @@ export async function generateArticle(idea?: ArticleIdea): Promise<GeneratedArti
 
   const client = new Anthropic();
   // Article long optimise SEO : Sonnet 4.6 (bon rapport qualite/cout, ~1,7x
-  // moins cher qu'Opus). Surchargeable via ANTHROPIC_MODEL.
-  const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
+  // moins cher qu'Opus) : Sonnet 5.5, voir models.ts.
+  const model = ARTICLE_MODEL;
 
   // Idee imposee par l'equipe : consigne + sources lues (donnees, pas instructions).
   let ideaBlock = "";
@@ -662,12 +671,13 @@ RAPPEL FINAL CRITIQUE : TOUT le texte (title, excerpt, content, meta_title, meta
       client.messages.create({
         model,
         max_tokens: 16000,
-        thinking: { type: "disabled" },
+        thinking: noThinking(model),
         output_config: { format: { type: "json_schema", schema } },
         messages: [{ role: "user", content: prompt }],
       }),
     "generation article"
   );
+  recordUsage(model, response.usage);
 
   const textBlock = response.content.find((b) => b.type === "text");
   if (!textBlock || textBlock.type !== "text") {
@@ -720,6 +730,7 @@ export async function runContentPublisher(
   opts: { ideaId?: string } = {}
 ): Promise<AgentRun> {
   const startedAt = new Date().toISOString();
+  resetUsage();
   let idea: ArticleIdea | null = null;
 
   try {
@@ -736,7 +747,7 @@ export async function runContentPublisher(
     // Génère, et si le contenu ressemble trop à un article existant, régénère
     // (jusqu'à 5 essais) pour éviter les doublons.
     let article = await generateArticle(idea ?? undefined);
-    for (let attempt = 1; attempt < 5; attempt += 1) {
+    for (let attempt = 1; attempt < 3; attempt += 1) {
       if (
         !hasPriceInHeadline(article) &&
         (!idea || ideaLinkInBody(article.content, idea)) &&
@@ -747,10 +758,10 @@ export async function runContentPublisher(
       article = await generateArticle(idea ?? undefined);
     }
     if (hasPriceInHeadline(article)) {
-      throw new Error(`Prix chiffré dans le titre ou les métadonnées après 5 essais : "${article.title}". Publication annulée.`);
+      throw new Error(`Prix chiffré dans le titre ou les métadonnées après 3 essais : "${article.title}". Publication annulée.`);
     }
     if (idea && !ideaLinkInBody(article.content, idea)) {
-      throw new Error(`Le lien vers ${idea.link_url} n'est pas dans le corps du texte après 5 essais. Article non créé.`);
+      throw new Error(`Le lien vers ${idea.link_url} n'est pas dans le corps du texte après 3 essais. Article non créé.`);
     }
 
     let slug = article.slug;
@@ -814,8 +825,8 @@ export async function runContentPublisher(
       status: "success",
       trigger,
       summary: reviewFirst
-        ? `Brouillon généré à partir d'une idée (à relire) : "${article.title}".`
-        : `Article généré et publié : "${article.title}".`,
+        ? `Brouillon généré à partir d'une idée (à relire) : "${article.title}". ${usageSummary()}`
+        : `Article généré et publié : "${article.title}". ${usageSummary()}`,
       output_ref: post.id,
       error: null,
     });

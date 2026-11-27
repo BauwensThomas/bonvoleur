@@ -7,6 +7,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getAll, insert } from "./db";
 import { site } from "./site";
 import { socialSquareImage } from "./rehost";
+import { CHEAP_MODEL, noThinking } from "./models";
+import { recordUsage, resetUsage, usageSummary } from "./ai-usage";
 import type { Post, AgentTrigger } from "./types";
 
 // Mot-clé à commenter pour déclencher l'envoi du lien en DM via ManyChat.
@@ -37,9 +39,9 @@ async function generateCaption(
   try {
     const client = new Anthropic();
     const res = await client.messages.create({
-      model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
+      model: CHEAP_MODEL,
       max_tokens: 800,
-      thinking: { type: "disabled" },
+      thinking: noThinking(CHEAP_MODEL),
       messages: [
         {
           role: "user",
@@ -63,6 +65,7 @@ Reponds STRICTEMENT en JSON, sans texte autour :
         },
       ],
     });
+    recordUsage(CHEAP_MODEL, res.usage);
     const block = res.content.find((b) => b.type === "text");
     if (block && block.type === "text") {
       const i = block.text.indexOf("{");
@@ -95,6 +98,7 @@ export async function notifySocial(
     console.warn(`[social] pas d'image pour "${post.title}", utilisation image de repli`);
   }
   const startedAt = new Date().toISOString();
+  resetUsage();
   let ok = false;
   let detail = "";
   try {
@@ -129,7 +133,7 @@ export async function notifySocial(
       status: ok ? "success" : "error",
       trigger,
       summary: ok
-        ? `Post envoyé à Make (IG + FB) : "${post.title}".`
+        ? `Post envoyé à Make (IG + FB) : "${post.title}". ${usageSummary()}`
         : `Échec de l'envoi à Make : ${detail || "inconnu"}.`,
       output_ref: post.id,
       error: ok ? null : detail || null,

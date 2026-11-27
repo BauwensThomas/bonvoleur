@@ -73,7 +73,10 @@ todo = todo.slice(0, LIMIT);
 console.log(`${dests.size} destinations, ${known.size} avec fait, ${todo.length} à traiter.`);
 
 const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-const MODEL = env.ANTHROPIC_FACTS_MODEL || "claude-sonnet-4-6";
+// Haiku 5.5 (0,10 $ / 0,50 $ par million de jetons) : la verification (source
+// officielle obligatoire, page qui repond, duree plausible) est faite par le
+// code, pas par le modele. Essai sur Sonnet 4.6 : environ 0,25 $ par destination.
+const MODEL = env.ANTHROPIC_FACTS_MODEL || "claude-haiku-5-5";
 
 const PROMPT = (d, feedback) => `${feedback ? `ATTENTION : ta réponse précédente a été refusée (${feedback}). Cherche une AUTRE source officielle, dont la page existe vraiment.
 
@@ -136,7 +139,8 @@ async function ask(d, feedback) {
       const res = await client.messages.create({
         model: MODEL,
         max_tokens: 1500,
-        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 5 }],
+        thinking: { type: "disabled" },
+        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
         messages: [{ role: "user", content: PROMPT(d, feedback) }],
       });
       lastText = res.content.filter((b) => b.type === "text").map((b) => b.text).join("\n");
